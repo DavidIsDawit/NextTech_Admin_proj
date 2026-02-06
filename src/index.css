@@ -1,0 +1,6 @@
+@tailwind base;
+/* html {
+  font-size: 62.5%;
+} */
+@tailwind components;
+@tailwind utilities;
