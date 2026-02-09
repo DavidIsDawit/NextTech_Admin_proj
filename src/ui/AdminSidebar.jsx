@@ -187,8 +187,8 @@ const AdminSidebar = () => {
               {({ isActive }) => (
                 <div
                   className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                      ? "bg-[#136ECA] text-white"
-                      : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+                    ? "bg-[#136ECA] text-white"
+                    : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
                     }`}
                 >
                   <img

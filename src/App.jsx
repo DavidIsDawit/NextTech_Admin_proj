@@ -11,9 +11,8 @@ import Gallery from "./pages/Gallery";
 import Partner from "./pages/Partner";
 import News from "./pages/News";
 import BlogDetail from "./pages/BlogDetail";
-import Certificate from "./pages/Certificate";
-import Counter from "./pages/Counter";
-import Testimonial from "./pages/Testimonial";
+import Contact from "./pages/Contact";
+import Services from "./pages/Services";
 import PageNotFound from "./pages/PageNotFound";
 
 function App() {
