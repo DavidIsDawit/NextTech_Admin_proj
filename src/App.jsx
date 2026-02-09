@@ -1,14 +1,15 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import AppLayout from "./ui/AppLayout";
-import Home from "./pages/Home";
-import AboutUs from "./pages/AboutUs";
+import FAQ from "./pages/FAQ";
+import Services from "./pages/services";
+import Dashboard from "./pages/Dashboard";
 import Teams from "./pages/Teams";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
-import Careers from "./pages/Careers";
-import CareerDetail from "./pages/CareerDetail";
-import Blogs from "./pages/Blogs";
+import Gallery from "./pages/Gallery";
+import Partner from "./pages/Partner";
+import News from "./pages/News";
 import BlogDetail from "./pages/BlogDetail";
 import Contact from "./pages/Contact";
 import Services from "./pages/Services";
@@ -20,17 +21,19 @@ function App() {
       <Routes>
         <Route element={<AppLayout />}>
           {/* <Route index element={<Navigate replace to="/" />} /> */}
-          <Route path="/" element={<Home />} />
-          <Route path="aboutus" element={<AboutUs />} />
-          <Route path="teams" element={<Teams />} />
-          <Route path="projects" element={<Projects />} />
-          <Route path="/projects/:id" element={<ProjectDetail />} />
-          <Route path="careers" element={<Careers />} />
-          <Route path="/careers/:id" element={<CareerDetail />} />
-          <Route path="blogs" element={<Blogs />} />
-          <Route path="/blogs/:id" element={<BlogDetail />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="admin/gacounter" element={<Services />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/admin/services" element={<Services />} />
+          <Route path="/admin/teams" element={<Teams />} />
+          <Route path="/admin/projects" element={<Projects />} />
+          {/* <Route path="/projects/:id" element={<ProjectDetail />} /> */}
+          <Route path="/admin/gallery" element={<Gallery />} />
+          <Route path="/admin/news" element={<News />} />
+          {/* <Route path="/news/:id" element={<NewsDetail />} /> */}
+          <Route path="/admin/faqs" element={<FAQ />} />
+          <Route path="/admin/counters" element={<Counter />} />
+          <Route path="/admin/testimonials" element={<Testimonial />} />
+          <Route path="/admin/partners" element={<Partner />} />
+          <Route path="/admin/certificates" element={<Certificate />} />
         </Route>
 
         <Route path="*" element={<PageNotFound />} />
@@ -40,3 +43,5 @@ function App() {
 }
 
 export default App;
+
+

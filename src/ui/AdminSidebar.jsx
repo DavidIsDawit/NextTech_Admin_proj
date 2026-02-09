@@ -2,32 +2,27 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import NextTech_logo from "/NextTech_logo.png";
 import Logout from "/images/Logout.png";
-import currency from "/images/Currency.png";
-import portfolio from "/images/portfolio_logo.png";
 import Dashboard from "/images/Dashboard.png";
 import Gallary from "/images/Gallary.png";
 import Images from "/images/Images_logo.png";
 import videos from "/images/Videos_logo.png";
 
 // Inline menu configurations
-const menuItems = [
-  { title: "Counter", path: "/admin/counter", icon: "/images/Counter.png" },
-  { title: "Partner", path: "/admin/partner", icon: "/images/partner.png" },
-  { title: "FAQ", path: "/admin/faq", icon: "/images/FAQ.png" },
-  { title: "Testimonial", path: "/admin/testimonial", icon: "/images/Testimonial.png" },
-  { title: "Team", path: "/admin/team", icon: "/images/partner.png" },
-  { title: "Project", path: "/admin/project", icon: "/images/Project.png" },
-  { title: "Blog", path: "/admin/blog", icon: "/images/Blog.png" },
-  { title: "Job", path: "/admin/job", icon: "/images/Blog.png" },
-  { title: "Industry", path: "/admin/industry", icon: "/images/Blog.png" }
-];
+// const menuItems = [
+ 
+// ];
 
 const gamenuItems = [
-  { title: "Services", path: "/admin/gacounter", icon: "/images/Counter.png" },
-  { title: "Partner Management", path: "/admin/ga_blog", icon: "/images/Blog.png" },
-  { title: "FAQ", path: "/admin/ga_faq", icon: "/images/FAQ.png" },
-  { title: "Certificate", path: "/admin/certificate", icon: "/images/Blog.png" },
-  { title: "Testimonial", path: "/admin/gatestimonial", icon: "/images/Testimonial.png" },
+   { title: "Services", path: "/admin/services", icon: "/images/Services.png" },
+   { title: "Partner Management", path: "/admin/partners", icon: "/images/Partner.png" },
+   { title: "Projects", path: "/admin/projects", icon: "/images/Project.png" },
+   { title: "Gallery", path: "/admin/gallery", icon: "/images/Gallary.png" },
+   { title: "Certificates", path: "/admin/certificates", icon: "/images/certificate.png" },
+   { title: "Team Management", path: "/admin/teams", icon: "/images/team_page.jpg" },
+   { title: "News", path: "/admin/news", icon: "/images/News.png" },
+   { title: "FAQ", path: "/admin/faqs", icon: "/images/FAQ.png" },
+   { title: "Counter", path: "/admin/counters", icon: "/images/Counter.png" },
+   { title: "Testimonial", path: "/admin/testimonials", icon: "/images/Testimonial.png" },
 ];
 
 const getUserRole = () => {
@@ -60,10 +55,7 @@ const AdminSidebar = () => {
     { title: "Users", path: "/admin/users", icon: Users },
   ];
 
-  const GallaryItems = [
-    { title: "Images", path: "/admin/image", icon: Images },
-    { title: "Videos", path: "/admin/video", icon: videos },
-  ];
+ 
 
   // Handle logout function
   const handleLogout = async () => {
@@ -137,7 +129,7 @@ const AdminSidebar = () => {
   return (
     <>
       {/* 🔹 Mobile Top Bar */}
-      <div className="lg:hidden fixed  top-0 left-0 z-50 flex h-20 items-start justify-between p-4">
+      <div className="lg:hidden fixed top-0 left-0 z-50 flex h-20 items-start justify-between p-4">
 
         <button
           onClick={() => { setMobileOpen(true); navigate("/admin"); }}
@@ -190,7 +182,7 @@ const AdminSidebar = () => {
         <nav className="flex-1 px-2 py-4 space-y-1">
           {/* Dashboard */}
           {isSuperAdmin && (
-            <NavLink to="/admin" end
+            <NavLink to="/" end
               onClick={() => setMobileOpen(false)}>
               {({ isActive }) => (
                 <div
@@ -202,7 +194,7 @@ const AdminSidebar = () => {
                   <img
                     src={Dashboard}
                     alt="Dashboard"
-                    className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert" : "invert group-hover:invert"
+                    className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 mr-3 object-contain transition filter ${isActive ? "invert" : "invert group-hover:invert"
                       }`}
                   />
                   Dashboard
@@ -210,210 +202,40 @@ const AdminSidebar = () => {
               )}
             </NavLink>
           )}
-
-          {/* GA Engineering */}
-          {gamenuItems.map((item) => (
-            <NavLink
-              key={item.title}
-              to={item.path}
-              end
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `group flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                  ? "bg-[#136ECA] text-white"
-                  : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <img
-                    src={item.icon}
-                    alt={item.title}
-                    className={`h-4 w-4 mr-3 object-contain transition filter ${item.title === "Counter"
-                      ? isActive
-                        ? "invert-0"
-                        : "invert-0 group-hover:invert-0"
-                      : isActive
-                        ? "invert"
-                        : " invert group-hover:invert"
-                      }`}
-                  />
-                  {item.title}
-                </>
-              )}
-            </NavLink>
-          ))}
-          <div>
-            <button
-              onClick={() => setUserManagementOpen(!userManagementOpen)}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#9CA3AF] hover:bg-[#1A2332] hover:text-[#FFFFFF] transition-colors"
-              disabled={isLoggingOut}
-            >
-              <div className="flex items-center">
-                <img
-                  src={Gallary}
-                  alt="Gallary"
-                  className="h-4 w-4 mr-3 object-contain transition filter invert group-hover:invert"
-                />
-                Gallery
-              </div>
-              {userManagementOpen ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </button>
-
-            {userManagementOpen && (
-              <div className="pl-8 space-y-1">
-                {GallaryItems.map((subItem) => (
-                  <NavLink
-                    key={subItem.title}
-                    to={subItem.path}
-                    onClick={() => setMobileOpen(false)}
-                    className={({ isActive }) =>
-                      `flex group items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                        ? "text-white bg-[#136ECA]"
-                        : "text-gray-600 hover:bg-[#1A2332] hover:text-white"
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <img
-                          src={subItem.icon}
-                          alt={subItem.title}
-                          className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert-0" : "invert group-hover:invert"
-                            }`}
-                        />
-                        {subItem.title}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
-              </div>
-            )}
-
-            {/* Portfolio */}
-            <NavLink to="/admin/portfolio"
-              onClick={() => setMobileOpen(false)}>
-              {({ isActive }) => (
-                <div
-                  className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                    ? "bg-[#136ECA] text-white"
-                    : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
-                    }`}
-                >
-                  <img
-                    src={portfolio}
-                    alt="Portfolio"
-                    className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert-0" : "invert group-hover:invert"}`}
-                  />
-                  Portfolio
-                </div>
-              )}
-            </NavLink>
-          </div>
-          {/* GA Soft */}
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.title}
-              to={item.path}
-              end
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                  ? "bg-[#136ECA] text-white"
-                  : "text-[#9CA3AF] hover:bg-[#136ECA] hover:text-white"
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <img
-                    src={item.icon}
-                    alt={item.title}
-                    className={`h-4 w-4 mr-3 object-contain transition filter ${item.title === "Counter"
-                      ? isActive
-                        ? "invert-0"
-                        : "invert group-hover:invert-0"
-                      : isActive
-                        ? "invert"
-                        : "invert-0 group-hover:invert"
-                      }`}
-                  />
-                  {item.title}
-                </>
-              )}
-            </NavLink>
-          ))}
-
-          <NavLink to="/admin/currency"
-            onClick={() => setMobileOpen(false)}>
-            {({ isActive }) => (
-              <div
-                className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                  ? "bg-[#136ECA] text-white"
-                  : "text-gray-600 hover:bg-[#136ECA] hover:text-white"
-                  }`}
-              >
-                <img
-                  src={currency}
-                  alt="Currency"
-                  className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert" : "invert-0 group-hover:invert"
-                    }`}
-                />
-                Currency
-              </div>
-            )}
-          </NavLink>
-
-
-
-
-
-          {/* User Management (Super Admin only) */}
-          {/* {isSuperAdmin && (
-            <div>
-              <button
-                onClick={() => setUserManagementOpen(!userManagementOpen)}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                disabled={isLoggingOut}
-              >
-                <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-3" />
-                  User Management
-                </div>
-                {userManagementOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-
-              {userManagementOpen && (
-                <div className="pl-8 space-y-1">
-                  {userManagementItems.map((subItem) => (
+       
+                  {gamenuItems.map((item) => (
                     <NavLink
-                      key={subItem.title}
-                      to={subItem.path}
+                      key={item.title}
+                      to={item.path}
+                      end
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                          ? "text-white bg-[#136ECA]"
-                          : "text-gray-600 hover:bg-[#136ECA] hover:text-white"
+                        `group flex gap-4 items-center px-3 py-2 rounded-lg text-sm  lg:text-base font-medium transition-colors ${isActive
+                          ? "bg-[#136ECA] text-white"
+                          : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
                         }`
                       }
                     >
-                      <subItem.icon className="h-4 w-4 mr-3" />
-                      {subItem.title}
+                      {({ isActive }) => (
+                        <>
+                          <img
+                            src={item.icon}
+                            alt={item.title}
+                            className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 object-contain transition filter ${item.title === "Counter"
+                                ? isActive
+                                  ? "invert-0"
+                                  : "invert-0 group-hover:invert-0"
+                                : isActive
+                                  ? "invert"
+                                  : " invert group-hover:invert"
+                              }`}
+                          />
+                          {item.title}
+                        </>
+                      )}
                     </NavLink>
-                  ))}
-                </div>
-              )}
-            </div>
-          )} */}
+                  ))}            
+
         </nav>
 
         {/* Logout Button */}
@@ -421,15 +243,15 @@ const AdminSidebar = () => {
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className={`w-full group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isLoggingOut
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+            className={`w-full gap-3 group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isLoggingOut
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
               }`}
           >
             <img
               src={Logout}
               alt="Logout"
-              className={`h-4 w-4 mr-3 object-contain transition filter ${isLoggingOut ? "opacity-50" : "invert group-hover:invert"
+              className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7  object-contain transition filter ${isLoggingOut ? "opacity-50" : "invert group-hover:invert-0"
                 }`}
             />
             {isLoggingOut ? "Logging out..." : "Logout"}
