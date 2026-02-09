@@ -195,8 +195,8 @@ const AdminSidebar = () => {
               {({ isActive }) => (
                 <div
                   className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                      ? "bg-[#136ECA] text-white"
-                      : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+                    ? "bg-[#136ECA] text-white"
+                    : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
                     }`}
                 >
                   <img
@@ -211,167 +211,167 @@ const AdminSidebar = () => {
             </NavLink>
           )}
 
-          {/* GA Engineering */}        
-                  {gamenuItems.map((item) => (
-                    <NavLink
-                      key={item.title}
-                      to={item.path}
-                      end
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `group flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                          ? "bg-[#136ECA] text-white"
-                          : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <img
-                            src={item.icon}
-                            alt={item.title}
-                            className={`h-4 w-4 mr-3 object-contain transition filter ${item.title === "Counter"
-                                ? isActive
-                                  ? "invert-0"
-                                  : "invert-0 group-hover:invert-0"
-                                : isActive
-                                  ? "invert"
-                                  : " invert group-hover:invert"
-                              }`}
-                          />
-                          {item.title}
-                        </>
-                      )}
-                    </NavLink>
-                  ))}
-                  <div>
-                    <button
-                      onClick={() => setUserManagementOpen(!userManagementOpen)}
-                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#9CA3AF] hover:bg-[#1A2332] hover:text-[#FFFFFF] transition-colors"
-                      disabled={isLoggingOut}
-                    >
-                      <div className="flex items-center">
-                        <img
-                          src={Gallary}
-                          alt="Gallary"
-                          className="h-4 w-4 mr-3 object-contain transition filter invert group-hover:invert"
-                        />
-                        Gallery
-                      </div>
-                      {userManagementOpen ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </button>
+          {/* GA Engineering */}
+          {gamenuItems.map((item) => (
+            <NavLink
+              key={item.title}
+              to={item.path}
+              end
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                `group flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
+                  ? "bg-[#136ECA] text-white"
+                  : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <img
+                    src={item.icon}
+                    alt={item.title}
+                    className={`h-4 w-4 mr-3 object-contain transition filter ${item.title === "Counter"
+                      ? isActive
+                        ? "invert-0"
+                        : "invert-0 group-hover:invert-0"
+                      : isActive
+                        ? "invert"
+                        : " invert group-hover:invert"
+                      }`}
+                  />
+                  {item.title}
+                </>
+              )}
+            </NavLink>
+          ))}
+          <div>
+            <button
+              onClick={() => setUserManagementOpen(!userManagementOpen)}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-[#9CA3AF] hover:bg-[#1A2332] hover:text-[#FFFFFF] transition-colors"
+              disabled={isLoggingOut}
+            >
+              <div className="flex items-center">
+                <img
+                  src={Gallary}
+                  alt="Gallary"
+                  className="h-4 w-4 mr-3 object-contain transition filter invert group-hover:invert"
+                />
+                Gallery
+              </div>
+              {userManagementOpen ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
 
-                    {userManagementOpen && (
-                      <div className="pl-8 space-y-1">
-                        {GallaryItems.map((subItem) => (
-                          <NavLink
-                            key={subItem.title}
-                            to={subItem.path}
-                            onClick={() => setMobileOpen(false)}
-                            className={({ isActive }) =>
-                              `flex group items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                                ? "text-white bg-[#136ECA]"
-                                : "text-gray-600 hover:bg-[#1A2332] hover:text-white"
-                              }`
-                            }
-                          >
-                            {({ isActive }) => (
-                              <>
-                                <img
-                                  src={subItem.icon}
-                                  alt={subItem.title}
-                                  className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert-0" : "invert group-hover:invert"
-                                    }`}
-                                />
-                                {subItem.title}
-                              </>
-                            )}
-                          </NavLink>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Portfolio */}
-                    <NavLink to="/admin/portfolio"
-                      onClick={() => setMobileOpen(false)}>
-                      {({ isActive }) => (
-                        <div
-                          className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                              ? "bg-[#136ECA] text-white"
-                              : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
-                            }`}
-                        >
-                          <img
-                            src={portfolio}
-                            alt="Portfolio"
-                            className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert-0" : "invert group-hover:invert" }`}
-                          />
-                          Portfolio
-                        </div>
-                      )}
-                    </NavLink>
-                  </div>            
-          {/* GA Soft */}       
-                  {menuItems.map((item) => (
-                    <NavLink
-                      key={item.title}
-                      to={item.path}
-                      end
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                          ? "bg-[#136ECA] text-white"
-                          : "text-[#9CA3AF] hover:bg-[#136ECA] hover:text-white"
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <img
-                            src={item.icon}
-                            alt={item.title}
-                            className={`h-4 w-4 mr-3 object-contain transition filter ${item.title === "Counter"
-                                ? isActive
-                                  ? "invert-0"
-                                  : "invert group-hover:invert-0"
-                                : isActive
-                                  ? "invert"
-                                  : "invert-0 group-hover:invert"
-                              }`}
-                          />
-                          {item.title}
-                        </>
-                      )}
-                    </NavLink>
-                  ))}
-  
-                  <NavLink to="/admin/currency"
-                    onClick={() => setMobileOpen(false)}>
+            {userManagementOpen && (
+              <div className="pl-8 space-y-1">
+                {GallaryItems.map((subItem) => (
+                  <NavLink
+                    key={subItem.title}
+                    to={subItem.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `flex group items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
+                        ? "text-white bg-[#136ECA]"
+                        : "text-gray-600 hover:bg-[#1A2332] hover:text-white"
+                      }`
+                    }
+                  >
                     {({ isActive }) => (
-                      <div
-                        className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                            ? "bg-[#136ECA] text-white"
-                            : "text-gray-600 hover:bg-[#136ECA] hover:text-white"
-                          }`}
-                      >
+                      <>
                         <img
-                          src={currency}
-                          alt="Currency"
-                          className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert" : "invert-0 group-hover:invert"
+                          src={subItem.icon}
+                          alt={subItem.title}
+                          className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert-0" : "invert group-hover:invert"
                             }`}
                         />
-                        Currency
-                      </div>
+                        {subItem.title}
+                      </>
                     )}
                   </NavLink>
-                
-              
-            
-          
+                ))}
+              </div>
+            )}
+
+            {/* Portfolio */}
+            <NavLink to="/admin/portfolio"
+              onClick={() => setMobileOpen(false)}>
+              {({ isActive }) => (
+                <div
+                  className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                    ? "bg-[#136ECA] text-white"
+                    : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+                    }`}
+                >
+                  <img
+                    src={portfolio}
+                    alt="Portfolio"
+                    className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert-0" : "invert group-hover:invert"}`}
+                  />
+                  Portfolio
+                </div>
+              )}
+            </NavLink>
+          </div>
+          {/* GA Soft */}
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.title}
+              to={item.path}
+              end
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                  ? "bg-[#136ECA] text-white"
+                  : "text-[#9CA3AF] hover:bg-[#136ECA] hover:text-white"
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <img
+                    src={item.icon}
+                    alt={item.title}
+                    className={`h-4 w-4 mr-3 object-contain transition filter ${item.title === "Counter"
+                      ? isActive
+                        ? "invert-0"
+                        : "invert group-hover:invert-0"
+                      : isActive
+                        ? "invert"
+                        : "invert-0 group-hover:invert"
+                      }`}
+                  />
+                  {item.title}
+                </>
+              )}
+            </NavLink>
+          ))}
+
+          <NavLink to="/admin/currency"
+            onClick={() => setMobileOpen(false)}>
+            {({ isActive }) => (
+              <div
+                className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                  ? "bg-[#136ECA] text-white"
+                  : "text-gray-600 hover:bg-[#136ECA] hover:text-white"
+                  }`}
+              >
+                <img
+                  src={currency}
+                  alt="Currency"
+                  className={`h-4 w-4 mr-3 object-contain transition filter ${isActive ? "invert" : "invert-0 group-hover:invert"
+                    }`}
+                />
+                Currency
+              </div>
+            )}
+          </NavLink>
+
+
+
+
 
           {/* User Management (Super Admin only) */}
           {/* {isSuperAdmin && (
@@ -422,8 +422,8 @@ const AdminSidebar = () => {
             onClick={handleLogout}
             disabled={isLoggingOut}
             className={`w-full group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isLoggingOut
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
               }`}
           >
             <img
