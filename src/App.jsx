@@ -6,11 +6,11 @@ import Services from "./pages/services";
 import Dashboard from "./pages/Dashboard";
 import Teams from "./pages/Teams";
 import Projects from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail";
+
 import Gallery from "./pages/Gallery";
 import Partner from "./pages/Partner";
 import News from "./pages/News";
-import BlogDetail from "./pages/BlogDetail";
+
 import Certificate from "./pages/Certificate";
 import Counter from "./pages/Counter";
 import Testimonial from "./pages/Testimonial";
