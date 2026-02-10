@@ -35,6 +35,7 @@ function App() {
           <Route path="/admin/testimonials" element={<Testimonial />} />
           <Route path="/admin/partners" element={<Partner />} />
           <Route path="/admin/certificates" element={<Certificate />} />
+          <Route path="/modal-examples" element={<ModalExamples />} />
         </Route>
 
         <Route path="*" element={<PageNotFound />} />
