@@ -36,6 +36,7 @@ function App() {
           <Route path="/admin/counters" element={<Counter />} />
           <Route path="/admin/testimonials" element={<Testimonial />} />
           <Route path="/admin/partners" element={<Partner />} />
+          <Route path="/admin/modalexamples" element={<ModalExamples />} />
           <Route path="/admin/certificates" element={<Certificate />} />
           <Route path="/admin/login" element={<Login />} />
         </Route>
