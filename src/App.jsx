@@ -2,17 +2,20 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import AppLayout from "./ui/AppLayout";
 import FAQ from "./pages/FAQ";
-import Services from "./pages/services";
+import Services from "./pages/Services";
 import Dashboard from "./pages/Dashboard";
 import Teams from "./pages/Teams";
 import Projects from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail";
+import Login from "./pages/Login"
+
 import Gallery from "./pages/Gallery";
 import Partner from "./pages/Partner";
 import News from "./pages/News";
-import BlogDetail from "./pages/BlogDetail";
-import Contact from "./pages/Contact";
-import Services from "./pages/Services";
+
+import Certificate from "./pages/Certificate";
+import Counter from "./pages/Counter";
+import Testimonial from "./pages/Testimonial";
+import ModalExamples from "./pages/ModalExamples";
 import PageNotFound from "./pages/PageNotFound";
 
 function App() {
@@ -34,6 +37,7 @@ function App() {
           <Route path="/admin/testimonials" element={<Testimonial />} />
           <Route path="/admin/partners" element={<Partner />} />
           <Route path="/admin/certificates" element={<Certificate />} />
+          <Route path="/admin/login" element={<Login />} />
         </Route>
 
         <Route path="*" element={<PageNotFound />} />

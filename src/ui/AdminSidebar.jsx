@@ -14,7 +14,7 @@ import videos from "/images/Videos_logo.png";
 
 const gamenuItems = [
    { title: "Services", path: "/admin/services", icon: "/images/Services.png" },
-   { title: "Partner Management", path: "/admin/partners", icon: "/images/Partner.png" },
+   { title: "Partner Management", path: "/admin/partners", icon: "/images/partner.png" },
    { title: "Projects", path: "/admin/projects", icon: "/images/Project.png" },
    { title: "Gallery", path: "/admin/gallery", icon: "/images/Gallary.png" },
    { title: "Certificates", path: "/admin/certificates", icon: "/images/certificate.png" },
@@ -53,69 +53,70 @@ const AdminSidebar = () => {
 
   const userManagementItems = [
     { title: "Users", path: "/admin/users", icon: Users },
-  ];
-
- 
+  ]; 
 
   // Handle logout function
-  const handleLogout = async () => {
-    try {
-      setIsLoggingOut(true);
+  // const handleLogout = async () => {
+  //   try {
+  //     setIsLoggingOut(true);
 
-      // Get the access token from localStorage or wherever it's stored
-      const accessToken = localStorage.getItem("accessToken") ||
-        sessionStorage.getItem("accessToken") ||
-        getCookie("accessToken");
+  //     // Get the access token from localStorage or wherever it's stored
+  //     const accessToken = localStorage.getItem("accessToken") ||
+  //       sessionStorage.getItem("accessToken") ||
+  //       getCookie("accessToken");
 
-      // Call logout endpoint with Authorization header
-      const response = await api.post(
-        "/user/logout",
-        {}, // Empty body
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          withCredentials: true // Important for cookies
-        }
-      );
+  //     // Call logout endpoint with Authorization header
+  //     const response = await api.post(
+  //       "/user/logout",
+  //       {}, // Empty body
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${accessToken}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //         withCredentials: true // Important for cookies
+  //       }
+  //     );
 
-      if (response.data.status === "success") {
-        // Clear all client-side storage
-        localStorage.clear();
-        sessionStorage.clear();
+  //     if (response.data.status === "success") {
+  //       // Clear all client-side storage
+  //       localStorage.clear();
+  //       sessionStorage.clear();
 
-        // Clear any remaining cookies
-        document.cookie.split(";").forEach(cookie => {
-          const eqPos = cookie.indexOf("=");
-          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-          // Clear the cookie by setting expiry to past
-          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
-        });
+  //       // Clear any remaining cookies
+  //       document.cookie.split(";").forEach(cookie => {
+  //         const eqPos = cookie.indexOf("=");
+  //         const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+  //         // Clear the cookie by setting expiry to past
+  //         document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
+  //       });
 
-        // Reset API default headers if needed
-        if (api.defaults.headers.common['Authorization']) {
-          delete api.defaults.headers.common['Authorization'];
-        }
+  //       // Reset API default headers if needed
+  //       if (api.defaults.headers.common['Authorization']) {
+  //         delete api.defaults.headers.common['Authorization'];
+  //       }
 
-        // Redirect to login page
-        navigate("/admin/login");
-      } else {
-        console.error("Logout failed:", response.data.message);
-        // Fallback to manual logout even if API fails
-        localStorage.clear();
-        sessionStorage.clear();
-        navigate("/admin/login");
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Fallback to manual logout on error
-      localStorage.clear();
-      sessionStorage.clear();
-      navigate("/admin/login");
-    } finally {
-      setIsLoggingOut(false);
-    }
+  //       // Redirect to login page
+  //       navigate("/admin/login");
+  //     } else {
+  //       console.error("Logout failed:", response.data.message);
+  //       // Fallback to manual logout even if API fails
+  //       localStorage.clear();
+  //       sessionStorage.clear();
+  //       navigate("/admin/login");
+  //     }
+  //   } catch (error) {
+  //     console.error("Logout error:", error);
+  //     // Fallback to manual logout on error
+  //     localStorage.clear();
+  //     sessionStorage.clear();
+  //     navigate("/admin/login");
+  //   } finally {
+  //     setIsLoggingOut(false);
+  //   }
+  // };
+  const handleLogout = function(){
+     navigate("/admin/login");
   };
 
   // Helper function to get cookie value
@@ -156,7 +157,7 @@ const AdminSidebar = () => {
           lg:translate-x-0 lg:static lg:inset-0`}
       >
         {/* Logo */}
-        <div className="p-4 flex items-center justify-between border-gray-200">
+        <div className="p-4 flex  items-center justify-between border-gray-200">
           <button
             className=" text-gray-700"
             onClick={() => { setMobileOpen(false); navigate("/admin"); }}
@@ -165,7 +166,7 @@ const AdminSidebar = () => {
             <img
               src={NextTech_logo}
               alt="NextTech_logo"
-              className="2xl:h-24 2xl:w-28 xl:h-24 xl:w-28 lg:h-20 lg:w-24 md:h-16 md:w-20 h-14 w-16"
+              className="2xl:h-24 2xl:w-full xl:h-24 xl:w-28 lg:h-20 lg:w-24 md:h-16 md:w-20 h-14 w-16"
             />
           </button>
 
@@ -181,27 +182,28 @@ const AdminSidebar = () => {
         {/* 🔹 Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-1">
           {/* Dashboard */}
-          {isSuperAdmin && (
+         
             <NavLink to="/" end
               onClick={() => setMobileOpen(false)}>
               {({ isActive }) => (
                 <div
                   className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                    ? "bg-[#136ECA] text-white"
-                    : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+                      ? "border-l-[#136ECA] border-l-4   text-white"
+                      : "text-[#9CA3AF]  hover:bg-[#1A2332] hover:text-white"
                     }`}
                 >
                   <img
                     src={Dashboard}
                     alt="Dashboard"
-                    className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 mr-3 object-contain transition filter ${isActive ? "invert" : "invert group-hover:invert"
+                    className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 mr-3 object-contain transition filter ${isActive
+                       ?  "brightness-200 contrast-125" 
+    : "brightness-100 group-hover:brightness-150"
                       }`}
                   />
-                  Dashboard
+                    Dashboard
                 </div>
               )}
-            </NavLink>
-          )}
+            </NavLink>         
        
                   {gamenuItems.map((item) => (
                     <NavLink
@@ -211,7 +213,7 @@ const AdminSidebar = () => {
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
                         `group flex gap-4 items-center px-3 py-2 rounded-lg text-sm  lg:text-base font-medium transition-colors ${isActive
-                          ? "bg-[#136ECA] text-white"
+                          ? "border-l-[#136ECA] border-l-4 text-white"
                           : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
                         }`
                       }
@@ -221,37 +223,32 @@ const AdminSidebar = () => {
                           <img
                             src={item.icon}
                             alt={item.title}
-                            className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 object-contain transition filter ${item.title === "Counter"
-                                ? isActive
-                                  ? "invert-0"
-                                  : "invert-0 group-hover:invert-0"
-                                : isActive
-                                  ? "invert"
-                                  : " invert group-hover:invert"
-                              }`}
+                            className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 object-contain transition filter ${isActive
+                                  ?  "brightness-200 contrast-125" 
+    : "brightness-100 group-hover:brightness-150" }`}
                           />
                           {item.title}
                         </>
                       )}
                     </NavLink>
-                  ))}            
-
+                  ))}         
         </nav>
 
         {/* Logout Button */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4  ">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
             className={`w-full gap-3 group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isLoggingOut
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+                ? " border-l-[#136ECA] border-l-4 text-white cursor-not-allowed"
+                : "text-[#9CA3AF] hover:bg-[#1A2332]  hover:text-white"
               }`}
           >
             <img
               src={Logout}
               alt="Logout"
-              className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7  object-contain transition filter ${isLoggingOut ? "opacity-50" : "invert group-hover:invert-0"
+              className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7  object-contain transition filter ${isLoggingOut ?  "brightness-200 contrast-125" 
+              :"brightness-100 group-hover:brightness-150 "
                 }`}
             />
             {isLoggingOut ? "Logging out..." : "Logout"}
