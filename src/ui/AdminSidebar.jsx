@@ -56,64 +56,67 @@ const AdminSidebar = () => {
   ]; 
 
   // Handle logout function
-  const handleLogout = async () => {
-    try {
-      setIsLoggingOut(true);
+  // const handleLogout = async () => {
+  //   try {
+  //     setIsLoggingOut(true);
 
-      // Get the access token from localStorage or wherever it's stored
-      const accessToken = localStorage.getItem("accessToken") ||
-        sessionStorage.getItem("accessToken") ||
-        getCookie("accessToken");
+  //     // Get the access token from localStorage or wherever it's stored
+  //     const accessToken = localStorage.getItem("accessToken") ||
+  //       sessionStorage.getItem("accessToken") ||
+  //       getCookie("accessToken");
 
-      // Call logout endpoint with Authorization header
-      const response = await api.post(
-        "/user/logout",
-        {}, // Empty body
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          withCredentials: true // Important for cookies
-        }
-      );
+  //     // Call logout endpoint with Authorization header
+  //     const response = await api.post(
+  //       "/user/logout",
+  //       {}, // Empty body
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${accessToken}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //         withCredentials: true // Important for cookies
+  //       }
+  //     );
 
-      if (response.data.status === "success") {
-        // Clear all client-side storage
-        localStorage.clear();
-        sessionStorage.clear();
+  //     if (response.data.status === "success") {
+  //       // Clear all client-side storage
+  //       localStorage.clear();
+  //       sessionStorage.clear();
 
-        // Clear any remaining cookies
-        document.cookie.split(";").forEach(cookie => {
-          const eqPos = cookie.indexOf("=");
-          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-          // Clear the cookie by setting expiry to past
-          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
-        });
+  //       // Clear any remaining cookies
+  //       document.cookie.split(";").forEach(cookie => {
+  //         const eqPos = cookie.indexOf("=");
+  //         const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+  //         // Clear the cookie by setting expiry to past
+  //         document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
+  //       });
 
-        // Reset API default headers if needed
-        if (api.defaults.headers.common['Authorization']) {
-          delete api.defaults.headers.common['Authorization'];
-        }
+  //       // Reset API default headers if needed
+  //       if (api.defaults.headers.common['Authorization']) {
+  //         delete api.defaults.headers.common['Authorization'];
+  //       }
 
-        // Redirect to login page
-        navigate("/admin/login");
-      } else {
-        console.error("Logout failed:", response.data.message);
-        // Fallback to manual logout even if API fails
-        localStorage.clear();
-        sessionStorage.clear();
-        navigate("/admin/login");
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Fallback to manual logout on error
-      localStorage.clear();
-      sessionStorage.clear();
-      navigate("/admin/login");
-    } finally {
-      setIsLoggingOut(false);
-    }
+  //       // Redirect to login page
+  //       navigate("/admin/login");
+  //     } else {
+  //       console.error("Logout failed:", response.data.message);
+  //       // Fallback to manual logout even if API fails
+  //       localStorage.clear();
+  //       sessionStorage.clear();
+  //       navigate("/admin/login");
+  //     }
+  //   } catch (error) {
+  //     console.error("Logout error:", error);
+  //     // Fallback to manual logout on error
+  //     localStorage.clear();
+  //     sessionStorage.clear();
+  //     navigate("/admin/login");
+  //   } finally {
+  //     setIsLoggingOut(false);
+  //   }
+  // };
+  const handleLogout = function(){
+     navigate("/admin/login");
   };
 
   // Helper function to get cookie value
@@ -185,7 +188,7 @@ const AdminSidebar = () => {
               {({ isActive }) => (
                 <div
                   className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                      ? "bg-[#136ECA]    text-white"
+                      ? "border-l-[#136ECA] border-l-4   text-white"
                       : "text-[#9CA3AF]  hover:bg-[#1A2332] hover:text-white"
                     }`}
                 >
@@ -210,7 +213,7 @@ const AdminSidebar = () => {
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
                         `group flex gap-4 items-center px-3 py-2 rounded-lg text-sm  lg:text-base font-medium transition-colors ${isActive
-                          ? "bg-[#136ECA] text-white"
+                          ? "border-l-[#136ECA] border-l-4 text-white"
                           : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
                         }`
                       }
@@ -237,15 +240,15 @@ const AdminSidebar = () => {
             onClick={handleLogout}
             disabled={isLoggingOut}
             className={`w-full gap-3 group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isLoggingOut
-                ? "text-gray-500 cursor-not-allowed"
-                : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+                ? " border-l-[#136ECA] border-l-4 text-white cursor-not-allowed"
+                : "text-[#9CA3AF] hover:bg-[#1A2332]  hover:text-white"
               }`}
           >
             <img
               src={Logout}
               alt="Logout"
               className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7  object-contain transition filter ${isLoggingOut ?  "brightness-200 contrast-125" 
-    : "brightness-100 group-hover:brightness-150"
+              :"brightness-100 group-hover:brightness-150 "
                 }`}
             />
             {isLoggingOut ? "Logging out..." : "Logout"}

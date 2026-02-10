@@ -6,6 +6,7 @@ import Services from "./pages/services";
 import Dashboard from "./pages/Dashboard";
 import Teams from "./pages/Teams";
 import Projects from "./pages/Projects";
+import Login from "./pages/Login"
 
 import Gallery from "./pages/Gallery";
 import Partner from "./pages/Partner";
@@ -35,6 +36,7 @@ function App() {
           <Route path="/admin/testimonials" element={<Testimonial />} />
           <Route path="/admin/partners" element={<Partner />} />
           <Route path="/admin/certificates" element={<Certificate />} />
+          <Route path="/admin/login" element={<Login />} />
         </Route>
 
         <Route path="*" element={<PageNotFound />} />
