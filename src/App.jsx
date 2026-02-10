@@ -2,7 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import AppLayout from "./ui/AppLayout";
 import FAQ from "./pages/FAQ";
-import Services from "./pages/services";
+import Services from "./pages/Services";
 import Dashboard from "./pages/Dashboard";
 import Teams from "./pages/Teams";
 import Projects from "./pages/Projects";
@@ -15,6 +15,7 @@ import News from "./pages/News";
 import Certificate from "./pages/Certificate";
 import Counter from "./pages/Counter";
 import Testimonial from "./pages/Testimonial";
+import ModalExamples from "./pages/ModalExamples";
 import PageNotFound from "./pages/PageNotFound";
 
 function App() {
