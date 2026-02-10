@@ -3,7 +3,7 @@ import { FiSearch } from 'react-icons/fi';
 
 function DynamicSearch({ value, onChange, placeholder }) {
     return (
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 w-full sm:max-w-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FiSearch className="text-gray-400" />
             </div>

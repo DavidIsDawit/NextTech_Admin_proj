@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 function DynamicDropdown({ options, value, onChange, defaultOption }) {
     return (
         <select
-            className="block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
             value={value}
             onChange={(e) => onChange(e.target.value)}
         >
