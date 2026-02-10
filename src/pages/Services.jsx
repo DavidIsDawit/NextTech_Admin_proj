@@ -1,5 +1,11 @@
+import ServicesList from "../ui/ServicesPage/ServicesList";
+
 function Services() {
-  return <div>Services Page</div>;
+  return (
+    <div className="">
+      <ServicesList />
+    </div>
+  );
 }
 
 export default Services;
