@@ -1,15 +1,105 @@
+import Login_pic from "/images/Login_pic.png";
+import { Mail, Lock, EyeOff } from 'lucide-react';
+import {useNavigate} from "react-router-dom";
 function Login (){
+  const navigate = useNavigate();
+  const handlesubmit = function(){
+     navigate("/");
+  };
   return (
-    <div className="flex justify-between w ">
-        <div className="border-2 border-black">
-           <h1>
-            Left
-           </h1>
+    <div className="flex justify-between h-[90vh] ">
+        <div className=" w-2/3 h-[100vh]  overflow-hidden">
+
+        <div className="absolute left-1/3 top-1/2 -translate-x-2/4 -translate-y-1/2 z-10  flex flex-col items-center justify-center text-white ">
+              <h1 className="text-5xl  mb-6 font-semibold">
+                Welcome Back
+              </h1>
+              <p className="text-lg text-[#E5E7EB] mb-16">
+                Sign in to access your admin management dashboard
+              </p>
+              <div className="flex gap-6">
+                          <div className="border-[#FFFFFF] border-2 w-16 h-16 rounded-xl"></div>
+                          <div className="border-[#FFFFFF] border-2 w-16 h-16 rounded-full"></div>
+                          <div className="border-[#FFFFFF] border-2 w-16 h-16 rotate-45 rounded-xl "></div>
+              </div>
         </div>
-        <div className="border-2 border-black">
-           <h1>
-            Right
-           </h1>
+           <img 
+           src={Login_pic} 
+           alt="Login_pic" 
+           className="h-[100vh] w-full  object-cover" />           
+        </div>
+        
+        <div className="flex flex-col  justify-center w-1/3 h-[100vh]  px-3 bg-white  rounded-sm">
+           <div className="mx-20">
+               {/* Header Section */}
+            <div className="mb-8">
+              <h1 className="text-3xl  font-bold text-[#2C3E50] mb-2">Admin Login</h1>
+              <p className="text-[#6C757D]">Enter your credentials to continue</p>
+            </div>
+            <form className="flex flex-col gap-6">
+              {/* Email Field */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="email" className="text-sm font-semibold text-[#2C3E50]">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input 
+                    id="email"
+                    type="email"
+                    placeholder="admin@engineercms.com"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
+                  />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="password" className="text-sm font-semibold text-[#2C3E50]">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input 
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
+                  />
+                  <EyeOff className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 cursor-pointer" />
+                </div>
+              </div>
+
+              {/* Checkbox */}
+              <div className="flex items-center gap-3">
+                <input 
+                  type="checkbox" 
+                  id="remember" 
+                  className="w-5 h-5 border-gray-300 rounded accent-[#00A8E8]" 
+                />
+                <label htmlFor="remember" className="text-gray-600 text-sm">
+                  Remember me for 30 days
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button 
+              onClick={handlesubmit}
+              className="bg-[#00A8E8] oncli hover:bg-[#0092c9] text-white font-medium py-3 px-4 rounded-xl shadow-md transition-colors mt-2">
+                Sign In
+              </button>
+            </form>
+            {/* Footer Links */}
+            <div className="mt-8 text-center flex flex-col gap-10">
+              <button className="text-[#00A8E8] font-medium hover:underline">
+                Forgot Password?
+              </button>
+              <p className="text-xs text-gray-400">
+                © 2026 Next-Tech. All rights reserved.
+              </p>
+            </div>
+           </div>
+            
         </div>
     </div>
   )
