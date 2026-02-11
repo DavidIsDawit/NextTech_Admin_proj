@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-
 import AppLayout from "./ui/AppLayout";
 import FAQ from "./pages/FAQ";
 import Services from "./pages/Services";
@@ -22,6 +21,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/admin/login" element={<Login />} />
         <Route element={<AppLayout />}>
           {/* <Route index element={<Navigate replace to="/" />} /> */}
           <Route path="/" element={<Dashboard />} />
@@ -38,7 +38,7 @@ function App() {
           <Route path="/admin/partners" element={<Partner />} />
           <Route path="/admin/modalexamples" element={<ModalExamples />} />
           <Route path="/admin/certificates" element={<Certificate />} />
-          <Route path="/admin/login" element={<Login />} />
+          
         </Route>
 
         <Route path="*" element={<PageNotFound />} />
