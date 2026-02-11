@@ -138,7 +138,7 @@ const AdminSidebar = () => {
 
           disabled={isLoggingOut}
         >
-          <img src={NextTech_logo} alt="NextTech_logo" className="h-10 w-12" />
+          <img src={NextTech_logo} alt="NextTech_logo" className="h-10 w-full" />
         </button>
 
         <button
@@ -166,7 +166,7 @@ const AdminSidebar = () => {
             <img
               src={NextTech_logo}
               alt="NextTech_logo"
-              className="2xl:h-24 2xl:w-full xl:h-24 xl:w-28 lg:h-20 lg:w-24 md:h-16 md:w-20 h-14 w-16"
+              className="2xl:h-24 2xl:w-full xl:h-24 xl:w-full lg:h-20 lg:w-full md:h-16 md:w-full h-14 w-full"
             />
           </button>
 
