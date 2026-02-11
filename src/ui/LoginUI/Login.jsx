@@ -30,7 +30,7 @@ function Login (){
         </div>
         
         <div className="flex flex-col  justify-center w-1/3 h-[100vh]  px-3 bg-white  rounded-sm">
-           <div className="mx-20">
+           <div className="mx-4 lg:mx-20">
                {/* Header Section */}
             <div className="mb-8">
               <h1 className="text-3xl  font-bold text-[#2C3E50] mb-2">Admin Login</h1>
