@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 function DynamicButton({ children, onClick, icon: Icon, className, variant = 'primary' }) {
-    const baseStyles = "flex items-center space-x-2 px-4 py-2 rounded-md transition-colors font-medium text-sm focus:outline-none focus:ring-2 focus:ring-offset-2";
+    const baseStyles = "flex items-center space-x-2 px-4 py-2 rounded-md transition-colors font-medium text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-offset-2";
 
     const variants = {
         primary: "bg-blue-500 hover:bg-blue-600 text-white focus:ring-blue-500",

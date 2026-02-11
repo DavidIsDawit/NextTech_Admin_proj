@@ -1,5 +1,11 @@
+import NewsList from "../ui/NewsPage/NewsList";
+
 function News() {
-  return <div>News Page</div>;
+  return (
+    <div className="">
+      <NewsList />
+    </div>
+  );
 }
 
 export default News;
