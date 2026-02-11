@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { User, Edit3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import userItems from "../data/Userlist_data"; // ✅ Import your data
+import { Mail, Lock, EyeOff, Search } from 'lucide-react';
 
 export default function AdminHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -60,7 +61,16 @@ export default function AdminHeader() {
   }, [menuOpen]);
 
   return (
-    <header className="bg-white border rounded-lg ml-2 border-white p-4 flex justify-end items-center relative">
+    <header className=" bg-white border rounded-lg ml-2 border-white p-4 flex justify-end lg:justify-between items-center relative">
+      <div className="relative  w-1/3 hidden lg:flex  ">
+                  <Search  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input 
+                    id="search"
+                    type="search"
+                    placeholder="Search anything ...."
+                    className="w-full pl-10 pr-4 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
+                  />
+                </div>
       <div className="flex items-center space-x-3">
         <span className="text-xl font-bold text-gray-800">GA Soft</span>
 
