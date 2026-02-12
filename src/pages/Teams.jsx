@@ -1,5 +1,11 @@
+import TeamList from "../ui/TeamPage/TeamList";
+
 function Teams() {
-  return <div>Teams Page</div>;
+    return (
+        <div className="">
+            <TeamList />
+        </div>
+    );
 }
 
 export default Teams;

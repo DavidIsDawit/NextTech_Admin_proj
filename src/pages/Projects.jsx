@@ -1,5 +1,11 @@
+import ProjectList from "../ui/ProjectPage/ProjectList";
+
 function Projects() {
-  return <div>Project Page</div>;
+    return (
+        <div className="">
+            <ProjectList />
+        </div>
+    );
 }
 
 export default Projects;

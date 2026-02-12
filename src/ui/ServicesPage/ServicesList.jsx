@@ -1,12 +1,14 @@
 import { useState, useMemo } from "react";
-import { FiPlus, FiEye, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockServices } from "../../data/mockServices";
+import { ServicesData } from "../../data/ServicesData";
+import { exportToCSV } from "../../utils/csvExport";
 
 function Services() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -15,12 +17,12 @@ function Services() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const categories = useMemo(() => ["All Categories", ...new Set(mockServices.map(s => s.category))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(mockServices.map(s => s.status))], []);
+    const categories = useMemo(() => ["All Categories", ...new Set(ServicesData.map(s => s.category))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(ServicesData.map(s => s.status))], []);
 
     // Filter Logic
     const filteredServices = useMemo(() => {
-        return mockServices.filter((service) => {
+        return ServicesData.filter((service) => {
             const matchesSearch = service.title
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase());
@@ -46,19 +48,14 @@ function Services() {
     };
 
     const handleExportCSV = () => {
-        const headers = ["Title,Category,Status,Description"];
-        const csvContent = filteredServices.map(
-            (s) => `"${s.title}","${s.category}","${s.status}","${s.description}"`
-        );
-        const csv = [headers, ...csvContent].join("\n");
-        const blob = new Blob([csv], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "services.csv";
-        a.click();
-        window.URL.revokeObjectURL(url);
+        exportToCSV(filteredServices, "Services", {
+            title: "Service Title",
+            category: "Category",
+            status: "Status",
+            description: "Description"
+        });
     };
+
 
     // Table Columns Configuration
     const columns = [
@@ -66,11 +63,11 @@ function Services() {
             key: "image",
             label: "Image",
             render: (value, row) => (
-                <div className="flex-shrink-0 h-10 w-10">
+                <div className="flex-shrink-0 h-14 w-14">
                     <img
                         src={value}
                         alt={row.title}
-                        className="h-10 w-10 rounded object-cover"
+                        className="h-full w-full rounded object-cover"
                     />
                 </div>
             ),
@@ -115,27 +112,27 @@ function Services() {
             key: "actions",
             label: "Actions",
             render: (_, row) => (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                         onClick={() => console.log("View", row.id)}
                         title="View"
                     >
-                        <FiEye size={16} />
+                        <FiEye size={21} />
                     </button>
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                         onClick={() => console.log("Edit", row.id)}
                         title="Edit"
                     >
-                        <FiEdit2 size={16} />
+                        <BiEdit size={21} />
                     </button>
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
                         onClick={() => console.log("Delete", row.id)}
                         title="Delete"
                     >
-                        <FiTrash2 size={16} />
+                        <FiTrash2 size={21} />
                     </button>
                 </div>
             ),
@@ -143,30 +140,32 @@ function Services() {
     ];
 
     return (
-        <div className="p-0 md:px-5 space-y-6">
+        <div className="p-0 md:px-5  lg:px-2 2xl:px-5 space-y-6">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-4xl font-bold text-gray-900">
+                    <h1 className="text-2xl md:text-4xl lg:text-3xl 2xl:text-4xl font-bold text-gray-900">
                         Service Management Center
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-base text-gray-500 mt-3">
                         Manage engineering services, technical offerings, and project capabilities
                     </p>
                 </div>
                 <DynamicButton
+
                     icon={FiPlus}
+
                     onClick={() => console.log("Add New Service")}
-                    className="w-full sm:w-auto justify-center bg-blue-500 hover:bg-blue-600 text-white"
+                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
                     Add New Service
                 </DynamicButton>
             </div>
 
             {/* Filters Bar */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 py-2">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-12">
                 <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto flex-1">
-                    <div className="w-full sm:w-72">
+                    <div className="w-full sm:w-96 lg:w-80 2xl:w-96  ">
                         <DynamicSearch
                             value={searchTerm}
                             onChange={(val) => {
@@ -215,7 +214,7 @@ function Services() {
             </div>
 
             {/* Pagination */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing <span className="font-medium text-gray-900">{filteredServices.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span>-
                     <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filteredServices.length)}</span> of <span className="font-medium text-gray-900">{filteredServices.length}</span> services

@@ -1,5 +1,11 @@
+import TestimonialList from "../ui/TestimonialPage/TestimonialList";
+
 function Testimonial() {
-  return <div>Testimonials Page</div>;
+  return (
+    <div className="">
+      <TestimonialList />
+    </div>
+  );
 }
 
 export default Testimonial;

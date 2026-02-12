@@ -10,7 +10,7 @@ function DynamicTable({ columns, rows }) {
                         {columns.map((col) => (
                             <th
                                 key={col.key}
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                                className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap"
                             >
                                 {col.label}
                             </th>

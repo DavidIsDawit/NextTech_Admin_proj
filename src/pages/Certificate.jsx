@@ -1,5 +1,11 @@
+import CertificateList from "../ui/CertificatePage/CertificateList";
+
 function Certificate() {
-  return <div>Certificate Page</div>;
+  return (
+    <div className="">
+      <CertificateList />
+    </div>
+  );
 }
 
 export default Certificate;

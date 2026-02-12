@@ -1,7 +1,7 @@
-export const mockServices = [
+export const ServicesData = [
   {
     id: 1,
-    image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/structural.png",
     title: "Structural Engineering Design",
     category: "Construction",
     description: "Complete structural analysis and design for commercial...",
@@ -9,7 +9,7 @@ export const mockServices = [
   },
   {
     id: 2,
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/mep.png",
     title: "MEP Systems Design",
     category: "Construction",
     description: "Mechanical, electrical, and plumbing system desig...",
@@ -17,7 +17,7 @@ export const mockServices = [
   },
   {
     id: 3,
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/environmental.png",
     title: "Environmental Impact Assessment",
     category: "Consulting",
     description: "Comprehensive environmental studies and compl...",
@@ -25,7 +25,7 @@ export const mockServices = [
   },
   {
     id: 4,
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/management.png",
     title: "Project Management Services",
     category: "Consulting",
     description: "End-to-end project planning and execution manag...",
@@ -33,7 +33,7 @@ export const mockServices = [
   },
   {
     id: 5,
-    image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/renovation.png",
     title: "Building Renovation & Retrofit",
     category: "Construction",
     description: "Modernization and upgrade of existing structures",
@@ -41,7 +41,7 @@ export const mockServices = [
   },
   {
     id: 6,
-    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/renewable.png",
     title: "Renewable Energy Solutions",
     category: "Infrastructure",
     description: "Solar, wind, and sustainable energy system design",
@@ -49,7 +49,7 @@ export const mockServices = [
   },
   {
     id: 7,
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/renovation.png",
     title: "Interior Architecture",
     category: "Design",
     description: "Creative and functional interior space planning",
@@ -57,7 +57,7 @@ export const mockServices = [
   },
   {
     id: 8,
-    image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/structural.png",
     title: "Urban Planning & Development",
     category: "Infrastructure",
     description: "Strategic city planning and land use development",
@@ -65,7 +65,7 @@ export const mockServices = [
   },
   {
     id: 9,
-    image: "https://images.unsplash.com/photo-1565514020176-db7933f8b6d3?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/mep.png",
     title: "Safety Inspection Services",
     category: "Consulting",
     description: "Workplace safety audits and compliance checks",
@@ -73,7 +73,7 @@ export const mockServices = [
   },
   {
     id: 10,
-    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/mep.png",
     title: "Geotechnical Engineering",
     category: "Construction",
     description: "Soil analysis and foundation design services",
@@ -81,7 +81,7 @@ export const mockServices = [
   },
   {
     id: 11,
-    image: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/environmental.png",
     title: "Market Research Analysis",
     category: "Consulting",
     description: "In-depth market trends and consumer insights",
@@ -89,7 +89,7 @@ export const mockServices = [
   },
   {
     id: 12,
-    image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=150&h=150",
+    image: "/images/services/renewable.png",
     title: "Landscape Architecture",
     category: "Design",
     description: "Outdoor space design and environmental planning",

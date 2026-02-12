@@ -1,8 +1,10 @@
+import FAQList from "../ui/FAQPage/FAQList";
+
 function FAQ() {
   return (
-    <>
-      <div>FAQ</div>
-    </>
+    <div className="">
+      <FAQList />
+    </div>
   );
 }
 
