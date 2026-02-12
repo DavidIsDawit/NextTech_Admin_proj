@@ -191,7 +191,7 @@ function Services() {
     ];
 
     return (
-        <div className="p-0 md:px-5  lg:px-2 2xl:px-5 space-y-6">
+        <div className="p-0 md:px-5  lg:px-2 2xl:px-5 space-y-1">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -214,7 +214,7 @@ function Services() {
             </div>
 
             {/* Filters Bar */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-12">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-16 pb-8">
                 <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto flex-1">
                     <div className="w-full sm:w-96 lg:w-80 2xl:w-96  ">
                         <DynamicSearch
@@ -265,7 +265,7 @@ function Services() {
             </div>
 
             {/* Pagination */}
-            <div className="flex flex-col sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
+            <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing <span className="font-medium text-gray-900">{filteredServices.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span>-
                     <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filteredServices.length)}</span> of <span className="font-medium text-gray-900">{filteredServices.length}</span> services

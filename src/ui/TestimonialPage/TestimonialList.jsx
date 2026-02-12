@@ -165,7 +165,7 @@ function TestimonialList() {
     ];
 
     return (
-        <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-6">
+        <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl md:text-4xl lg:text-3xl 2xl:text-4xl font-bold text-gray-900">
@@ -178,13 +178,13 @@ function TestimonialList() {
                 <DynamicButton
                     icon={FiPlus}
                     onClick={handleAddNew}
-                    className="w-full sm:w-auto md:w-52 lg:w-52 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
                     Add New Testimonial
                 </DynamicButton>
             </div>
 
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-12">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-16 pb-8">
                 <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto flex-1">
                     <div className="w-full sm:w-96 lg:w-80 2xl:w-96">
                         <DynamicSearch
@@ -232,7 +232,7 @@ function TestimonialList() {
                 <DynamicTable columns={columns} rows={currentData} />
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
+            <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
