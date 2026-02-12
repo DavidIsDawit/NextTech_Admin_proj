@@ -16,6 +16,7 @@ import Counter from "./pages/Counter";
 import Testimonial from "./pages/Testimonial";
 import ModalExamples from "./pages/ModalExamples";
 import PageNotFound from "./pages/PageNotFound";
+import ProfileSetting from "./pages/ProfileSetting";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="/admin/partners" element={<Partner />} />
           <Route path="/admin/modalexamples" element={<ModalExamples />} />
           <Route path="/admin/certificates" element={<Certificate />} />
+           <Route path="/admin/profile_setting" element={<ProfileSetting />} />
           
         </Route>
 
