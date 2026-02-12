@@ -22,6 +22,15 @@ import { Upload } from 'lucide-react';
 export function CertificateForm({ formData = {}, onChange, errors = {} }) {
     const [filePreview, setFilePreview] = useState(null);
 
+    // Initialize preview from existing data
+    React.useEffect(() => {
+        if (formData.thumbnail && typeof formData.thumbnail === 'string') {
+            // Show the filename or preview path
+            const fileName = formData.thumbnail.split('/').pop();
+            setFilePreview(fileName);
+        }
+    }, [formData.thumbnail]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         onChange?.({ ...formData, [name]: value });

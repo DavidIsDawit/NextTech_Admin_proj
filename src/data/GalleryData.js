@@ -6,7 +6,7 @@ export const GalleryData = [
         fileType: "JPG",
         uploadDate: "Jan 15, 2024",
         category: "Site Photos",
-        status: "Active",
+        status: "active",
     },
     {
         id: 2,
@@ -15,7 +15,7 @@ export const GalleryData = [
         fileType: "MP4",
         uploadDate: "Jan 15, 2024",
         category: "Process Videos",
-        status: "Active",
+        status: "active",
     },
     {
         id: 3,
@@ -24,7 +24,7 @@ export const GalleryData = [
         fileType: "JPG",
         uploadDate: "Jan 15, 2024",
         category: "Site Photos",
-        status: "Active",
+        status: "active",
     },
     {
         id: 4,
@@ -33,7 +33,7 @@ export const GalleryData = [
         fileType: "JPG",
         uploadDate: "Jan 15, 2024",
         category: "Site Photos",
-        status: "Active",
+        status: "active",
     },
     {
         id: 5,
@@ -42,7 +42,7 @@ export const GalleryData = [
         fileType: "MP4",
         uploadDate: "Jan 15, 2024",
         category: "Process Videos",
-        status: "Active",
+        status: "active",
     },
     {
         id: 6,
@@ -51,6 +51,6 @@ export const GalleryData = [
         fileType: "MP4",
         uploadDate: "Jan 15, 2024",
         category: "Process Videos",
-        status: "Active",
+        status: "active",
     },
 ];

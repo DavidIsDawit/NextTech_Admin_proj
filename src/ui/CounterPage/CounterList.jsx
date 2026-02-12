@@ -10,6 +10,9 @@ import Badge from "../Badge";
 import { CountersData } from "../../data/CountersData";
 import { exportToCSV } from "../../utils/csvExport";
 import { formatNumber } from "../../utils/formatters";
+import { FormModal } from "../modals/FormModal";
+import { DeleteModal } from "../modals/DeleteModal";
+import { CounterForm } from "../forms/CounterForm";
 
 function CounterList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -17,11 +20,20 @@ function CounterList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
+    // Modal State
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [formType, setFormType] = useState('add'); // 'add' or 'edit'
+    const [formData, setFormData] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const statuses = useMemo(() => ["All Status", ...new Set(CountersData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
         return CountersData.filter((item) => {
-            const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesStatus;
         });
@@ -41,6 +53,45 @@ function CounterList() {
             date: "Date",
             status: "Status"
         });
+    };
+
+    // Modal Handlers
+    const handleAddNew = () => {
+        setFormType('add');
+        setFormData({ status: 'active' });
+        setIsFormModalOpen(true);
+    };
+
+    const handleEdit = (item) => {
+        setFormType('edit');
+        setSelectedItem(item);
+        setFormData({ ...item });
+        setIsFormModalOpen(true);
+    };
+
+    const handleDeleteClick = (item) => {
+        setSelectedItem(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleFormSubmit = (e) => {
+        setIsSubmitting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log(`Counter ${formType === 'add' ? 'added' : 'updated'}:`, formData);
+            setIsSubmitting(false);
+            setIsFormModalOpen(false);
+        }, 1000);
+    };
+
+    const handleDeleteConfirm = () => {
+        setIsDeleting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log("Counter deleted:", selectedItem.id);
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }, 1000);
     };
 
     // Columns: Number , counter Title , date, status , action
@@ -79,14 +130,14 @@ function CounterList() {
                     </button>
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("Edit", row.id)}
+                        onClick={() => handleEdit(row)}
                         title="Edit"
                     >
                         <BiEdit size={21} />
                     </button>
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
-                        onClick={() => console.log("Delete", row.id)}
+                        onClick={() => handleDeleteClick(row)}
                         title="Delete"
                     >
                         <FiTrash2 size={21} />
@@ -109,7 +160,7 @@ function CounterList() {
                 </div>
                 <DynamicButton
                     icon={FiPlus}
-                    onClick={() => console.log("Add New")}
+                    onClick={handleAddNew}
                     className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
                     Add New Counter
@@ -176,6 +227,31 @@ function CounterList() {
                     />
                 </div>
             </div>
+
+            {/* Modals */}
+            <FormModal
+                open={isFormModalOpen}
+                onOpenChange={setIsFormModalOpen}
+                title={formType === 'add' ? 'Add New Counter' : 'Edit Counter'}
+                onSubmit={handleFormSubmit}
+                isSubmitting={isSubmitting}
+                submitLabel={formType === 'add' ? 'Add Counter' : 'Save Changes'}
+                size="lg"
+            >
+                <CounterForm
+                    formData={formData}
+                    onChange={setFormData}
+                />
+            </FormModal>
+
+            <DeleteModal
+                open={isDeleteModalOpen}
+                onOpenChange={setIsDeleteModalOpen}
+                onConfirm={handleDeleteConfirm}
+                entityName="Counter"
+                itemName={selectedItem?.title}
+                isDeleting={isDeleting}
+            />
         </div>
 
     );

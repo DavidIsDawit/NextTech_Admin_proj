@@ -9,6 +9,9 @@ import Pagination from "../Pagination";
 import Badge from "../Badge";
 import { ProjectsData } from "../../data/ProjectsData";
 import { exportToCSV } from "../../utils/csvExport";
+import { FormModal } from "../modals/FormModal";
+import { DeleteModal } from "../modals/DeleteModal";
+import { ProjectForm } from "../forms/ProjectForm";
 
 function ProjectList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -17,12 +20,21 @@ function ProjectList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
+    // Modal State
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [formType, setFormType] = useState('add'); // 'add' or 'edit'
+    const [formData, setFormData] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const sectors = useMemo(() => ["All Sectors", ...new Set(ProjectsData.map(s => s.sector))], []);
     const statuses = useMemo(() => ["All Status", ...new Set(ProjectsData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
         return ProjectsData.filter((item) => {
-            const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = item.projectName?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesSector = sectorFilter === "All Sectors" || item.sector === sectorFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesSector && matchesStatus;
@@ -34,22 +46,61 @@ function ProjectList() {
 
     const handleExportCSV = () => {
         exportToCSV(filteredData, "Projects", {
-            name: "Project Name",
+            projectName: "Project Name",
             client: "Client",
             sector: "Sector",
             status: "Status"
         });
     };
 
+    // Modal Handlers
+    const handleAddNew = () => {
+        setFormType('add');
+        setFormData({ status: 'active' });
+        setIsFormModalOpen(true);
+    };
+
+    const handleEdit = (item) => {
+        setFormType('edit');
+        setSelectedItem(item);
+        setFormData({ ...item });
+        setIsFormModalOpen(true);
+    };
+
+    const handleDeleteClick = (item) => {
+        setSelectedItem(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleFormSubmit = (e) => {
+        setIsSubmitting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log(`Project ${formType === 'add' ? 'added' : 'updated'}:`, formData);
+            setIsSubmitting(false);
+            setIsFormModalOpen(false);
+        }, 1000);
+    };
+
+    const handleDeleteConfirm = () => {
+        setIsDeleting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log("Project deleted:", selectedItem.id);
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }, 1000);
+    };
+
     // Columns: Image, project name , client, sector,status, action
     const columns = [
         {
-            key: "image",
+            key: "thumbnail",
             label: "Image",
-            render: (value, row) => <div className="flex-shrink-0 h-10 w-10"><img src={value} alt={row.name} className="h-10 w-10 rounded object-cover" /></div>,
+            render: (value, row) => <div className="flex-shrink-0 h-10 w-10"><img src={value} alt={row.projectName} className="h-10 w-10 rounded object-cover" /></div>,
         },
         {
-            key: "name",
+            key: "projectName",
             label: "Project Name",
             render: (value) => <div className="font-medium text-gray-900">{value}</div>,
         },
@@ -82,14 +133,14 @@ function ProjectList() {
                     </button>
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("Edit", row.id)}
+                        onClick={() => handleEdit(row)}
                         title="Edit"
                     >
                         <BiEdit size={21} />
                     </button>
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
-                        onClick={() => console.log("Delete", row.id)}
+                        onClick={() => handleDeleteClick(row)}
                         title="Delete"
                     >
                         <FiTrash2 size={21} />
@@ -112,7 +163,7 @@ function ProjectList() {
                 </div>
                 <DynamicButton
                     icon={FiPlus}
-                    onClick={() => console.log("Add New")}
+                    onClick={handleAddNew}
                     className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
                     Add New Project
@@ -190,6 +241,32 @@ function ProjectList() {
                     />
                 </div>
             </div>
+
+            {/* Modals */}
+            <FormModal
+                open={isFormModalOpen}
+                onOpenChange={setIsFormModalOpen}
+                title={formType === 'add' ? 'Add New Project' : 'Edit Project'}
+                onSubmit={handleFormSubmit}
+                isSubmitting={isSubmitting}
+                submitLabel={formType === 'add' ? 'Add Project' : 'Save Changes'}
+                size="xl"
+            >
+                <ProjectForm
+                    formData={formData}
+                    onChange={setFormData}
+                />
+            </FormModal>
+
+            <DeleteModal
+                open={isDeleteModalOpen}
+                onOpenChange={setIsDeleteModalOpen}
+                onConfirm={handleDeleteConfirm}
+                entityName="Project"
+                itemName={selectedItem?.name}
+                image={selectedItem?.image}
+                isDeleting={isDeleting}
+            />
         </div>
 
     );

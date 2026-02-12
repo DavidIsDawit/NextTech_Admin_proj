@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+import { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { Textarea } from '@/ui/textarea';
@@ -6,6 +6,14 @@ import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
 import { CloudUpload } from 'lucide-react';
 
 export function TestimonialForm({ formData, setFormData, errors = {} }) {
+    const [preview, setPreview] = useState(null);
+
+    useEffect(() => {
+        if (formData.thumbnail && typeof formData.thumbnail === 'string') {
+            setPreview(formData.thumbnail);
+        }
+    }, [formData.thumbnail]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -27,7 +35,11 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
             {/* File Upload Area */}
             <div className="relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-sky-400 bg-sky-50 py-10 text-center hover:bg-sky-100/50 transition-colors">
                 <div className="mb-2 rounded-full bg-white p-3 shadow-sm">
-                    <CloudUpload className="h-8 w-8 text-sky-500" />
+                    {preview ? (
+                        <img src={preview} alt="Preview" className="h-12 w-12 rounded-full object-cover" />
+                    ) : (
+                        <CloudUpload className="h-8 w-8 text-sky-500" />
+                    )}
                 </div>
                 <p className="text-sm font-medium text-sky-600">
                     Drag PDF here or click to browse
@@ -38,9 +50,9 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
                     onChange={handleFileChange}
                     className="absolute inset-0 cursor-pointer opacity-0"
                 />
-                {formData.file && (
+                {(formData.file || preview) && (
                     <p className="mt-2 text-xs text-slate-600">
-                        Selected: {formData.file.name}
+                        {formData.file ? `Selected: ${formData.file.name}` : 'Current Image'}
                     </p>
                 )}
             </div>

@@ -15,6 +15,15 @@ import { Upload } from 'lucide-react';
 export function PartnerForm({ formData = {}, onChange, errors = {} }) {
     const [filePreview, setFilePreview] = useState(null);
 
+    // Initialize preview from existing data
+    React.useEffect(() => {
+        if (formData.partnerFile && typeof formData.partnerFile === 'string') {
+            // If it's a URL, show the filename or a placeholder
+            const fileName = formData.partnerFile.split('/').pop();
+            setFilePreview(fileName);
+        }
+    }, [formData.partnerFile]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         onChange?.({ ...formData, [name]: value });

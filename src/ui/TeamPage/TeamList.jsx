@@ -9,6 +9,9 @@ import Pagination from "../Pagination";
 import Badge from "../Badge";
 import { TeamData } from "../../data/TeamData";
 import { exportToCSV } from "../../utils/csvExport";
+import { FormModal } from "../modals/FormModal";
+import { DeleteModal } from "../modals/DeleteModal";
+import { TeamForm } from "../forms/TeamForm";
 
 function TeamList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -17,12 +20,21 @@ function TeamList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
+    // Modal State
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [formType, setFormType] = useState('add'); // 'add' or 'edit'
+    const [formData, setFormData] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const specialties = useMemo(() => ["All Specialties", ...new Set(TeamData.map(s => s.specialty))], []);
     const statuses = useMemo(() => ["All Status", ...new Set(TeamData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
         return TeamData.filter((item) => {
-            const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesSpecialty = specialtyFilter === "All Specialties" || item.specialty === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesSpecialty && matchesStatus;
@@ -35,10 +47,49 @@ function TeamList() {
     const handleExportCSV = () => {
         exportToCSV(filteredData, "Team", {
             name: "Name",
-            uploadDate: "Joining Date",
+            date: "Joining Date",
             specialty: "Specialty",
             status: "Status"
         });
+    };
+
+    // Modal Handlers
+    const handleAddNew = () => {
+        setFormType('add');
+        setFormData({ status: 'active' });
+        setIsFormModalOpen(true);
+    };
+
+    const handleEdit = (item) => {
+        setFormType('edit');
+        setSelectedItem(item);
+        setFormData({ ...item });
+        setIsFormModalOpen(true);
+    };
+
+    const handleDeleteClick = (item) => {
+        setSelectedItem(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleFormSubmit = (e) => {
+        setIsSubmitting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log(`Team member ${formType === 'add' ? 'added' : 'updated'}:`, formData);
+            setIsSubmitting(false);
+            setIsFormModalOpen(false);
+        }, 1000);
+    };
+
+    const handleDeleteConfirm = () => {
+        setIsDeleting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log("Team member deleted:", selectedItem.id);
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }, 1000);
     };
 
     // Columns: Image , name , upload date , specialty, status, action
@@ -54,7 +105,7 @@ function TeamList() {
             render: (value) => <div className="font-medium text-gray-900">{value}</div>,
         },
         {
-            key: "uploadDate",
+            key: "date",
             label: "Joining Date",
             render: (value) => <div className="text-sm text-gray-500">{value}</div>,
         },
@@ -82,14 +133,14 @@ function TeamList() {
                     </button>
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("Edit", row.id)}
+                        onClick={() => handleEdit(row)}
                         title="Edit"
                     >
                         <BiEdit size={21} />
                     </button>
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
-                        onClick={() => console.log("Delete", row.id)}
+                        onClick={() => handleDeleteClick(row)}
                         title="Delete"
                     >
                         <FiTrash2 size={21} />
@@ -112,7 +163,7 @@ function TeamList() {
                 </div>
                 <DynamicButton
                     icon={FiPlus}
-                    onClick={() => console.log("Add New")}
+                    onClick={handleAddNew}
                     className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
                     Add New Member
@@ -190,6 +241,32 @@ function TeamList() {
                     />
                 </div>
             </div>
+
+            {/* Modals */}
+            <FormModal
+                open={isFormModalOpen}
+                onOpenChange={setIsFormModalOpen}
+                title={formType === 'add' ? 'Add Team Member' : 'Edit Team Member'}
+                onSubmit={handleFormSubmit}
+                isSubmitting={isSubmitting}
+                submitLabel={formType === 'add' ? 'Add Member' : 'Save Changes'}
+                size="lg"
+            >
+                <TeamForm
+                    formData={formData}
+                    onChange={setFormData}
+                />
+            </FormModal>
+
+            <DeleteModal
+                open={isDeleteModalOpen}
+                onOpenChange={setIsDeleteModalOpen}
+                onConfirm={handleDeleteConfirm}
+                entityName="Team Member"
+                itemName={selectedItem?.name}
+                image={selectedItem?.image}
+                isDeleting={isDeleting}
+            />
         </div>
 
     );

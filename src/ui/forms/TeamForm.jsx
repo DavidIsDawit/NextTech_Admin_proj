@@ -15,6 +15,13 @@ import { Upload } from 'lucide-react';
 export function TeamForm({ formData = {}, onChange, errors = {} }) {
     const [imagePreview, setImagePreview] = useState(null);
 
+    // Initialize preview from existing data
+    React.useEffect(() => {
+        if (formData.image && typeof formData.image === 'string') {
+            setImagePreview(formData.image);
+        }
+    }, [formData.image]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         onChange?.({ ...formData, [name]: value });
