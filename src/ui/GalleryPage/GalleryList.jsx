@@ -99,12 +99,12 @@ function GalleryList() {
             key: "image",
             label: "Media",
             render: (value, row) => (
-                <div className="relative flex-shrink-0 h-10 w-10">
-                    <img src={value} alt={row.title} className="h-10 w-10 rounded object-cover" />
+                <div className="relative flex-shrink-0 h-14 w-14">
+                    <img src={value} alt={row.title} className="h-full w-full rounded object-cover" />
                     {row.fileType === "MP4" && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-white/80 rounded-full p-1.5 shadow-sm border border-gray-100">
-                                <FiPlay size={10} className="text-gray-900 fill-current" />
+                            <div className="bg-white/80 rounded-full p-2 shadow-sm border border-gray-100">
+                                <FiPlay size={12} className="text-gray-900 fill-current" />
                             </div>
                         </div>
                     )}

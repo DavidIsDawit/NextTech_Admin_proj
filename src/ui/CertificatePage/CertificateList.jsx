@@ -97,8 +97,16 @@ function CertificateList() {
     const columns = [
         {
             key: "thumbnail",
-            label: "Preview",
-            render: (value, row) => <div className="flex-shrink-0 h-16 w-24"><img src={value} alt={row.certificateName} className="h-full w-full rounded object-cover border border-gray-200" /></div>,
+            label: "Image",
+            render: (value, row) => (
+                <div className="flex-shrink-0 h-14 w-14">
+                    <img
+                        src={value}
+                        alt={row.certificateName}
+                        className="h-full w-full rounded object-cover"
+                    />
+                </div>
+            ),
         },
         {
             key: "certificateName",
