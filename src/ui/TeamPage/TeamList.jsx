@@ -97,7 +97,15 @@ function TeamList() {
         {
             key: "image",
             label: "Image",
-            render: (value, row) => <div className="flex-shrink-0 h-10 w-10"><img src={value} alt={row.name} className="h-10 w-10 rounded-full object-cover" /></div>,
+            render: (value, row) => (
+                <div className="flex-shrink-0 h-14 w-14">
+                    <img
+                        src={value}
+                        alt={row.name}
+                        className="h-full w-full rounded object-cover"
+                    />
+                </div>
+            ),
         },
         {
             key: "name",

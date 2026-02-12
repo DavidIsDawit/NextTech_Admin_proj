@@ -92,8 +92,16 @@ function PartnerList() {
     const columns = [
         {
             key: "partnerFile",
-            label: "Logo",
-            render: (value, row) => <div className="flex-shrink-0 h-10 w-10"><img src={value} alt={row.company} className="h-10 w-10 rounded object-contain border border-gray-100 p-1" /></div>,
+            label: "Image",
+            render: (value, row) => (
+                <div className="flex-shrink-0 h-14 w-14">
+                    <img
+                        src={value}
+                        alt={row.company}
+                        className="h-full w-full rounded object-cover"
+                    />
+                </div>
+            ),
         },
         {
             key: "company",
