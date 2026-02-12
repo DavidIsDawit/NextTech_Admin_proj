@@ -9,6 +9,9 @@ import Pagination from "../Pagination";
 import Badge from "../Badge";
 import { NewsData } from "../../data/NewsData";
 import { exportToCSV } from "../../utils/csvExport";
+import { FormModal } from "../modals/FormModal";
+import { DeleteModal } from "../modals/DeleteModal";
+import { NewsForm } from "../forms/NewsForm";
 
 function NewsList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -17,12 +20,21 @@ function NewsList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
+    // Modal State
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [formType, setFormType] = useState('add'); // 'add' or 'edit'
+    const [formData, setFormData] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const categories = useMemo(() => ["All Categories", ...new Set(NewsData.map(s => s.category))], []);
     const statuses = useMemo(() => ["All Status", ...new Set(NewsData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
         return NewsData.filter((item) => {
-            const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = item.articleTitle?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesCategory = categoryFilter === "All Categories" || item.category === categoryFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesCategory && matchesStatus;
@@ -34,23 +46,62 @@ function NewsList() {
 
     const handleExportCSV = () => {
         exportToCSV(filteredData, "News", {
-            title: "Article Title",
+            articleTitle: "Article Title",
             category: "Category",
-            author: "Author",
+            authorName: "Author",
             publishDate: "Publish Date",
             status: "Status"
         });
     };
 
+    // Modal Handlers
+    const handleAddNew = () => {
+        setFormType('add');
+        setFormData({ status: 'active' });
+        setIsFormModalOpen(true);
+    };
+
+    const handleEdit = (item) => {
+        setFormType('edit');
+        setSelectedItem(item);
+        setFormData({ ...item });
+        setIsFormModalOpen(true);
+    };
+
+    const handleDeleteClick = (item) => {
+        setSelectedItem(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleFormSubmit = (e) => {
+        setIsSubmitting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log(`News ${formType === 'add' ? 'added' : 'updated'}:`, formData);
+            setIsSubmitting(false);
+            setIsFormModalOpen(false);
+        }, 1000);
+    };
+
+    const handleDeleteConfirm = () => {
+        setIsDeleting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log("News deleted:", selectedItem.id);
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }, 1000);
+    };
+
     // Columns: Image , article title,  category, author, publish date, status, action
     const columns = [
         {
-            key: "image",
+            key: "thumbnail",
             label: "Image",
-            render: (value, row) => <div className="flex-shrink-0 h-10 w-10"><img src={value} alt={row.title} className="h-10 w-10 rounded object-cover" /></div>,
+            render: (value, row) => <div className="flex-shrink-0 h-10 w-10"><img src={value} alt={row.articleTitle} className="h-10 w-10 rounded object-cover" /></div>,
         },
         {
-            key: "title",
+            key: "articleTitle",
             label: "Article Title",
             render: (value) => <div className="font-medium text-gray-900">{value}</div>,
         },
@@ -60,7 +111,7 @@ function NewsList() {
             render: (value) => <span className="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-indigo-50 text-indigo-700">{value}</span>,
         },
         {
-            key: "author",
+            key: "authorName",
             label: "Author",
             render: (value) => <div className="text-sm text-gray-500">{value}</div>,
         },
@@ -88,14 +139,14 @@ function NewsList() {
                     </button>
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("Edit", row.id)}
+                        onClick={() => handleEdit(row)}
                         title="Edit"
                     >
                         <BiEdit size={21} />
                     </button>
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
-                        onClick={() => console.log("Delete", row.id)}
+                        onClick={() => handleDeleteClick(row)}
                         title="Delete"
                     >
                         <FiTrash2 size={21} />
@@ -118,7 +169,7 @@ function NewsList() {
                 </div>
                 <DynamicButton
                     icon={FiPlus}
-                    onClick={() => console.log("Add New")}
+                    onClick={handleAddNew}
                     className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
                     Add New Article
@@ -196,6 +247,32 @@ function NewsList() {
                     />
                 </div>
             </div>
+
+            {/* Modals */}
+            <FormModal
+                open={isFormModalOpen}
+                onOpenChange={setIsFormModalOpen}
+                title={formType === 'add' ? 'Add New Article' : 'Edit Article'}
+                onSubmit={handleFormSubmit}
+                isSubmitting={isSubmitting}
+                submitLabel={formType === 'add' ? 'Add Article' : 'Save Changes'}
+                size="xl"
+            >
+                <NewsForm
+                    formData={formData}
+                    onChange={setFormData}
+                />
+            </FormModal>
+
+            <DeleteModal
+                open={isDeleteModalOpen}
+                onOpenChange={setIsDeleteModalOpen}
+                onConfirm={handleDeleteConfirm}
+                entityName="Article"
+                itemName={selectedItem?.title}
+                image={selectedItem?.image}
+                isDeleting={isDeleting}
+            />
         </div>
 
     );

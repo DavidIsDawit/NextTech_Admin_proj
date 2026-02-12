@@ -17,6 +17,19 @@ export function ProjectForm({ formData = {}, onChange, errors = {} }) {
     const [thumbnailPreview, setThumbnailPreview] = useState(null);
     const [galleryPreviews, setGalleryPreviews] = useState([]);
 
+    // Initialize previews from existing data
+    React.useEffect(() => {
+        if (formData.thumbnail && typeof formData.thumbnail === 'string') {
+            setThumbnailPreview(formData.thumbnail);
+        }
+        if (formData.gallery && Array.isArray(formData.gallery)) {
+            const strings = formData.gallery.filter(item => typeof item === 'string');
+            if (strings.length > 0) {
+                setGalleryPreviews(strings);
+            }
+        }
+    }, [formData.thumbnail, formData.gallery]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         onChange?.({ ...formData, [name]: value });

@@ -9,6 +9,9 @@ import Pagination from "../Pagination";
 import Badge from "../Badge";
 import { CertificatesData } from "../../data/CertificatesData";
 import { exportToCSV } from "../../utils/csvExport";
+import { FormModal } from "../modals/FormModal";
+import { DeleteModal } from "../modals/DeleteModal";
+import { CertificateForm } from "../forms/CertificateForm";
 
 function CertificateList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -17,12 +20,21 @@ function CertificateList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
+    // Modal State
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [formType, setFormType] = useState('add'); // 'add' or 'edit'
+    const [formData, setFormData] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
     const types = useMemo(() => ["All Types", ...new Set(CertificatesData.map(s => s.type))], []);
     const statuses = useMemo(() => ["All Status", ...new Set(CertificatesData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
         return CertificatesData.filter((item) => {
-            const matchesSearch = item.certificate.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = item.certificateName?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesType = typeFilter === "All Types" || item.type === typeFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesType && matchesStatus;
@@ -34,7 +46,7 @@ function CertificateList() {
 
     const handleExportCSV = () => {
         exportToCSV(filteredData, "Certificates", {
-            certificate: "Certificate Name",
+            certificateName: "Certificate Name",
             type: "Type",
             issueDate: "Issue Date",
             from: "From",
@@ -42,15 +54,54 @@ function CertificateList() {
         });
     };
 
+    // Modal Handlers
+    const handleAddNew = () => {
+        setFormType('add');
+        setFormData({ status: 'active' });
+        setIsFormModalOpen(true);
+    };
+
+    const handleEdit = (item) => {
+        setFormType('edit');
+        setSelectedItem(item);
+        setFormData({ ...item });
+        setIsFormModalOpen(true);
+    };
+
+    const handleDeleteClick = (item) => {
+        setSelectedItem(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleFormSubmit = (e) => {
+        setIsSubmitting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log(`Certificate ${formType === 'add' ? 'added' : 'updated'}:`, formData);
+            setIsSubmitting(false);
+            setIsFormModalOpen(false);
+        }, 1000);
+    };
+
+    const handleDeleteConfirm = () => {
+        setIsDeleting(true);
+        // Simulate API call
+        setTimeout(() => {
+            console.log("Certificate deleted:", selectedItem.id);
+            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+        }, 1000);
+    };
+
     // Columns: Preview,  certificate, type , issue date,  from , status, action
     const columns = [
         {
-            key: "preview",
+            key: "thumbnail",
             label: "Preview",
-            render: (value, row) => <div className="flex-shrink-0 h-16 w-24"><img src={value} alt={row.certificate} className="h-full w-full rounded object-cover border border-gray-200" /></div>,
+            render: (value, row) => <div className="flex-shrink-0 h-16 w-24"><img src={value} alt={row.certificateName} className="h-full w-full rounded object-cover border border-gray-200" /></div>,
         },
         {
-            key: "certificate",
+            key: "certificateName",
             label: "Certificate Name",
             render: (value) => <div className="font-medium text-gray-900">{value}</div>,
         },
@@ -88,14 +139,14 @@ function CertificateList() {
                     </button>
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("Edit", row.id)}
+                        onClick={() => handleEdit(row)}
                         title="Edit"
                     >
                         <BiEdit size={21} />
                     </button>
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
-                        onClick={() => console.log("Delete", row.id)}
+                        onClick={() => handleDeleteClick(row)}
                         title="Delete"
                     >
                         <FiTrash2 size={21} />
@@ -118,7 +169,7 @@ function CertificateList() {
                 </div>
                 <DynamicButton
                     icon={FiPlus}
-                    onClick={() => console.log("Add New")}
+                    onClick={handleAddNew}
                     className="w-full sm:w-auto md:w-52 lg:w-52 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
                     Add New Certificate
@@ -196,6 +247,32 @@ function CertificateList() {
                     />
                 </div>
             </div>
+
+            {/* Modals */}
+            <FormModal
+                open={isFormModalOpen}
+                onOpenChange={setIsFormModalOpen}
+                title={formType === 'add' ? 'Add New Certificate' : 'Edit Certificate'}
+                onSubmit={handleFormSubmit}
+                isSubmitting={isSubmitting}
+                submitLabel={formType === 'add' ? 'Add Certificate' : 'Save Changes'}
+                size="lg"
+            >
+                <CertificateForm
+                    formData={formData}
+                    onChange={setFormData}
+                />
+            </FormModal>
+
+            <DeleteModal
+                open={isDeleteModalOpen}
+                onOpenChange={setIsDeleteModalOpen}
+                onConfirm={handleDeleteConfirm}
+                entityName="Certificate"
+                itemName={selectedItem?.certificate}
+                image={selectedItem?.preview}
+                isDeleting={isDeleting}
+            />
         </div>
 
     );

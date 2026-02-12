@@ -8,7 +8,7 @@ export const FAQData = [
         category: "General",
         lastUpdated: "2024-01-10",
         publishDate: "2023-05-01",
-        status: "Published",
+        status: "published",
     },
     {
         id: 2,
@@ -17,7 +17,7 @@ export const FAQData = [
         category: "Process",
         lastUpdated: "2023-11-20",
         publishDate: "2023-06-15",
-        status: "Published",
+        status: "published",
     },
     {
         id: 3,
@@ -26,6 +26,6 @@ export const FAQData = [
         category: "Careers",
         lastUpdated: "2024-02-01",
         publishDate: "2023-09-01",
-        status: "Draft",
+        status: "draft",
     },
 ];
