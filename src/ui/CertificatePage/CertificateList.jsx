@@ -7,7 +7,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockCertificates } from "../../data/mockCertificates";
+import { CertificatesData } from "../../data/CertificatesData";
 import { exportToCSV } from "../../utils/csvExport";
 
 function CertificateList() {
@@ -17,11 +17,11 @@ function CertificateList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const types = useMemo(() => ["All Types", ...new Set(mockCertificates.map(s => s.type))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(mockCertificates.map(s => s.status))], []);
+    const types = useMemo(() => ["All Types", ...new Set(CertificatesData.map(s => s.type))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(CertificatesData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
-        return mockCertificates.filter((item) => {
+        return CertificatesData.filter((item) => {
             const matchesSearch = item.certificate.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesType = typeFilter === "All Types" || item.type === typeFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;

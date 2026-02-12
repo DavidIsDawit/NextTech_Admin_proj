@@ -1,4 +1,4 @@
-export const mockGallery = [
+export const GalleryData = [
     {
         id: 1,
         image: "/images/gallery/item1.jpg",

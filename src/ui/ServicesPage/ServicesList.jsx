@@ -7,7 +7,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockServices } from "../../data/mockServices";
+import { ServicesData } from "../../data/ServicesData";
 import { exportToCSV } from "../../utils/csvExport";
 
 function Services() {
@@ -17,12 +17,12 @@ function Services() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const categories = useMemo(() => ["All Categories", ...new Set(mockServices.map(s => s.category))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(mockServices.map(s => s.status))], []);
+    const categories = useMemo(() => ["All Categories", ...new Set(ServicesData.map(s => s.category))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(ServicesData.map(s => s.status))], []);
 
     // Filter Logic
     const filteredServices = useMemo(() => {
-        return mockServices.filter((service) => {
+        return ServicesData.filter((service) => {
             const matchesSearch = service.title
                 .toLowerCase()
                 .includes(searchTerm.toLowerCase());

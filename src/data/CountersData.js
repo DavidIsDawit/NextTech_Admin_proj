@@ -1,4 +1,4 @@
-export const mockCounters = [
+export const CountersData = [
     {
         id: 1,
         number: "500+",

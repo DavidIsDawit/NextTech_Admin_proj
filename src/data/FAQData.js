@@ -1,6 +1,6 @@
 import { FiHelpCircle, FiSettings, FiUser } from "react-icons/fi";
 
-export const mockFAQ = [
+export const FAQData = [
     {
         id: 1,
         icon: FiHelpCircle,

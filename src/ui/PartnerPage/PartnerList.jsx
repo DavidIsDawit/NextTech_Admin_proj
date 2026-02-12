@@ -7,7 +7,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockPartners } from "../../data/mockPartners";
+import { PartnersData } from "../../data/PartnersData";
 import { exportToCSV } from "../../utils/csvExport";
 
 function PartnerList() {
@@ -16,10 +16,10 @@ function PartnerList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const statuses = useMemo(() => ["All Status", ...new Set(mockPartners.map(s => s.status))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(PartnersData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
-        return mockPartners.filter((item) => {
+        return PartnersData.filter((item) => {
             const matchesSearch = item.company.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesStatus;

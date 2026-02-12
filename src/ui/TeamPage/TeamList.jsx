@@ -7,7 +7,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockTeam } from "../../data/mockTeam";
+import { TeamData } from "../../data/TeamData";
 import { exportToCSV } from "../../utils/csvExport";
 
 function TeamList() {
@@ -17,11 +17,11 @@ function TeamList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(mockTeam.map(s => s.specialty))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(mockTeam.map(s => s.status))], []);
+    const specialties = useMemo(() => ["All Specialties", ...new Set(TeamData.map(s => s.specialty))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(TeamData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
-        return mockTeam.filter((item) => {
+        return TeamData.filter((item) => {
             const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesSpecialty = specialtyFilter === "All Specialties" || item.specialty === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;

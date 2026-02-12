@@ -7,7 +7,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockTestimonials } from "../../data/mockTestimonials";
+import { TestimonialsData } from "../../data/TestimonialsData";
 import { exportToCSV } from "../../utils/csvExport";
 
 function TestimonialList() {
@@ -17,11 +17,11 @@ function TestimonialList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(mockTestimonials.map(s => s.specialty))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(mockTestimonials.map(s => s.status))], []);
+    const specialties = useMemo(() => ["All Specialties", ...new Set(TestimonialsData.map(s => s.specialty))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(TestimonialsData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
-        return mockTestimonials.filter((item) => {
+        return TestimonialsData.filter((item) => {
             const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesSpecialty = specialtyFilter === "All Specialties" || item.specialty === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;

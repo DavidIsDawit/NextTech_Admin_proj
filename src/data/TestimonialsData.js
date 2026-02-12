@@ -1,4 +1,4 @@
-export const mockTestimonials = [
+export const TestimonialsData = [
     {
         id: 1,
         image: "/images/testimonials/client1.jpg",

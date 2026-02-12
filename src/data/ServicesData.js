@@ -1,4 +1,4 @@
-export const mockServices = [
+export const ServicesData = [
   {
     id: 1,
     image: "/images/services/structural.png",

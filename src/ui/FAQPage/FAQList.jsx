@@ -7,7 +7,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockFAQ } from "../../data/mockFAQ";
+import { FAQData } from "../../data/FAQData";
 import { exportToCSV } from "../../utils/csvExport";
 
 function FAQList() {
@@ -17,11 +17,11 @@ function FAQList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const categories = useMemo(() => ["All Categories", ...new Set(mockFAQ.map(s => s.category))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(mockFAQ.map(s => s.status))], []);
+    const categories = useMemo(() => ["All Categories", ...new Set(FAQData.map(s => s.category))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(FAQData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
-        return mockFAQ.filter((item) => {
+        return FAQData.filter((item) => {
             const matchesSearch = item.question.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesCategory = categoryFilter === "All Categories" || item.category === categoryFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;

@@ -7,7 +7,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockNews } from "../../data/mockNews";
+import { NewsData } from "../../data/NewsData";
 import { exportToCSV } from "../../utils/csvExport";
 
 function NewsList() {
@@ -17,11 +17,11 @@ function NewsList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const categories = useMemo(() => ["All Categories", ...new Set(mockNews.map(s => s.category))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(mockNews.map(s => s.status))], []);
+    const categories = useMemo(() => ["All Categories", ...new Set(NewsData.map(s => s.category))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(NewsData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
-        return mockNews.filter((item) => {
+        return NewsData.filter((item) => {
             const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesCategory = categoryFilter === "All Categories" || item.category === categoryFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;

@@ -7,7 +7,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockProjects } from "../../data/mockProjects";
+import { ProjectsData } from "../../data/ProjectsData";
 import { exportToCSV } from "../../utils/csvExport";
 
 function ProjectList() {
@@ -17,11 +17,11 @@ function ProjectList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const sectors = useMemo(() => ["All Sectors", ...new Set(mockProjects.map(s => s.sector))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(mockProjects.map(s => s.status))], []);
+    const sectors = useMemo(() => ["All Sectors", ...new Set(ProjectsData.map(s => s.sector))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(ProjectsData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
-        return mockProjects.filter((item) => {
+        return ProjectsData.filter((item) => {
             const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesSector = sectorFilter === "All Sectors" || item.sector === sectorFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;

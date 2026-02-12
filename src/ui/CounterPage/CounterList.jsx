@@ -7,7 +7,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { mockCounters } from "../../data/mockCounters";
+import { CountersData } from "../../data/CountersData";
 import { exportToCSV } from "../../utils/csvExport";
 import { formatNumber } from "../../utils/formatters";
 
@@ -17,10 +17,10 @@ function CounterList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
-    const statuses = useMemo(() => ["All Status", ...new Set(mockCounters.map(s => s.status))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(CountersData.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
-        return mockCounters.filter((item) => {
+        return CountersData.filter((item) => {
             const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesStatus;
