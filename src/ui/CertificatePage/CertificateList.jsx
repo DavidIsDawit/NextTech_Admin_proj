@@ -126,7 +126,11 @@ function CertificateList() {
         {
             key: "from",
             label: "From",
-            render: (value) => <div className="text-sm text-gray-700">{value}</div>,
+            render: (value) => (
+                <div className="text-sm text-gray-700" title={value}>
+                    {value?.length > 30 ? value.substring(0, 30) + ".." : value}
+                </div>
+            ),
         },
         {
             key: "status",
