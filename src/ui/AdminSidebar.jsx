@@ -9,20 +9,20 @@ import videos from "/images/Videos_logo.png";
 
 // Inline menu configurations
 // const menuItems = [
- 
+
 // ];
 
 const gamenuItems = [
-   { title: "Services", path: "/admin/services", icon: "/images/Services.png" },
-   { title: "Partner Management", path: "/admin/partners", icon: "/images/partner.png" },
-   { title: "Projects", path: "/admin/projects", icon: "/images/Project.png" },
-   { title: "Gallery", path: "/admin/gallery", icon: "/images/Gallary.png" },
-   { title: "Certificates", path: "/admin/certificates", icon: "/images/certificate.png" },
-   { title: "Team Management", path: "/admin/teams", icon: "/images/team_page.jpg" },
-   { title: "News", path: "/admin/news", icon: "/images/News.png" },
-   { title: "FAQ", path: "/admin/faqs", icon: "/images/FAQ.png" },
-   { title: "Counter", path: "/admin/counters", icon: "/images/Counter.png" },
-   { title: "Testimonial", path: "/admin/testimonials", icon: "/images/Testimonial.png" },
+  { title: "Services", path: "/admin/services", icon: "/images/Services.png" },
+  { title: "Partner Management", path: "/admin/partners", icon: "/images/partner.png" },
+  { title: "Projects", path: "/admin/projects", icon: "/images/Project.png" },
+  { title: "Gallery", path: "/admin/gallery", icon: "/images/Gallary.png" },
+  { title: "Certificates", path: "/admin/certificates", icon: "/images/certificate.png" },
+  { title: "Team Management", path: "/admin/teams", icon: "/images/team_page.jpg" },
+  { title: "News", path: "/admin/news", icon: "/images/News.png" },
+  { title: "FAQ", path: "/admin/faqs", icon: "/images/FAQ.png" },
+  { title: "Counter", path: "/admin/counters", icon: "/images/Counter.png" },
+  { title: "Testimonial", path: "/admin/testimonials", icon: "/images/Testimonial.png" },
 ];
 
 const getUserRole = () => {
@@ -53,7 +53,7 @@ const AdminSidebar = () => {
 
   const userManagementItems = [
     { title: "Users", path: "/admin/users", icon: Users },
-  ]; 
+  ];
 
   // Handle logout function
   // const handleLogout = async () => {
@@ -115,8 +115,8 @@ const AdminSidebar = () => {
   //     setIsLoggingOut(false);
   //   }
   // };
-  const handleLogout = function(){
-     navigate("/admin/login");
+  const handleLogout = function () {
+    navigate("/admin/login");
   };
 
   // Helper function to get cookie value
@@ -152,7 +152,7 @@ const AdminSidebar = () => {
 
       {/* 🔹 Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0B162C] border-r border-gray-200 flex flex-col overflow-y-auto transform transition-transform duration-300 
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0B162C] border-r border-gray-200 flex flex-col overflow-y-auto no-scrollbar transform transition-transform duration-300 
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"} 
           lg:translate-x-0 lg:static lg:inset-0`}
       >
@@ -182,56 +182,56 @@ const AdminSidebar = () => {
         {/* 🔹 Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-1">
           {/* Dashboard */}
-         
-            <NavLink to="/" end
-              onClick={() => setMobileOpen(false)}>
-              {({ isActive }) => (
-                <div
-                  className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                      ? "border-l-[#136ECA] border-l-4   text-white"
-                      : "text-[#9CA3AF]  hover:bg-[#1A2332] hover:text-white"
+
+          <NavLink to="/" end
+            onClick={() => setMobileOpen(false)}>
+            {({ isActive }) => (
+              <div
+                className={`group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                  ? "border-l-[#136ECA] border-l-4   text-white"
+                  : "text-[#9CA3AF]  hover:bg-[#1A2332] hover:text-white"
+                  }`}
+              >
+                <img
+                  src={Dashboard}
+                  alt="Dashboard"
+                  className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 mr-3 object-contain transition filter ${isActive
+                    ? "brightness-200 contrast-125"
+                    : "brightness-100 group-hover:brightness-150"
                     }`}
-                >
+                />
+                Dashboard
+              </div>
+            )}
+          </NavLink>
+
+          {gamenuItems.map((item) => (
+            <NavLink
+              key={item.title}
+              to={item.path}
+              end
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                `group flex gap-4 items-center px-3 py-2 rounded-lg text-sm  lg:text-base font-medium transition-colors ${isActive
+                  ? "border-l-[#136ECA] border-l-4 text-white"
+                  : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
                   <img
-                    src={Dashboard}
-                    alt="Dashboard"
-                    className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 mr-3 object-contain transition filter ${isActive
-                       ?  "brightness-200 contrast-125" 
-    : "brightness-100 group-hover:brightness-150"
-                      }`}
+                    src={item.icon}
+                    alt={item.title}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 object-contain transition filter ${isActive
+                      ? "brightness-200 contrast-125"
+                      : "brightness-100 group-hover:brightness-150"}`}
                   />
-                    Dashboard
-                </div>
+                  {item.title}
+                </>
               )}
-            </NavLink>         
-       
-                  {gamenuItems.map((item) => (
-                    <NavLink
-                      key={item.title}
-                      to={item.path}
-                      end
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `group flex gap-4 items-center px-3 py-2 rounded-lg text-sm  lg:text-base font-medium transition-colors ${isActive
-                          ? "border-l-[#136ECA] border-l-4 text-white"
-                          : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <img
-                            src={item.icon}
-                            alt={item.title}
-                            className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 object-contain transition filter ${isActive
-                                  ?  "brightness-200 contrast-125" 
-    : "brightness-100 group-hover:brightness-150" }`}
-                          />
-                          {item.title}
-                        </>
-                      )}
-                    </NavLink>
-                  ))}         
+            </NavLink>
+          ))}
         </nav>
 
         {/* Logout Button */}
@@ -240,15 +240,15 @@ const AdminSidebar = () => {
             onClick={handleLogout}
             disabled={isLoggingOut}
             className={`w-full gap-3 group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isLoggingOut
-                ? " border-l-[#136ECA] border-l-4 text-white cursor-not-allowed"
-                : "text-[#9CA3AF] hover:bg-[#1A2332]  hover:text-white"
+              ? " border-l-[#136ECA] border-l-4 text-white cursor-not-allowed"
+              : "text-[#9CA3AF] hover:bg-[#1A2332]  hover:text-white"
               }`}
           >
             <img
               src={Logout}
               alt="Logout"
-              className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7  object-contain transition filter ${isLoggingOut ?  "brightness-200 contrast-125" 
-              :"brightness-100 group-hover:brightness-150 "
+              className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7  object-contain transition filter ${isLoggingOut ? "brightness-200 contrast-125"
+                : "brightness-100 group-hover:brightness-150 "
                 }`}
             />
             {isLoggingOut ? "Logging out..." : "Logout"}
