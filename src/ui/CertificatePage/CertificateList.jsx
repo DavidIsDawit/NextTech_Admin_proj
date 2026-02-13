@@ -178,7 +178,7 @@ function CertificateList() {
                 <DynamicButton
                     icon={FiPlus}
                     onClick={handleAddNew}
-                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                    className="w-full sm:w-auto md:w-52 lg:w-52 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
                     Add New Certificate
                 </DynamicButton>
