@@ -18,7 +18,7 @@ function CounterList() {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const itemsPerPage = 6;
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);

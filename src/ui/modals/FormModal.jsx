@@ -60,7 +60,7 @@ export function FormModal({
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Form Content & Actions */}
-                    <div className="max-h-[85vh] overflow-y-auto px-1 space-y-6">
+                    <div className="max-h-[85vh] overflow-y-auto no-scrollbar px-1 space-y-6">
                         <div>
                             {children}
                         </div>
