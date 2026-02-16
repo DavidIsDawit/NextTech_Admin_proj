@@ -5,7 +5,6 @@ import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicSearch from "../DynamicSearch";
 import { Button } from "../button";
-import { Input } from "../input";
 import Pagination from "../Pagination";
 import { Badge } from "../badge";
 import { ServicesData } from "../../data/ServicesData";
