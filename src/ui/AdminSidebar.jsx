@@ -6,6 +6,7 @@ import Dashboard from "/images/Dashboard.png";
 import Gallary from "/images/Gallary.png";
 import Images from "/images/Images_logo.png";
 import videos from "/images/Videos_logo.png";
+import {Button} from "@/ui/button"
 
 // Inline menu configurations
 // const menuItems = [
@@ -132,22 +133,24 @@ const AdminSidebar = () => {
       {/* 🔹 Mobile Top Bar */}
       <div className="lg:hidden fixed top-0 left-0 z-50 flex h-20 items-start justify-between p-4">
 
-        <button
-          onClick={() => { setMobileOpen(true); navigate("/admin"); }}
+        <Button
+          variant="ghost"
+          onClick={() => { setMobileOpen(true); navigate("/"); }}
           className="text-gray-700 focus:outline-none"
-
           disabled={isLoggingOut}
         >
-          <img src={NextTech_logo} alt="NextTech_logo" className="h-10 w-full" />
-        </button>
+           <img src={NextTech_logo} alt="NextTech_logo" className="h-10 w-full" />
+        </Button>
 
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setMobileOpen(true)}
           className="text-gray-700 md:px-10 px-3 focus:outline-none"
           disabled={isLoggingOut}
         >
           <Menu className="h-10 w-6" />
-        </button>
+        </Button>
+       
       </div>
 
       {/* 🔹 Sidebar */}
@@ -157,26 +160,29 @@ const AdminSidebar = () => {
           lg:translate-x-0 lg:static lg:inset-0`}
       >
         {/* Logo */}
-        <div className="p-4 flex  items-center justify-between border-gray-200">
-          <button
+        <div className="pt-8 pb-2 flex  items-center justify-between border-gray-200">
+        
+          <Button
+            variant="ghost"
             className=" text-gray-700"
-            onClick={() => { setMobileOpen(false); navigate("/admin"); }}
+            onClick={() => { setMobileOpen(false); navigate("/"); }}
             disabled={isLoggingOut}
           >
-            <img
+               <img
               src={NextTech_logo}
               alt="NextTech_logo"
               className="2xl:h-24 2xl:w-full xl:h-24 xl:w-full lg:h-20 lg:w-full md:h-16 md:w-full h-14 w-full"
             />
-          </button>
+          </Button>
 
-          <button
-            className="lg:hidden text-gray-700"
-            onClick={() => setMobileOpen(false)}
-            disabled={isLoggingOut}
+          <Button
+          variant="ghost"
+          className="lg:hidden text-[#9CA3AF]"
+          onClick={() => setMobileOpen(false)}
+          disabled={isLoggingOut}
           >
             <X className="h-6 w-6" />
-          </button>
+         </Button>
         </div>
 
         {/* 🔹 Navigation */}
@@ -236,14 +242,18 @@ const AdminSidebar = () => {
 
         {/* Logout Button */}
         <div className="p-4  ">
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className={`w-full gap-3 group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isLoggingOut
-                ? " border-l-[#136ECA] border-l-4 text-white cursor-not-allowed"
-                : "text-[#9CA3AF] hover:bg-[#1A2332]  hover:text-white"
-              }`}
-          >
+        <Button
+  variant="ghost"                    // clean, minimal look like your original
+  className={`
+    w-full justify-start gap-3 px-3 py-2.5 text-sm font-medium
+    ${isLoggingOut 
+      ? "border-l-4 border-[#136ECA] text-white cursor-not-allowed bg-[#1A2332]/80" 
+      : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+    }
+  `}
+  disabled={isLoggingOut}
+  onClick={handleLogout}
+>
             <img
               src={Logout}
               alt="Logout"
@@ -252,7 +262,8 @@ const AdminSidebar = () => {
                 }`}
             />
             {isLoggingOut ? "Logging out..." : "Logout"}
-          </button>
+          </Button> 
+          
         </div>
       </div>
 

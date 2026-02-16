@@ -62,18 +62,17 @@ export default function AdminHeader() {
   }, [menuOpen]);
 
   return (
-    <header className=" bg-white border rounded-lg ml-2 border-white p-4 flex justify-end lg:justify-between items-center relative">
+    <header className=" bg-white shadow-sm rounded-lg ml-2 border-black p-4 flex justify-end lg:justify-between items-center relative">
       <div className="relative  w-1/4 hidden lg:flex  ">
                   <Search  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input 
                     id="search"
                     type="search"
                     placeholder="Search anything ...."
-                    className="w-full pl-10 pr-4 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
+                    className="w-full pl-10 pr-4 py-1  rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
                   />
       </div>
-      <div className="flex items-center space-x-3 pr-4 hover:bg-[#D1D5DB] ">
-        
+      <div className="flex items-center space-x-3 mr-8 hover:bg-[#D1D5DB]">       
 
         {/* Avatar */}
         <div
@@ -97,8 +96,7 @@ export default function AdminHeader() {
             </span>
           )}
         
-        </div>
-        
+        </div>        
            
         <div onDrop={handleDrop} onClick={handleAvatarClick} className="flex gap-4">
           <span  className="text-lg  text-gray-800">Senior engineer</span>
@@ -109,28 +107,10 @@ export default function AdminHeader() {
         {menuOpen && (
           <div
             ref={menuRef}
-            className="absolute top-16 right-3 w-60 bg-white shadow-lg  p-4 z-50 border border-gray-100"
+            className="absolute top-16 right-14 w-52 bg-white shadow-lg  px-4  z-50 border border-gray-100"
           >
-            {/* User Info */}
-            {/* <div className="flex flex-col items-center mb-3">
-              <img
-                src={avatar}
-                alt="Profile"
-                className="w-14 h-14 rounded-full object-cover mb-2"
-              />
-              <p className="text-gray-800 font-semibold">{currentUser.name}</p>
-              <p className="text-gray-500 text-sm">{currentUser.role}</p>
-            </div> */}
-
-            {/* Profile Options */}
+              {/* Profile Options */}
             <div className="mt-3 space-y-2 text-gray-700">
-              {/* <button
-                onClick={() => navigate("/admin/View-profile")}
-                className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-blue-600 hover:text-white transition-colors"
-              >
-                <User className="w-4 h-4" /> My Profile
-              </button> */}
-
               <button
                 onClick={() => navigate("/admin/profile_setting")}
                 className="flex font-bold items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-[#D1D5DB]  transition-colors"

@@ -1,7 +1,13 @@
 import Login_pic from "/images/Login_pic.png";
-import { Mail, Lock, EyeOff } from 'lucide-react';
-import {useNavigate} from "react-router-dom";
+import { Mail, Lock, EyeOff, Eye } from 'lucide-react';
+import {Button} from '@/ui/button';
+import {Label} from '@/ui/label';
+import {Input} from '@/ui/input';
+import {useState} from "react";
+import {useNavigate,NavLink} from "react-router-dom";
 function Login (){
+  const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const handlesubmit = function(){
      navigate("/");
@@ -39,34 +45,55 @@ function Login (){
             <form className="flex flex-col gap-6">
               {/* Email Field */}
               <div className="flex flex-col gap-2">
-                <label htmlFor="email" className="text-sm font-semibold text-[#2C3E50]">
-                  Email Address
-                </label>
+               
+                <Label htmlFor="email" className="text-sm font-semibold text-[#2C3E50]">
+                   Email Address
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input 
-                    id="email"
+                 
+                  <Input
+                  id="email"
                     type="email"
                     placeholder="admin@engineercms.com"
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
                   />
+                
                 </div>
               </div>
 
               {/* Password Field */}
               <div className="flex flex-col gap-2">
-                <label htmlFor="password" className="text-sm font-semibold text-[#2C3E50]">
-                  Password
-                </label>
+                <Label htmlFor="password" className="text-sm font-semibold text-[#2C3E50]">
+                   Password
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input 
-                    id="password"
-                    type="password"
+                 
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
                   />
+
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                  {showPassword ? (
                   <EyeOff className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 cursor-pointer" />
+                  ) : (
+                    <Eye className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 cursor-pointer" />
+                  )}
+                </Button>
+                  
+                  
+                  
+
                 </div>
               </div>
 
@@ -77,23 +104,34 @@ function Login (){
                   id="remember" 
                   className="w-5 h-5 border-gray-300 rounded accent-[#00A8E8]" 
                 />
-                <label htmlFor="remember" className="text-gray-600 text-sm">
-                  Remember me for 30 days
-                </label>
+                
+                <Label htmlFor="remember" className="text-gray-600 text-sm">
+                    Remember me for 30 days
+                </Label>
               </div>
 
               {/* Submit Button */}
-              <button 
+         
+              <Button
+              variant="ghost"
               onClick={handlesubmit}
-              className="bg-[#00A8E8] oncli hover:bg-[#0092c9] text-white font-medium py-3 px-4 rounded-xl shadow-md transition-colors mt-2">
-                Sign In
-              </button>
+              className="bg-[#00A8E8] oncli hover:bg-[#0092c9] text-white font-medium py-3 px-4 rounded-xl shadow-md transition-colors mt-2"
+              >
+               Sign In
+              </Button>
+
             </form>
             {/* Footer Links */}
             <div className="mt-8 text-center flex flex-col gap-10">
-              <button className="text-[#00A8E8] font-medium hover:underline">
+              {/* <button className="text-[#00A8E8] font-medium hover:underline">
                 Forgot Password?
-              </button>
+              </button> */}
+                  <NavLink
+              variant="ghost"
+              className="text-[#00A8E8] hover:text-[#0092c9] font-medium hover:underline"
+              >
+               Forgot Password?
+              </NavLink>
               <p className="text-xs text-gray-400">
                 © 2026 Next-Tech. All rights reserved.
               </p>
