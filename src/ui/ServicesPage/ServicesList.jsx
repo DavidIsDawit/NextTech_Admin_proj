@@ -3,10 +3,11 @@ import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
-import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
+import { Button } from "../button";
+import { Input } from "../input";
 import Pagination from "../Pagination";
-import Badge from "../Badge";
+import { Badge } from "../badge";
 import { ServicesData } from "../../data/ServicesData";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
@@ -134,16 +135,16 @@ function Services() {
             key: "category",
             label: "Category",
             render: (value) => {
-                let colorClass = "bg-gray-100 text-gray-800";
-                if (value === "Construction") colorClass = "bg-blue-50 text-blue-600";
-                if (value === "Consulting") colorClass = "bg-green-50 text-green-600";
-                if (value === "Infrastructure") colorClass = "bg-gray-50 text-gray-600";
-                if (value === "Design") colorClass = "bg-purple-50 text-purple-600";
-
+                const variantMap = {
+                    Construction: "construction",
+                    Consulting: "consulting",
+                    Infrastructure: "infrastructure",
+                    Design: "design"
+                };
                 return (
-                    <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full ${colorClass}`}>
+                    <Badge variant={variantMap[value] || "secondary"} className="font-medium whitespace-nowrap">
                         {value}
-                    </span>
+                    </Badge>
                 );
             },
         },
@@ -157,7 +158,19 @@ function Services() {
         {
             key: "status",
             label: "Status",
-            render: (value) => <Badge type={value}>{value}</Badge>,
+            render: (value) => {
+                const variantMap = {
+                    active: "success",
+                    Active: "success",
+                    published: "success",
+                    inactive: "error",
+                    Inactive: "error",
+                    archived: "error",
+                    draft: "warning",
+                    Draft: "warning"
+                };
+                return <Badge variant={variantMap[value] || "default"}>{value}</Badge>;
+            },
         },
         {
             key: "actions",
@@ -202,21 +215,19 @@ function Services() {
                         Manage engineering services, technical offerings, and project capabilities
                     </p>
                 </div>
-                <DynamicButton
-
-                    icon={FiPlus}
-
+                <Button
                     onClick={handleAddNew}
-                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
+                    <FiPlus className="mr-2 h-5 w-5" />
                     Add New Service
-                </DynamicButton>
+                </Button>
             </div>
 
             {/* Filters Bar */}
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-16 pb-8">
                 <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto flex-1">
-                    <div className="w-full sm:w-96 lg:w-80 2xl:w-96  ">
+                    <div className="w-full sm:w-96 lg:w-80 2xl:w-96">
                         <DynamicSearch
                             value={searchTerm}
                             onChange={(val) => {
@@ -250,13 +261,13 @@ function Services() {
                     </div>
                 </div>
 
-                <DynamicButton
-                    variant="secondary"
+                <Button
+                    variant="export"
                     onClick={handleExportCSV}
-                    className="w-full sm:w-auto justify-center sm:justify-end text-sm font-medium"
+                    className="w-full sm:w-auto text-base font-medium"
                 >
                     Export CSV
-                </DynamicButton>
+                </Button>
             </div>
 
             {/* Table */}

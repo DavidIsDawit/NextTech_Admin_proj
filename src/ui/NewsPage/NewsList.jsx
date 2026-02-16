@@ -3,10 +3,11 @@ import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
-import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
+import { Button } from "../button";
+import { Input } from "../input";
 import Pagination from "../Pagination";
-import Badge from "../Badge";
+import { Badge } from "../badge";
 import { NewsData } from "../../data/NewsData";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
@@ -116,7 +117,11 @@ function NewsList() {
         {
             key: "category",
             label: "Category",
-            render: (value) => <span className="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-indigo-50 text-indigo-700">{value}</span>,
+            render: (value) => (
+                <Badge variant="secondary" className="font-medium whitespace-nowrap">
+                    {value}
+                </Badge>
+            ),
         },
         {
             key: "authorName",
@@ -131,7 +136,19 @@ function NewsList() {
         {
             key: "status",
             label: "Status",
-            render: (value) => <Badge type={value}>{value}</Badge>,
+            render: (value) => {
+                const variantMap = {
+                    active: "success",
+                    Active: "success",
+                    published: "success",
+                    inactive: "error",
+                    Inactive: "error",
+                    archived: "error",
+                    draft: "warning",
+                    Draft: "warning"
+                };
+                return <Badge variant={variantMap[value] || "default"}>{value}</Badge>;
+            },
         },
         {
             key: "actions",
@@ -175,13 +192,13 @@ function NewsList() {
                         Manage articles and news updates
                     </p>
                 </div>
-                <DynamicButton
-                    icon={FiPlus}
+                <Button
                     onClick={handleAddNew}
-                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
+                    <FiPlus className="mr-2 h-5 w-5" />
                     Add New Article
-                </DynamicButton>
+                </Button>
             </div>
 
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-16 pb-8">
@@ -219,13 +236,13 @@ function NewsList() {
                         />
                     </div>
                 </div>
-                <DynamicButton
-                    variant="secondary"
+                <Button
+                    variant="export"
                     onClick={handleExportCSV}
-                    className="w-full sm:w-auto justify-center sm:justify-end text-sm font-medium"
+                    className="w-full sm:w-auto text-sm font-medium"
                 >
                     Export CSV
-                </DynamicButton>
+                </Button>
             </div>
 
             <div>
