@@ -3,10 +3,11 @@ import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
-import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
+import { Button } from "../button";
+import { Input } from "../input";
 import Pagination from "../Pagination";
-import Badge from "../Badge";
+import { Badge } from "../badge";
 import { TeamData } from "../../data/TeamData";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
@@ -125,7 +126,15 @@ function TeamList() {
         {
             key: "status",
             label: "Status",
-            render: (value) => <Badge type={value}>{value}</Badge>,
+            render: (value) => {
+                const variantMap = {
+                    active: "success",
+                    Active: "success",
+                    inactive: "error",
+                    Inactive: "error"
+                };
+                return <Badge variant={variantMap[value] || "default"}>{value}</Badge>;
+            },
         },
         {
             key: "actions",
@@ -169,13 +178,13 @@ function TeamList() {
                         Manage team members and specialties
                     </p>
                 </div>
-                <DynamicButton
-                    icon={FiPlus}
+                <Button
                     onClick={handleAddNew}
-                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
+                    <FiPlus className="mr-2 h-5 w-5" />
                     Add New Member
-                </DynamicButton>
+                </Button>
             </div>
 
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-16 pb-8">
@@ -213,13 +222,13 @@ function TeamList() {
                         />
                     </div>
                 </div>
-                <DynamicButton
-                    variant="secondary"
+                <Button
+                    variant="export"
                     onClick={handleExportCSV}
-                    className="w-full sm:w-auto justify-center sm:justify-end text-sm font-medium"
+                    className="w-full sm:w-auto text-sm font-medium"
                 >
                     Export CSV
-                </DynamicButton>
+                </Button>
             </div>
 
             <div>
