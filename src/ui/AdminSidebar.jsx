@@ -56,66 +56,7 @@ const AdminSidebar = () => {
     { title: "Users", path: "/admin/users", icon: Users },
   ]; 
 
-  // Handle logout function
-  // const handleLogout = async () => {
-  //   try {
-  //     setIsLoggingOut(true);
-
-  //     // Get the access token from localStorage or wherever it's stored
-  //     const accessToken = localStorage.getItem("accessToken") ||
-  //       sessionStorage.getItem("accessToken") ||
-  //       getCookie("accessToken");
-
-  //     // Call logout endpoint with Authorization header
-  //     const response = await api.post(
-  //       "/user/logout",
-  //       {}, // Empty body
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${accessToken}`,
-  //           "Content-Type": "application/json",
-  //         },
-  //         withCredentials: true // Important for cookies
-  //       }
-  //     );
-
-  //     if (response.data.status === "success") {
-  //       // Clear all client-side storage
-  //       localStorage.clear();
-  //       sessionStorage.clear();
-
-  //       // Clear any remaining cookies
-  //       document.cookie.split(";").forEach(cookie => {
-  //         const eqPos = cookie.indexOf("=");
-  //         const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-  //         // Clear the cookie by setting expiry to past
-  //         document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
-  //       });
-
-  //       // Reset API default headers if needed
-  //       if (api.defaults.headers.common['Authorization']) {
-  //         delete api.defaults.headers.common['Authorization'];
-  //       }
-
-  //       // Redirect to login page
-  //       navigate("/admin/login");
-  //     } else {
-  //       console.error("Logout failed:", response.data.message);
-  //       // Fallback to manual logout even if API fails
-  //       localStorage.clear();
-  //       sessionStorage.clear();
-  //       navigate("/admin/login");
-  //     }
-  //   } catch (error) {
-  //     console.error("Logout error:", error);
-  //     // Fallback to manual logout on error
-  //     localStorage.clear();
-  //     sessionStorage.clear();
-  //     navigate("/admin/login");
-  //   } finally {
-  //     setIsLoggingOut(false);
-  //   }
-  // };
+  
   const handleLogout = function(){
      navigate("/admin/login");
   };
@@ -146,9 +87,10 @@ const AdminSidebar = () => {
           variant="ghost"
           onClick={() => setMobileOpen(true)}
           className="text-gray-700 md:px-10 px-3 focus:outline-none"
-          disabled={isLoggingOut}
-        >
+          disabled={isLoggingOut} > 
+
           <Menu className="h-10 w-6" />
+          
         </Button>
        
       </div>
@@ -164,14 +106,14 @@ const AdminSidebar = () => {
         
           <Button
             variant="ghost"
-            className=" text-gray-700"
+            className=" text-gray-700 hover:bg-current"
             onClick={() => { setMobileOpen(false); navigate("/"); }}
             disabled={isLoggingOut}
           >
                <img
               src={NextTech_logo}
               alt="NextTech_logo"
-              className="2xl:h-24 2xl:w-full xl:h-24 xl:w-full lg:h-20 lg:w-full md:h-16 md:w-full h-14 w-full"
+              className="2xl:h-24 2xl:w-full xl:h-24 xl:w-full lg:h-20 lg:w-full md:h-16 md:w-full h-14 w-full brightness-125 contrast-125"
             />
           </Button>
 
@@ -202,8 +144,7 @@ const AdminSidebar = () => {
                     src={Dashboard}
                     alt="Dashboard"
                     className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 mr-3 object-contain transition filter ${isActive
-                       ?  "brightness-200 contrast-125" 
-    : "brightness-100 group-hover:brightness-150"
+                       ?  "brightness-200 contrast-125" : "brightness-100 group-hover:brightness-150"
                       }`}
                   />
                     Dashboard
@@ -230,8 +171,7 @@ const AdminSidebar = () => {
                             src={item.icon}
                             alt={item.title}
                             className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 object-contain transition filter ${isActive
-                                  ?  "brightness-200 contrast-125" 
-    : "brightness-100 group-hover:brightness-150" }`}
+                                  ?  "brightness-200 contrast-125" : "brightness-100 group-hover:brightness-150" }`}
                           />
                           {item.title}
                         </>
@@ -272,10 +212,10 @@ const AdminSidebar = () => {
         <div
           className="fixed inset-0 bg-black bg-opacity-40 z-40 lg:hidden"
           onClick={() => !isLoggingOut && setMobileOpen(false)}
-        />
-      )}
-    </>
-  );
-};
+              />
+            )}
+          </>
+        );
+      };
 
-export default AdminSidebar;
+      export default AdminSidebar;

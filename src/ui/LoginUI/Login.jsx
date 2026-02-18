@@ -5,6 +5,7 @@ import {Label} from '@/ui/label';
 import {Input} from '@/ui/input';
 import {useState} from "react";
 import {useNavigate,NavLink} from "react-router-dom";
+import NextTech_logo from "/NextTech_logo.png";
 function Login (){
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
@@ -14,7 +15,15 @@ function Login (){
   };
   return (
     <div className="flex justify-between h-[90vh] ">
+     
         <div className=" w-2/3 h-[100vh]  overflow-hidden">
+      <div className="absolute left-10 top-20   -translate-y-1/2 z-10  flex flex-col items-start justify-start text-white ">
+           <img
+                      src={NextTech_logo}
+                      alt="NextTech_logo"
+                      className="2xl:h-16 2xl:w-full xl:h-14 xl:w-full lg:h-12 lg:w-full md:h-11 md:w-full h-10 w-full brightness-150 contrast-125"
+                    />
+      </div>
 
         <div className="absolute left-1/3 top-1/2 -translate-x-2/4 -translate-y-1/2 z-10  flex flex-col items-center justify-center text-white ">
               <h1 className="text-5xl  mb-6 font-semibold">
@@ -32,7 +41,7 @@ function Login (){
            <img 
            src={Login_pic} 
            alt="Login_pic" 
-           className="h-[100vh] w-full  object-cover" />           
+           className="h-[100vh] w-full  object-cover   " />           
         </div>
         
         <div className="flex flex-col  justify-center w-1/3 h-[100vh]  px-3 bg-white  rounded-sm">

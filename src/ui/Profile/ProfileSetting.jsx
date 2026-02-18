@@ -36,15 +36,15 @@ function ProfileSetting() {
   // For now using static/mock data to match your screenshot exactly
   // Later → uncomment the fetch and use real API data
   const [formData, setFormData] = useState({
-    fullName: "Sara Michael",
-    role: "System Administrator",
-    email: "saramichael@nettech.com",
-    phone: "+25119999999",
-    employeeId: "ENG-2024-001",
-    joinDate: "2020-01-15",
-    department: "Administration",
-    location: "Addis Ababa, ET",
-    bio: "Experienced system administrator with over 8 years of expertise in engineering content management systems. Specialized in team coordination, system optimization, and ensuring seamless operations across multiple departments.",
+    fullName: "",
+    role: "",
+    email: "",
+    phone: "",
+    employeeId: "",
+    joinDate: "",
+    department: "",
+    location: "",
+    bio: "",
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -116,9 +116,11 @@ function ProfileSetting() {
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
         <Icon className="w-4 h-4" />
       </div>
-      <Input {...props} className={`pl-10 h-11 border-gray-200 focus:ring-[#00A3E0] ${props.className}`} />
+      <Input  className={`pl-10 h-11 border-gray-200 focus:ring-[#00A3E0] ${props.className}`} />
     </div>
   );
+
+
 
   const PasswordWithToggle = ({ field, icon: Icon, ...props }) => (
     <div className="relative">
@@ -126,7 +128,7 @@ function ProfileSetting() {
         <Icon className="w-4 h-4" />
       </div>
       <Input
-        {...props}
+        
         type={showPasswords[field] ? "text" : "password"}
         className="pl-10 pr-10 h-11 border-[#D1D5DB] border focus:ring-[#00A3E0]"
       />
@@ -146,9 +148,9 @@ function ProfileSetting() {
          <div className="p-6 lg:p-10">
           <div className="flex flex-col  gap-10">
             
-            <div className="flex py-10 flex-col sm:flex-row items-center  sm:items-center justify-between gap-6 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="flex py-10 flex-col sm:flex-row items-center shadow-md sm:items-center justify-between gap-6 p-6 bg-white rounded-xl border border-gray-100">
   {/* Left: Avatar + Info */}
-  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
+  <div className="flex flex-col sm:flex-row items-center sm:items-start  gap-5">
     {/* Avatar with camera overlay */}
     <div className="relative space-y-6 ">
       <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl">
@@ -167,7 +169,7 @@ function ProfileSetting() {
     </div>
 
     {/* Text info */}
-    <div className="text-center sm:text-left space-y-2">
+    <div className="text-center sm:text-left  space-y-2">
       <h2 className="text-2xl font-bold text-gray-900 pb-2">Sara Michael</h2>
       {/* Role badge */}
       <span className="inline-block mt-1.5 px-4 py-1 bg-[#E0F2FE] text-[#00A3E0] font-medium text-sm rounded-full">
@@ -186,26 +188,14 @@ function ProfileSetting() {
     </div>
   </div>
 
-  {/* Right: Edit Profile button */}
-  {/* <button
-    className="px-6 py-2.5 bg-white border-2 border-[#00A3E0] text-[#00A3E0] font-medium rounded-lg hover:bg-blue-50 transition whitespace-nowrap"
-    onClick={() => {
-      // navigate to edit profile page or open modal
-      // navigate("/profile/edit");
-      alert("Edit profile clicked (implement navigation/modal)");
-    }}
-  >
-    Edit Profile
-  </button> */}
-
-    <Button
+     <Button
             variant="outline"
             className="px-6 py-2.5 bg-white border-2 border-[#00A3E0] text-[#00A3E0] font-medium rounded-lg hover:bg-blue-50 transition whitespace-nowrap"
           >
             Edit Profile
     </Button>
 </div>           
-            <div className="flex-col space-y-6 py-10 bg-white ">
+            <div className="flex-col space-y-6 py-2 bg-white shadow-md ">
               {/* Personal Info Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 m-10  ">
               
@@ -331,10 +321,10 @@ function ProfileSetting() {
             </div>
 
               {/* Save Button */}
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center pt-4 pb-10">
               <Button
                 onClick={handleSaveProfile}
-                className="bg-[#00A3E0] hover:bg-blue-600 text-white px-12 h-12 rounded-xl text-md font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
+                className="bg-[#00A3E0] hover:bg-blue-600 text-white px-12  h-12 rounded-xl text-md font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
               >
                 Save Changes
               </Button>
