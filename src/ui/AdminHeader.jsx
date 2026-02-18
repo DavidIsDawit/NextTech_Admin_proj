@@ -72,12 +72,12 @@ export default function AdminHeader() {
                     className="w-full pl-10 pr-4 py-1  rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
                   />
       </div>
-      <div className="flex items-center space-x-3 mr-8 hover:bg-[#D1D5DB]">       
+      <div className="flex items-center space-x-3 mr-8 hover:bg-[#D1D5DB] rounded-md">       
 
         {/* Avatar */}
         <div
           ref={avatarRef}
-          className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer ml-3 relative"
+          className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer ml-1 relative"
           onClick={handleAvatarClick}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -112,7 +112,8 @@ export default function AdminHeader() {
               {/* Profile Options */}
             <div className="mt-3 space-y-2 text-gray-700">
               <button
-                onClick={() => navigate("/admin/profile_setting")}
+                onClick={() => {setMenuOpen(false); navigate("/admin/profile_setting")}}
+                
                 className="flex font-bold items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-[#D1D5DB]  transition-colors"
               >
                  Profile Setting
