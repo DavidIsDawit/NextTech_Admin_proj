@@ -12,7 +12,6 @@ import { getAllCounters, createCounter, updateCounter } from "../../api/api";
 import { exportToCSV } from "../../utils/csvExport";
 import { formatNumber } from "../../utils/formatters";
 import { FormModal } from "../modals/FormModal";
-import { DeleteModal } from "../modals/DeleteModal";
 import { CounterForm } from "../forms/CounterForm";
 
 function CounterList() {
@@ -27,12 +26,10 @@ function CounterList() {
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [formType, setFormType] = useState('add'); // 'add' or 'edit'
     const [formData, setFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [formType, setFormType] = useState('add'); // 'add' or 'edit'
 
     const fetchCounters = async () => {
         setIsLoading(true);
@@ -105,11 +102,6 @@ function CounterList() {
         setIsFormModalOpen(true);
     };
 
-    const handleDeleteClick = (item) => {
-        setSelectedItem(item);
-        setIsDeleteModalOpen(true);
-    };
-
     const handleFormSubmit = async () => {
         setIsSubmitting(true);
         try {
@@ -142,13 +134,6 @@ function CounterList() {
         }
     };
 
-    const handleDeleteConfirm = () => {
-        setIsDeleting(true);
-        // Delete endpoint not in collection, assuming not needed for now as per FAQ
-        toast.info("Delete functionality not yet implemented in backend collection.");
-        setIsDeleting(false);
-        setIsDeleteModalOpen(false);
-    };
 
     // Extract names of counters already in use to prevent duplicates in the form
     const existingNames = useMemo(() => counters.map(c => c.name), [counters]);
@@ -193,13 +178,6 @@ function CounterList() {
                         title="Edit"
                     >
                         <BiEdit size={21} />
-                    </button>
-                    <button
-                        className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
-                        onClick={() => handleDeleteClick(row)}
-                        title="Delete"
-                    >
-                        <FiTrash2 size={21} />
                     </button>
                 </div>
             ),
@@ -311,14 +289,6 @@ function CounterList() {
                 />
             </FormModal>
 
-            <DeleteModal
-                open={isDeleteModalOpen}
-                onOpenChange={setIsDeleteModalOpen}
-                onConfirm={handleDeleteConfirm}
-                entityName="Counter"
-                itemName={selectedItem?.name}
-                isDeleting={isDeleting}
-            />
         </div>
 
     );

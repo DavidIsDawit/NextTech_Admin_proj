@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { getAllFAQs, createFAQ, updateFAQ } from "../../api/api";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
-import { DeleteModal } from "../modals/DeleteModal";
 import { FAQForm } from "../forms/FAQForm";
 
 function FAQList() {
@@ -23,12 +22,10 @@ function FAQList() {
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [formType, setFormType] = useState('add'); // 'add' or 'edit'
     const [formData, setFormData] = useState({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
 
     const [faqs, setFaqs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -100,11 +97,6 @@ function FAQList() {
         setIsFormModalOpen(true);
     };
 
-    const handleDeleteClick = (item) => {
-        setSelectedItem(item);
-        setIsDeleteModalOpen(true);
-    };
-
     const handleFormSubmit = async () => {
         setIsSubmitting(true);
         try {
@@ -136,19 +128,8 @@ function FAQList() {
         }
     };
 
-    const handleDeleteConfirm = async () => {
-        setIsDeleting(true);
-        try {
-            toast.info("Delete functionality not yet implemented in backend collection.");
-            setIsDeleteModalOpen(false);
-        } catch (error) {
-            toast.error("Failed to delete FAQ");
-        } finally {
-            setIsDeleting(false);
-        }
-    };
 
-    // Columns: Icon, question, category, create date, status, action
+    // Columns: question, category, create date, status, action
     const columns = [
 
         {
@@ -189,13 +170,6 @@ function FAQList() {
                         title="Edit"
                     >
                         <BiEdit size={21} />
-                    </button>
-                    <button
-                        className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
-                        onClick={() => handleDeleteClick(row)}
-                        title="Delete"
-                    >
-                        <FiTrash2 size={21} />
                     </button>
                 </div>
             ),
@@ -316,14 +290,6 @@ function FAQList() {
                 />
             </FormModal>
 
-            <DeleteModal
-                open={isDeleteModalOpen}
-                onOpenChange={setIsDeleteModalOpen}
-                onConfirm={handleDeleteConfirm}
-                entityName="FAQ"
-                itemName={selectedItem?.question}
-                isDeleting={isDeleting}
-            />
         </div>
 
     );

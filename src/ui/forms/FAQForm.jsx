@@ -21,12 +21,6 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setFormData((prev) => ({ ...prev, icon: file }));
-        }
-    };
 
     return (
         <div className="space-y-6">
