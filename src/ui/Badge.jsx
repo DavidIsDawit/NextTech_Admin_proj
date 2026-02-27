@@ -11,6 +11,7 @@ function Badge({ children, type }) {
         disable: "bg-red-100 text-red-700",
         Draft: "bg-orange-100 text-orange-700",
         draft: "bg-orange-100 text-orange-700",
+        schedule: "bg-blue-100 text-blue-700",
     };
 
     const className = `px-3 py-1 rounded-full text-xs font-semibold ${styles[type] || "bg-gray-100 text-gray-700"

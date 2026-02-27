@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import NextTech_logo from "/NextTech_logo.png";
-import Logout from "/images/Logout.png";
-import Dashboard from "/images/Dashboard.png";
-import Gallary from "/images/Gallary.png";
-import Images from "/images/Images_logo.png";
-import videos from "/images/Videos_logo.png";
+// static assets from public/images – reference via root path instead of importing
+const NextTech_logo = "/NextTech_logo.png";
+const Logout = "/images/Logout.png";
+const Dashboard = "/images/Dashboard.png";
+const Gallary = "/images/Gallary.png";
+const Images = "/images/Images_logo.png";
+const videos = "/images/Videos_logo.png";
 import {Button} from "@/ui/button"
 
 // Inline menu configurations
@@ -37,7 +38,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import api from "../api/api"; // Import your API instance
+import api, { cleanupAuth } from "../api/api"; // Import your API instance
 
 const AdminSidebar = () => {
   const [userManagementOpen, setUserManagementOpen] = useState(false);
@@ -57,8 +58,15 @@ const AdminSidebar = () => {
   ]; 
 
   
-  const handleLogout = function(){
-     navigate("/admin/login");
+  const handleLogout = async function(){
+    setIsLoggingOut(true);
+    try {
+      await api.post("/user/logout");
+    } catch (err) {
+      // ignore network errors
+    }
+    cleanupAuth();
+    navigate("/admin/login");
   };
 
   // Helper function to get cookie value

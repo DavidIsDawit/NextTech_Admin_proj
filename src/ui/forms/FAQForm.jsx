@@ -21,12 +21,6 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setFormData((prev) => ({ ...prev, icon: file }));
-        }
-    };
 
     return (
         <div className="space-y-6">
@@ -94,27 +88,6 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
                 )}
             </div>
 
-            {/* Add Icon */}
-            <div className="space-y-2">
-                <Label htmlFor="icon">Add Icon</Label>
-                <div
-                    className="border-2 border-dashed border-sky-400 bg-sky-50 rounded-lg p-6 text-center cursor-pointer hover:bg-sky-100/50 transition-colors"
-                    onClick={() => document.getElementById('icon-upload').click()}
-                >
-                    <img src="/upload-placeholder.png" alt="Upload" className="mx-auto h-10 w-10 mb-2" />
-                    <p className="text-sm text-sky-600 font-medium">
-                        {formData.icon ? formData.icon.name : 'Drag icon here or click to browse'}
-                    </p>
-                    <input
-                        id="icon-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="hidden"
-                    />
-                </div>
-            </div>
-
             {/* Status */}
             <div className="space-y-2">
                 <Label>Status</Label>
@@ -136,13 +109,15 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
                         </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="archived" id="archived" />
-                        <Label htmlFor="archived" className="font-normal text-slate-600">
-                            Archived
+                        <RadioGroupItem value="schedule" id="schedule" />
+                        <Label htmlFor="schedule" className="font-normal text-slate-600">
+                            Schedule
                         </Label>
                     </div>
                 </RadioGroup>
             </div>
+
+
         </div>
     );
 }

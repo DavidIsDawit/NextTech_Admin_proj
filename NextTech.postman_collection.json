@@ -1,0 +1,1120 @@
+{
+	"info": {
+		"_postman_id": "6f5b0af4-ba1b-43b4-9d8a-8c86ca1beee8",
+		"name": "NextTech",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39447380"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "LogIn",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDE2NTgsImV4cCI6MTc3MTUwMjI1OH0.euNz-F9wX9jlQxIfF36kJm9QzFfhHxeRzsUOE9rQH0U",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\":\"nothing@gmail.com\",\n  \"password\":\"NewPas123\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/user/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"user",
+								"login"
+							]
+						},
+						"description": "---\n\n# 🔐 User Login API Documentation\n\n## Endpoint\n\n```\nPOST /api/user/login\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/user/login\n\n ```\n\n---\n\n## Description\n\nAuthenticates a user using email and password, and returns:\n\n- Access Token (in Authorization header)\n    \n- Refresh Token (in HTTP-only cookie)\n    \n- User role\n    \n- First time login status\n    \n\n---\n\n## Authentication\n\nRequired: ❌ No\n\n(This is the login endpoint)\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\n\n ```\n\n---\n\n## Request Body (JSON)\n\n```\n{\n  \"email\": \"john@gmail.com\",\n  \"password\": \"12345678\"\n}\n\n ```\n\n---\n\n## Field Explanation\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| email | String | ✅ | Registered email |\n| password | String | ✅ | User password |\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\nHeaders:\n\n```\nAuthorization: Bearer <accessToken>\nSet-Cookie: refreshToken=<refreshToken>; HttpOnly\n\n ```\n\nBody:\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"role\": \"user\",\n    \"firstTimeLogin\": true\n  }\n}\n\n ```\n\n---\n\n## Important: Tokens Location\n\n### Access Token\n\nReturned in response header:\n\n```\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\nUse this token for protected routes.\n\n---\n\n### Refresh Token\n\nStored in cookie:\n\n```\nrefreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\nUsed to generate new access token.\n\n---\n\n# Error Responses\n\n---\n\n## Missing email or password\n\nStatus: **400 Bad Request**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Email and password are required\"\n}\n\n ```\n\n---\n\n## Invalid email\n\nStatus: **401 Unauthorized**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Email or password incorrect\"\n}\n\n ```\n\n---\n\n## Invalid password\n\nStatus: **401 Unauthorized**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Email or password incorrect\"\n}\n\n ```\n\n---\n\n# Postman Setup Instructions\n\n---\n\n## Step 1: Create request\n\nMethod:\n\n```\nPOST\n\n ```\n\nURL:\n\n```\nhttp://localhost:3000/api/user/login\n\n ```\n\n---\n\n## Step 2: Headers\n\n```\nContent-Type: application/json\n\n ```\n\n---\n\n## Step 3: Body → raw → JSON\n\n```\n{\n  \"email\": \"john@gmail.com\",\n  \"password\": \"12345678\"\n}\n\n ```\n\n---\n\n## Step 4: Click Send\n\n---\n\n## Step 5: Copy Access Token\n\nFrom response Headers:\n\n```\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\nUse in other APIs:\n\n```\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n# What happens internally\n\nWhen login succeeds:\n\n✔ Password compared using bcrypt\n\n✔ Access token generated\n\n✔ Refresh token generated\n\n✔ Refresh token saved in database\n\n✔ Refresh token stored in HTTP-only cookie\n\n✔ Access token returned in Authorization header\n\n---\n\n# Example Database Change After Login\n\n```\n{\n  \"_id\": \"65d3f8a2c123456789abcd12\",\n  \"email\": \"john@gmail.com\",\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"not]hing\",\n  \"email\": \"nothing@gmail.com\",\n  \"password\": \"12345678\",\n  \"phoneNumber\": \"0912345678\",\n  \"location\": \"Addis Ababa, Ethiopia\",\n  \"bio\": \"Software developer with 5 years of experience in Node.js and MongoDB.\",\n  \"employeId\": \"EMP001\",\n  \"department\": \"IT\",\n  \"role\": \"user\",\n  \"firstTimeLogin\": true,\n  \"refreshToken\": null\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/createUser",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"createUser"
+							]
+						},
+						"description": "# 👤 User API Documentation (Postman Ready)\n\n## Base URL\n\n```\nhttp://localhost:3000/api\n\n ```\n\n---\n\n# 1️⃣ Create User\n\nCreates a new user with default avatar and hashed password.\n\n## Endpoint\n\n```\nPOST /api/createUser\n\n ```\n\n## Authorization\n\nRequired: ✅ Yes\n\nType: Bearer Token\n\n```\nAuthorization: Bearer <your_jwt_token>\n\n ```\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer <token>\n\n ```\n\n---\n\n## Request Body (JSON)\n\n```\n{\n  \"name\": \"john_doe\",\n  \"email\": \"john@gmail.com\",\n  \"password\": \"12345678\",\n  \"phoneNumber\": \"0912345678\",\n  \"location\": \"Addis Ababa, Ethiopia\",\n  \"bio\": \"Software developer\",\n  \"employeId\": \"EMP001\",\n  \"department\": \"IT\",\n  \"role\": \"user\"\n}\n\n ```\n\n---\n\n## Field Explanation\n\n| Field | Type | Required | Unique | Description |\n| --- | --- | --- | --- | --- |\n| name | String | ✅ | ✅ | User full name |\n| email | String | ✅ | ✅ | Valid email address |\n| password | String | ✅ | ❌ | Will be hashed automatically |\n| phoneNumber | String | ✅ | ✅ | Must be 10 digits |\n| location | String | ✅ | ❌ | User location |\n| bio | String | ❌ | ❌ | User description |\n| employeId | String | ✅ | ✅ | Employee ID |\n| department | String | ✅ | ❌ | Department name |\n| role | String | ✅ | ❌ | Values: `admin` or `user` |\n\n---\n\n## Success Response\n\nStatus: **201 Created**\n\n```\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"id\": \"65d3f8a2c123456789abcd12\",\n    \"photo\": \"/images/UserPhotos/1708343434343-UserAvatar.png\",\n    \"name\": \"john_doe\",\n    \"email\": \"john@gmail.com\"\n  }\n}\n\n ```\n\n---\n\n## What happens internally\n\nWhen user is created:\n\n✔ Password is hashed using bcrypt\n\n✔ Default avatar is copied\n\n✔ Avatar path saved in database\n\n✔ User saved in MongoDB\n\n---\n\n## Error Responses\n\n### Duplicate email\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Duplicate field value\"\n}\n\n ```\n\n---\n\n### Invalid phone number\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Please provide a valid 10-digit phone number\"\n}\n\n ```\n\n---\n\n### Missing required field\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"User validation failed\"\n}\n\n ```\n\n---\n\n## Postman Setup Instructions\n\n### Step 1: Open Postman\n\nClick\n\n```\nNew → Request\n\n ```\n\n---\n\n### Step 2: Set method and URL\n\nMethod:\n\n```\nPOST\n\n ```\n\nURL:\n\n```\nhttp://localhost:8000/api/createUser\n\n ```\n\n---\n\n### Step 3: Add Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer YOUR_TOKEN\n\n ```\n\n---\n\n### Step 4: Body → raw → JSON\n\nPaste:\n\n```\n{\n  \"name\": \"john_doe\",\n  \"email\": \"john@gmail.com\",\n  \"password\": \"12345678\",\n  \"phoneNumber\": \"0912345678\",\n  \"location\": \"Addis Ababa\",\n  \"bio\": \"Software developer\",\n  \"employeId\": \"EMP001\",\n  \"department\": \"IT\",\n  \"role\": \"user\"\n}\n\n ```\n\n---\n\n### Step 5: Click Send\n\n---\n\n# Database Result Example\n\nMongoDB document:\n\n```\n{\n  \"_id\": \"65d3f8a2c123456789abcd12\",\n  \"name\": \"john_doe\",\n  \"email\": \"john@gmail.com\",\n  \"password\": \"$2a$10$hashedpassword...\",\n  \"phoneNumber\": \"0912345678\",\n  \"location\": \"Addis Ababa\",\n  \"bio\": \"Software developer\",\n  \"employeId\": \"EMP001\",\n  \"department\": \"IT\",\n  \"role\": \"user\",\n  \"photo\": \"/images/UserPhotos/1708343434343-UserAvatar.png\",\n  \"firstTimeLogin\": true,\n  \"refreshToken\": null,\n  \"createdDate\": \"2026-02-19T10:00:00.000Z\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE0OTAzNzUsImV4cCI6MTc3MTQ5MDk3NX0.8Pwi4ClfG2py5sgwd1bMyOk3hPxAPuDa_6CLC7XNESY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getUser/id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getUser",
+								"id"
+							]
+						},
+						"description": "# 👤 Get User By ID API Documentation\n\n## Endpoint\n\n```\nGET /api/getUser/:id\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:3000/api/getUser/:id\n\n ```\n\nExample:\n\n```\nhttp://localhost:3000/api/getUser/65d3f8a2c123456789abcd12\n\n ```\n\n---\n\n## Description\n\nFetch a single user by their MongoDB ID.\n\n✔ Password is excluded\n\n✔ Only Admin can access\n\n---\n\n## Authorization\n\nRequired: ✅ Yes\n\nRole Required: ✅ Admin\n\nType:\n\n```\nBearer Token\n\n ```\n\nHeader:\n\n```\nAuthorization: Bearer <accessToken>\n\n ```\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ | MongoDB User ID |\n\nExample:\n\n```\n/api/getUser/65d3f8a2c123456789abcd12\n\n ```\n\n---\n\n## Request Example (Postman)\n\nMethod:\n\n```\nGET\n\n ```\n\nURL:\n\n```\nhttp://localhost:8000/api/getUser/65d3f8a2c123456789abcd12\n\n ```\n\nHeaders:\n\n```\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"user\": {\n      \"_id\": \"65d3f8a2c123456789abcd12\",\n      \"name\": \"john_doe\",\n      \"email\": \"john@gmail.com\",\n      \"phoneNumber\": \"0912345678\",\n      \"location\": \"Addis Ababa\",\n      \"bio\": \"Software developer\",\n      \"employeId\": \"EMP001\",\n      \"department\": \"IT\",\n      \"role\": \"user\",\n      \"photo\": \"/images/UserPhotos/1708343434343-UserAvatar.png\",\n      \"firstTimeLogin\": true,\n      \"createdDate\": \"2026-02-19T10:00:00.000Z\"\n    }\n  }\n}\n\n ```\n\n---\n\n## Important Notes\n\n✔ Password is NOT returned\n\n✔ Refresh token is NOT returned\n\n✔ Only Admin can access\n\n---\n\n## Error Responses\n\n---\n\n### Unauthorized (No Token)\n\nStatus: **401 Unauthorized**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Unauthorized\"\n}\n\n ```\n\n---\n\n### Forbidden (Not Admin)\n\nStatus: **403 Forbidden**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"You do not have permission\"\n}\n\n ```\n\n---\n\n### User Not Found\n\nStatus: **404 Not Found**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"No user found with ID 65d3f8a2c123456789abcd12\"\n}\n\n ```\n\n---\n\n### Invalid ID Format\n\nStatus: **400 Bad Request**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Invalid ID format\"\n}\n\n ```\n\n---\n\n# Postman Setup Instructions\n\n---\n\n## Step 1: Method\n\n```\nGET\n\n ```\n\n---\n\n## Step 2: URL\n\n```\nhttp://localhost:3000/api/getUser/USER_ID\n\n ```\n\n---\n\n## Step 3: Headers\n\n```\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## Step 4: Click Send\n\n---\n\n# Security Layer Flow\n\n```\nRequest\n   ↓\nverifyToken middleware\n   ↓\nallowRoles(\"Admin\") middleware\n   ↓\ngetUserById controller\n   ↓\nResponse\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE0OTE0OTksImV4cCI6MTc3MTQ5MjA5OX0.1K97cWofVxmybHts4U6ycopcXIN6RlSYeYMqeEJzTbc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getAllUsers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getAllUsers"
+							]
+						},
+						"description": "# 👥 Get All Users API Documentation\n\n## Endpoint\n\n```\nGET /api/getAllUsers\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/getAllUsers\n\n ```\n\n---\n\n## Description\n\nFetch all users with:\n\n- Pagination\n    \n- Sorting\n    \n- Password, refreshToken, firstTimeLogin excluded\n    \n- Admin access only\n    \n\n---\n\n## Authorization\n\nRequired: ✅ Yes  \n  \nRole Required: ✅ Admin\n\nHeader:\n\n```\nAuthorization: Bearer <accessToken>\n\n ```\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n# Query Parameters\n\n| Parameter | Type | Required | Default | Description |\n| --- | --- | --- | --- | --- |\n| page | Number | ❌ | 1 | Page number |\n| sort | String | ❌ | recent | Sort users |\n\n---\n\n# Sort Options\n\n| Value | Description |\n| --- | --- |\n| name-asc | Name ascending |\n| name-desc | Name descending |\n| oldest | Oldest users first |\n| recent | Newest users first |\n\n---\n\n# Request Examples\n\n---\n\n## Default request\n\n```\nGET http://localhost:3000/api/getAllUsers\n\n ```\n\n---\n\n## Page 2\n\n```\nGET http://localhost:3000/api/getAllUsers?page=2\n\n ```\n\n---\n\n## Sort by name ascending\n\n```\nGET http://localhost:3000/api/getAllUsers?sort=name-asc\n\n ```\n\n---\n\n## Sort by newest users\n\n```\nGET http://localhost:3000/api/getAllUsers?sort=recent\n\n ```\n\n---\n\n## Combined example\n\n```\nGET http://localhost:3000/api/getAllUsers?page=1&sort=name-desc\n\n ```\n\n---\n\n# Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"results\": 2,\n  \"users\": [\n    {\n      \"_id\": \"65d3f8a2c123456789abcd12\",\n      \"name\": \"john_doe\",\n      \"email\": \"john@gmail.com\",\n      \"phoneNumber\": \"0912345678\",\n      \"location\": \"Addis Ababa\",\n      \"bio\": \"Software developer\",\n      \"employeId\": \"EMP001\",\n      \"department\": \"IT\",\n      \"role\": \"user\",\n      \"photo\": \"/images/UserPhotos/1708343434343-UserAvatar.png\",\n      \"createdDate\": \"2026-02-19T10:00:00.000Z\"\n    },\n    {\n      \"_id\": \"65d3f8a2c123456789abcd13\",\n      \"name\": \"admin_user\",\n      \"email\": \"admin@gmail.com\",\n      \"phoneNumber\": \"0912345679\",\n      \"location\": \"Addis Ababa\",\n      \"bio\": \"System admin\",\n      \"employeId\": \"EMP002\",\n      \"department\": \"Admin\",\n      \"role\": \"admin\",\n      \"photo\": \"/images/UserPhotos/1708343434343-UserAvatar.png\",\n      \"createdDate\": \"2026-02-18T09:00:00.000Z\"\n    }\n  ]\n}\n\n ```\n\n---\n\n# What is excluded from response\n\nThese fields are hidden:\n\n```\npassword\nrefreshToken\nfirstTimeLogin\n\n ```\n\n---\n\n# Pagination Logic\n\n```\npage=1 → users 1–10\npage=2 → users 11–20\npage=3 → users 21–30\n\n ```\n\nLimit is fixed to:\n\n```\n10 users per page\n\n ```\n\n---\n\n# Error Responses\n\n---\n\n## Unauthorized\n\nStatus: **401**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Unauthorized\"\n}\n\n ```\n\n---\n\n## Forbidden (Not Admin)\n\nStatus: **403**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Access denied\"\n}\n\n ```\n\n---\n\n# Postman Setup Instructions\n\n---\n\n## Step 1\n\nMethod:\n\n```\nGET\n\n ```\n\n---\n\n## Step 2\n\nURL:\n\n```\nhttp://localhost:3000/api/getAllUsers\n\n ```\n\nor with query:\n\n```\nhttp://localhost:3000/api/getAllUsers?page=1&sort=recent\n\n ```\n\n---\n\n## Step 3\n\nHeaders:\n\n```\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## Step 4\n\nClick Send\n\n---\n\n# Important Bug Fix (You must fix)\n\nYour code uses:\n\n```\ncase 'name-asc': sortOption = { fullName: 1 };\ncase 'name-desc': sortOption = { fullName: -1 };\n\n ```\n\nBut your schema uses:\n\n```\nname: { type: String }\n\n ```\n\nFix it to:\n\n```\ncase 'name-asc': sortOption = { name: 1 }; break;\ncase 'name-desc': sortOption = { name: -1 }; break;\n\n ```\n\n---\n\n# Correct Version\n\n```\nswitch (req.query.sort) {\n  case 'name-asc': sortOption = { name: 1 }; break;\n  case 'name-desc': sortOption = { name: -1 }; break;\n  case 'oldest': sortOption = { createdDate: 1 }; break;\n  case 'recent': sortOption = { createdDate: -1 }; break;\n  default: sortOption = { createdDate: -1 };\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Update A Single User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE0OTgyNzUsImV4cCI6MTc3MTQ5ODg3NX0._SsOaQm1QbwETFHkU-CO6xPAOvjJoMjwE5Dc30aMhQE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"john_doe_updated\",\n  \"email\": \"john_updated@gmail.com\",\n  \"password\": \"newSecurePass123\",\n  \"phoneNumber\": \"0912345679\",\n  \"location\": \"Addis Ababa, Ethiopia\",\n  \"bio\": \"Updated bio: Full-stack developer with Node.js expertise\",\n  \"employeId\": \"EMP001\",\n  \"department\": \"IT\",\n  \"role\": \"user\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/updateUser/6996c695fb23a9b00066f11c",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"updateUser",
+								"6996c695fb23a9b00066f11c"
+							]
+						},
+						"description": "# ✏️ Update User API Documentation\n\n## Endpoint\n\n```\nPUT /api/updateUser/:id\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/updateUser/:id\n\n ```\n\nExample:\n\n```\nhttp://localhost:8000/api/updateUser/65d3f8a2c123456789abcd12\n\n ```\n\n---\n\n## Description\n\nUpdate a user’s information by ID.\n\n- Admin only\n    \n- Password will be hashed automatically if updated\n    \n- Photo cannot be updated via this route (use upload-photo endpoint)\n    \n\n---\n\n## Authorization\n\nRequired: ✅ Yes\n\nRole Required: ✅ Admin\n\nHeader:\n\n```\nAuthorization: Bearer <accessToken>\n\n ```\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ | MongoDB User ID to update |\n\n---\n\n## Request Body (JSON)\n\nInclude only the fields you want to update:\n\n```\n{\n  \"name\": \"john_doe_updated\",\n  \"email\": \"john_new@gmail.com\",\n  \"password\": \"newpassword123\",\n  \"phoneNumber\": \"0912345678\",\n  \"location\": \"Addis Ababa\",\n  \"bio\": \"Updated bio\",\n  \"employeId\": \"EMP001\",\n  \"department\": \"IT\",\n  \"role\": \"user\"\n}\n\n ```\n\n⚠️ Do **not** include `photo` in body — it is ignored. Use the `/upload-photo` endpoint to update photos.\n\n---\n\n## Field Explanation\n\n| Field | Type | Required | Notes |\n| --- | --- | --- | --- |\n| name | String | ❌ | User full name |\n| email | String | ❌ | Must be unique |\n| password | String | ❌ | Will be hashed automatically |\n| phoneNumber | String | ❌ | Must be unique, 10 digits |\n| location | String | ❌ | User location |\n| bio | String | ❌ | User description |\n| employeId | String | ❌ | Must be unique |\n| department | String | ❌ | Department |\n| role | String | ❌ | Values: `admin`, `user` |\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"User updated successfully.\",\n  \"user\": {\n    \"id\": \"65d3f8a2c123456789abcd12\",\n    \"fullName\": \"john_doe_updated\",\n    \"email\": \"john_new@gmail.com\",\n    \"role\": \"user\",\n    \"photo\": \"/images/UserPhotos/1708343434343-UserAvatar.png\"\n  }\n}\n\n ```\n\n⚠️ Note: Your controller returns `fullName`, but your schema uses `name`. You should update the controller to `updatedUser.name` to match the schema:\n\n```\nuser: {\n  id: updatedUser._id,\n  name: updatedUser.name,\n  email: updatedUser.email,\n  role: updatedUser.role,\n  photo: updatedUser.photo,\n}\n\n ```\n\n---\n\n## Error Responses\n\n---\n\n### Unauthorized (No Token)\n\nStatus: **401 Unauthorized**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Unauthorized\"\n}\n\n ```\n\n---\n\n### Forbidden (Not Admin)\n\nStatus: **403 Forbidden**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Access denied\"\n}\n\n ```\n\n---\n\n### User Not Found\n\nStatus: **404 Not Found**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"No user found with ID 65d3f8a2c123456789abcd12\"\n}\n\n ```\n\n---\n\n### Validation Error\n\nStatus: **400 Bad Request**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"User validation failed\",\n  \"errors\": {\n    \"email\": \"Email already exists\"\n  }\n}\n\n ```\n\n---\n\n## Postman Setup Instructions\n\n1. Method: `PUT`\n    \n2. URL: `http://localhost:3000/api/updateUser/USER_ID`\n    \n3. Content-Type: application/jsonAuthorization: Bearer YOUR_ACCESS_TOKEN\n    \n4. Body → raw → JSON: Include the fields you want to update\n    \n5. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete A Single User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE0OTg2OTMsImV4cCI6MTc3MTQ5OTI5M30.RaPEWOvASA1FxRvXo_k2pXyfibjIZsbqb-1Vyfmk8kQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\":\"nothing@gmail.com\",\n  \"password\":\"12345678\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/deleteUser/id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"deleteUser",
+								"id"
+							]
+						},
+						"description": "# 🗑️ Delete User API Documentation\n\n## Endpoint\n\n```\nDELETE /api/deleteUser/:id\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/deleteUser/:id\n\n ```\n\nExample:\n\n```\nhttp://localhost:8000/api/deleteUser/65d3f8a2c123456789abcd12\n\n ```\n\n---\n\n## Description\n\nDeletes a user by ID from the database.\n\n- Admin-only access\n    \n- Deletes user photo from server if it exists\n    \n\n---\n\n## Authorization\n\nRequired: ✅ Yes  \n  \nRole Required: ✅ Admin\n\nHeader:\n\n```\nAuthorization: Bearer <accessToken>\n\n ```\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ | MongoDB User ID to delete |\n\n---\n\n## Request Example (Postman)\n\nMethod:\n\n```\nDELETE\n\n ```\n\nURL:\n\n```\nhttp://localhost:3000/api/deleteUser/65d3f8a2c123456789abcd12\n\n ```\n\nHeaders:\n\n```\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"User deleted successfully.\",\n  \"deletedUser\": {\n    \"_id\": \"65d3f8a2c123456789abcd12\",\n    \"name\": \"john_doe\",\n    \"email\": \"john@gmail.com\",\n    \"phoneNumber\": \"0912345678\",\n    \"location\": \"Addis Ababa\",\n    \"bio\": \"Software developer\",\n    \"employeId\": \"EMP001\",\n    \"department\": \"IT\",\n    \"role\": \"user\",\n    \"photo\": \"/images/UserPhotos/1708343434343-UserAvatar.png\",\n    \"firstTimeLogin\": true,\n    \"createdDate\": \"2026-02-19T10:00:00.000Z\"\n  }\n}\n\n ```\n\n---\n\n## Error Responses\n\n---\n\n### Unauthorized (No Token)\n\nStatus: **401 Unauthorized**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Unauthorized\"\n}\n\n ```\n\n---\n\n### Forbidden (Not Admin)\n\nStatus: **403 Forbidden**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"Access denied\"\n}\n\n ```\n\n---\n\n### User Not Found\n\nStatus: **404 Not Found**\n\n```\n{\n  \"status\": \"fail\",\n  \"message\": \"No user found with ID 65d3f8a2c123456789abcd12\"\n}\n\n ```\n\n---"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Me",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE0OTkxNjIsImV4cCI6MTc3MTQ5OTc2Mn0.vj2LVRY-2YWX0vWewMyBFL5KRbMwid-hm9az-VX5MFw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getme",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getme"
+							]
+						},
+						"description": "# 👤 Get Current User API Documentation\n\n## Endpoint\n\n```\nGET /api/getme\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:3000/api/getme\n\n ```\n\n---\n\n## Description\n\nFetches the currently authenticated user’s information.\n\n- Requires a valid access token\n    \n- Returns limited user info (excluding password, refreshToken, etc.)\n    \n\n---\n\n## Authorization\n\nRequired: ✅ Yes  \n  \nRole Required: ❌ (any logged-in user)\n\nHeader:\n\n```\nAuthorization: Bearer <accessToken>\n\n ```\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## Request Parameters\n\nNo URL parameters required.\n\nThe API automatically identifies the user from the `verifyToken` middleware (using `req.userId`).\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"user\": {\n    \"id\": \"65d3f8a2c123456789abcd12\",\n    \"fullName\": \"john_doe\",\n    \"email\": \"john@gmail.com\",\n    \"role\": \"user\",\n    \"photo\": \"/images/UserPhotos/1708343434343-UserAvatar.png\"\n  }\n}\n\n ```\n\n> \n\n⚠️ Note: Your controller uses `fullName` but your schema uses `name`. Update controller to `user.name` for consistency.\n\n \n  \n\n---\n\n## Standard Error Responses\n\n### Unauthorized (No Token)\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 401,\n  \"message\": \"Unauthorized\"\n}\n\n ```\n\n### User Not Found\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 404,\n  \"message\": \"User not found\"\n}\n\n ```\n\n### Cast Error / Invalid ID (handled by centralized error handler)\n\n```\n{\n  \"status\": \"error\",\n  \"statusCode\": 400,\n  \"message\": \"Invalid id: 65d3f8a2c123ZZZ.\",\n  \"fields\": [\"id\"]\n}\n\n ```\n\n---"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload User Photo",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE0OTk0MjIsImV4cCI6MTc3MTUwMDAyMn0.yU5Zs8iddchQvtRNrztGW0u9KwORr7FgyTmfaOxPqfQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "photo",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/image.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/upload-photo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"upload-photo"
+							]
+						},
+						"description": "# 📸 Upload User Photo API Documentation\n\n## Endpoint\n\n```\nPOST /api/upload-photo\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/upload-photo\n\n ```\n\n---\n\n## Description\n\nAllows the currently authenticated user to upload or update their profile photo.\n\n- Existing photo will be deleted from the server\n    \n- Only one file allowed per request\n    \n- File size limited to 2MB (Multer limits enforced)\n    \n\n---\n\n## Authorization\n\nRequired: ✅ Yes\n\nRole Required: ❌ (any logged-in user)\n\nHeader:\n\n```\nAuthorization: Bearer <accessToken>\n\n ```\n\n---\n\n## Headers\n\n```\nAuthorization: Bearer YOUR_ACCESS_TOKEN\nContent-Type: multipart/form-data\n\n ```\n\n---\n\n## Request Body\n\nUse **form-data** in Postman:\n\n| Key | Type | Required | Description |\n| --- | --- | --- | --- |\n| photo | File | ✅ | The image file to upload (jpg, png, etc.) |\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"User photo updated successfully\",\n  \"data\": {\n    \"photo\": \"/images/UserPhotos/1708343434343-uploadedPhoto.png\"\n  }\n}\n\n ```\n\nNote: `photo` contains the **web-accessible path**.\n\n---\n\n## Standard Error Responses\n\n### Missing File\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Please upload a user photo.\"\n}\n\n ```\n\n### Multer File Too Large (>2MB)\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"photo size exceeds 2MB limit.\",\n  \"fields\": [\"photo\"]\n}\n\n ```\n\n### Too Many Files Uploaded\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Too many files uploaded for field \\\"photo\\\".\",\n  \"fields\": [\"photo\"]\n}\n\n ```\n\n### User Not Found\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 404,\n  \"message\": \"User not found\"\n}\n\n ```\n\n### Unauthorized (No Token)\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 401,\n  \"message\": \"Unauthorized\"\n}\n\n ```\n\n---\n\n## Postman Setup Instructions\n\n1. Method: `POST`\n    \n2. URL: `http://localhost:3000/api/upload-photo`\n    \n3. Authorization: Bearer YOUR_ACCESS_TOKENContent-Type: multipart/form-data\n    \n4. Body → form-data → Key: `photo` → Type: File → Choose file\n    \n5. Click **Send**\n    \n\n---\n\n## Notes\n\n- Only **one photo per request**\n    \n- Previous photo is automatically deleted from server\n    \n- Works for **any logged-in user**, not just Admin\n    \n- File size limit: **2MB**"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDAyNTcsImV4cCI6MTc3MTUwMDg1N30.aYff7Xc9617fWgbZ2t0oXRzDKAtoOzSFFNEnHpmlNKQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newPassword\": \"NewPas123\",\n  \"confirmPassword\": \"NewPas123\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/update-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"update-password"
+							]
+						},
+						"description": "# 🔒 Update Password API Documentation\n\n## Endpoint\n\n```\nPATCH /api/update-password\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/update-password\n\n ```\n\n---\n\n## Description\n\nAllows any authenticated user to update their password.\n\n- All users can change their password at any time\n    \n- Users with `firstTimeLogin = true` are **required to update their password** before accessing other features\n    \n- Password must be **at least 8 characters**, including letters and numbers\n    \n- After a successful update, `firstTimeLogin` is set to `false`\n    \n\n---\n\n## Authorization\n\nRequired: ✅ Yes\n\nRole Required: ❌ (any logged-in user)\n\nHeader:\n\n```\nAuthorization: Bearer <accessToken>\n\n ```\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## Request Body (JSON)\n\n```\n{\n  \"newPassword\": \"NewPass123\",\n  \"confirmPassword\": \"NewPass123\"\n}\n\n ```\n\n---\n\n## Field Explanation\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| newPassword | String | ✅ | The new password (min 8 chars, letters + numbers) |\n| confirmPassword | String | ✅ | Must match `newPassword` |\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"Password updated successfully\"\n}\n\n ```\n\n⚠️ Note: If this was the first login (`firstTimeLogin = true`), the user can now access the application normally.\n\n---\n\n## Standard Error Responses\n\n### Missing Fields\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Both new password and confirm password are required\"\n}\n\n ```\n\n### Password Mismatch\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"New password and confirm password do not match\"\n}\n\n ```\n\n### Invalid Password Format\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Password must be at least 8 characters with letters and numbers\"\n}\n\n ```\n\n### User Not Found\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 404,\n  \"message\": \"User not found\"\n}\n\n ```\n\n### Unauthorized (No Token)\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 401,\n  \"message\": \"Unauthorized\"\n}\n\n ```\n\n---\n\n## Postman Setup Instructions\n\n1. Method: `PATCH`\n    \n2. URL: `http://localhost:8000/api/update-password`\n    \n3. Content-Type: application/jsonAuthorization: Bearer YOUR_ACCESS_TOKEN\n    \n4. Body → raw → JSON:\n    \n\n```\n{\n  \"newPassword\": \"NewPass123\",\n  \"confirmPassword\": \"NewPass123\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Roles Drop Down",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDA1NjYsImV4cCI6MTc3MTUwMTE2Nn0.yQevSowW_xzxyyWGV4kpEsr1ckudZh4m5pYgFl0-aqA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\":\"nothing@gmail.com\",\n  \"password\":\"12345678\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/rolesDropDown",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"rolesDropDown"
+							]
+						},
+						"description": "# 🎯 Roles DropDown API Documentation\n\n## Endpoint\n\n```\nGET /api/rolesDropDown\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/rolesDropDown\n\n ```\n\n---\n\n## Description\n\nFetches all possible roles from the user schema as a dropdown list.\n\n- Admin-only access\n    \n- Useful for frontend forms when assigning user roles\n    \n\n---\n\n## Authorization\n\nRequired: ✅ Yes  \n  \nRole Required: ✅ Admin\n\nHeader:\n\n```\nAuthorization: Bearer <accessToken>\n\n ```\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer YOUR_ACCESS_TOKEN\n\n ```\n\n---\n\n## Request Parameters\n\nNone\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"data\": [\"admin\", \"user\"]\n}\n\n ```\n\n> \n\n⚠️ The list comes directly from your `User` schema enum values.\n\n \n  \n\n---\n\n## Standard Error Responses\n\n### Unauthorized (No Token)\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 401,\n  \"message\": \"Unauthorized\"\n}\n\n ```\n\n### Forbidden (Not Admin)\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 403,\n  \"message\": \"Access denied\"\n}\n\n ```\n\n### Generic Server Error\n\n```\n{\n  \"status\": \"error\",\n  \"statusCode\": 500,\n  \"message\": \"Internal Server Error\"\n}\n\n ```\n\n---"
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDA1NjYsImV4cCI6MTc3MTUwMTE2Nn0.yQevSowW_xzxyyWGV4kpEsr1ckudZh4m5pYgFl0-aqA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nothing@gmail.com\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/forgot-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"forgot-password"
+							]
+						},
+						"description": "# 🔑 Forgot Password API Documentation\n\n## Endpoint\n\n```\nPOST /api/forgot-password\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/forgot-password\n\n ```\n\n---\n\n## Description\n\nSends a password reset link to a user’s email.\n\n- No authentication required\n    \n- Link is valid for **10 minutes**\n    \n- Link points to your frontend password reset page\n    \n\n---\n\n## Headers\n\n```\nContent-Type: application/json\n\n ```\n\n---\n\n## Request Body (JSON)\n\n```\n{\n  \"email\": \"user@example.com\"\n}\n\n ```\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| email | String | ✅ | The email of the user requesting a password reset |\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"Reset link sent to your email.\"\n}\n\n ```\n\n---\n\n## Standard Error Responses\n\n### Email Not Found\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 404,\n  \"message\": \"Email not found\"\n}\n\n ```\n\n### Validation / Missing Email\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Invalid input data: Email is required\",\n  \"fields\": [\"email\"]\n}\n\n ```\n\n### Duplicate Key / Database Errors (unlikely here)\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Duplicate fields: email. Please use other values!\",\n  \"fields\": [\"email\"]\n}\n\n ```\n\n### Mail Transport Error / Generic Server Error\n\n```\n{\n  \"status\": \"error\",\n  \"statusCode\": 500,\n  \"message\": \"Internal Server Error\"\n}\n\n ```\n\n---\n\n## Postman Setup Instructions\n\n1. Method: `POST`\n    \n2. URL: `http://localhost:8000/api/forgot-password`\n    \n3. Content-Type: application/json\n    \n4. Body → raw → JSON:\n    \n\n```\n{\n  \"email\": \"user@example.com\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDA1NjYsImV4cCI6MTc3MTUwMTE2Nn0.yQevSowW_xzxyyWGV4kpEsr1ckudZh4m5pYgFl0-aqA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newPassword\": \"NewPass123\",\n  \"confirmPassword\": \"NewPass123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/reset-password/:token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"reset-password",
+								":token"
+							],
+							"variable": [
+								{
+									"key": "token",
+									"value": ""
+								}
+							]
+						},
+						"description": "# 🔄 Reset Password API Documentation\n\n## Endpoint\n\n```\nPOST /api/reset-password/:token\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/reset-password/:token\n\n ```\n\nExample:\n\n```\nhttp://localhost:8000/api/reset-password/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\n---\n\n## Description\n\nResets a user’s password using a password reset token sent via email.\n\n- Token is valid for **10 minutes**\n    \n- Password must be **at least 8 characters**, include letters and numbers\n    \n- Does not require authentication\n    \n\n---\n\n## Headers\n\n```\nContent-Type: application/json\n\n ```\n\n---\n\n## URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| token | String | ✅ | JWT token sent to user email for password reset |\n\n---\n\n## Request Body (JSON)\n\n```\n{\n  \"newPassword\": \"NewPass123\",\n  \"confirmPassword\": \"NewPass123\"\n}\n\n ```\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| newPassword | String | ✅ | New password (min 8 chars, letters + numbers) |\n| confirmPassword | String | ✅ | Must match `newPassword` |\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"Password has been reset successfully.\"\n}\n\n ```\n\n---\n\n## Standard Error Responses\n\n### Missing Fields\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Password and confirm password are required\"\n}\n\n ```\n\n### Password Mismatch\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Passwords do not match\"\n}\n\n ```\n\n### Invalid Password Format\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Password must be at least 8 characters with letters and numbers\"\n}\n\n ```\n\n### Invalid or Expired Token\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 400,\n  \"message\": \"Invalid or expired token\"\n}\n\n ```\n\n### User Not Found\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 404,\n  \"message\": \"User not found\"\n}\n\n ```\n\n### Generic Server Error\n\n```\n{\n  \"status\": \"error\",\n  \"statusCode\": 500,\n  \"message\": \"Internal Server Error\"\n}\n\n ```\n\n---\n\n## Postman Setup Instructions\n\n1. Method: `POST`\n    \n2. URL: `http://localhost:8000/api/reset-password/YOUR_TOKEN_HERE`\n    \n3. Content-Type: application/json\n    \n4. Body → raw → JSON:\n    \n\n```\n{\n  \"newPassword\": \"NewPass123\",\n  \"confirmPassword\": \"NewPass123\"\n}\n\n ```\n\n1. Click **Send**\n    \n\n---\n\n## Notes\n\n- The token is generated by the **forgot-password** endpoint and is valid for **10 minutes**\n    \n- Password is **hashed automatically** before saving\n    \n- Does not require the user to be logged in\n    \n- After reset, the user can log in with the new password"
+					},
+					"response": []
+				},
+				{
+					"name": "LogOut",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDA1NjYsImV4cCI6MTc3MTUwMTE2Nn0.yQevSowW_xzxyyWGV4kpEsr1ckudZh4m5pYgFl0-aqA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newPassword\": \"NewPass123\",\n  \"confirmPassword\": \"NewPass123\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/user/logout",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"user",
+								"logout"
+							]
+						},
+						"description": "# 🚪 Logout API Documentation\n\n## Endpoint\n\n```\nPOST /api/user/logout\n\n ```\n\n## Base URL\n\n```\nhttp://localhost:8000/api/user/logout\n\n ```\n\n---\n\n## Description\n\nLogs out the currently authenticated user by:\n\n- Clearing the user’s `refreshToken` from the database\n    \n- Removing the `refreshToken` cookie from the client\n    \n- Does **not require any request body**\n    \n\n---\n\n## Authorization\n\nRequired: ✅ Yes\n\nRole Required: ❌ Any logged-in user\n\nHeader:\n\n```\nAuthorization: Bearer <accessToken>\n\n ```\n\n---\n\n## Headers\n\n```\nContent-Type: application/json\nAuthorization: Bearer YOUR_ACCESS_TOKEN\nCookie: refreshToken=YOUR_REFRESH_TOKEN\n\n ```\n\n---\n\n## Request Body\n\nNone\n\n---\n\n## Success Response\n\nStatus: **200 OK**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"Logged out successfully\"\n}\n\n ```\n\n- The `refreshToken` cookie is cleared from the client.\n    \n- The user must log in again to access protected routes.\n    \n\n---\n\n## Standard Error Responses\n\n### Unauthorized (No Token)\n\n```\n{\n  \"status\": \"fail\",\n  \"statusCode\": 401,\n  \"message\": \"Unauthorized\"\n}\n\n ```\n\n### Generic Server Error\n\n```\n{\n  \"status\": \"error\",\n  \"statusCode\": 500,\n  \"message\": \"Internal Server Error\"\n}\n\n ```\n\n---\n\n## Postman Setup Instructions\n\n1. Method: `POST`\n    \n2. URL: `http://localhost:8000/api/user/logout`\n    \n3. Authorization: Bearer YOUR_ACCESS_TOKENContent-Type: application/json\n    \n4. Optional: Ensure cookie `refreshToken` is included in request if using cookies\n    \n5. Click **Send**\n    \n\n---\n\n## Notes\n\n- Logs out the **current user only**\n    \n- Clears the **refresh token both from the database and cookie**\n    \n- After logout, the access token is no longer usable for authenticated routes"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Certificate",
+			"item": [
+				{
+					"name": "Create New Certificate",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MTA1MTQsImV4cCI6MTc3MTUxMTExNH0.mG3LoIxxXnYuDvkmW_YKTlUtLnHP5yLFWmxc3MbxvJM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "certificateName",
+									"value": "Node.js Backend Certificate",
+									"type": "text"
+								},
+								{
+									"key": "certificateType",
+									"value": "Technical",
+									"type": "text"
+								},
+								{
+									"key": "certificateFrom",
+									"value": "Udemy",
+									"type": "text"
+								},
+								{
+									"key": "IssueDate",
+									"value": "2024-01-15",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "Active",
+									"type": "text"
+								},
+								{
+									"key": "certificateImage",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/banner.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/createCertificates",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"createCertificates"
+							]
+						},
+						"description": "## **POST /api/createCertificates**\n\nUpload a certificate image and create a certificate record.\n\n**Endpoint:**\n\n```\nPOST /api/createCertificates\n\n ```\n\n**Middleware:**\n\n- `verifyToken` – Authenticates user\n    \n- `checkFirstTimeLogin` – Ensures user has completed first-time login\n    \n- `allowRoles('admin', 'user')` – Restricts to admin and user roles\n    \n\n---\n\n### **Request Headers**\n\n| Key | Value | Description |\n| --- | --- | --- |\n| Authorization | Bearer | Required. User token |\n| Content-Type | multipart/form-data | Required for file upload |\n\n---\n\n### **Request Body (multipart/form-data)**\n\n| Key | Type | Description | Required |\n| --- | --- | --- | --- |\n| certificateImage | file | The certificate image to upload | Yes |\n| title | string | Title or name of the certificate | Yes |\n| description | string | Optional description for certificate | No |\n| issuedBy | string | Issuer of the certificate | Yes |\n| issueDate | date/string | Date of issuance (ISO 8601) | No |\n\n**Example (using Postman form-data):**\n\n| Key | Value | Type |\n| --- | --- | --- |\n| certificateImage | `certificate.png` | File |\n| title | `Completion Certificate` | Text |\n| description | `Completed Node.js Bootcamp` | Text |\n| issuedBy | `Academy XYZ` | Text |\n| issueDate | `2026-02-19` | Text |\n\n---\n\n### **Successful Response (201 Created)**\n\n**Body:**\n\n```\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"certificate\": {\n      \"_id\": \"63f4e8c2b8f12a00123abcd4\",\n      \"title\": \"Completion Certificate\",\n      \"description\": \"Completed Node.js Bootcamp\",\n      \"issuedBy\": \"Academy XYZ\",\n      \"issueDate\": \"2026-02-19T00:00:00.000Z\",\n      \"certificateImage\": \"/images/Certificates/certificate.png\",\n      \"createdAt\": \"2026-02-19T10:45:00.000Z\",\n      \"updatedAt\": \"2026-02-19T10:45:00.000Z\",\n      \"__v\": 0\n    }\n  }\n}\n\n ```\n\n---\n\n### **Error Responses**\n\n| Status | Error Type | Response Example |\n| --- | --- | --- |\n| 400 | Missing File | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Please upload a certificate image.\" }` |\n| 400 | Multer Limit Exceeded | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"certificateImage size exceeds 2MB limit.\" }` |\n| 400 | Validation Error | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Invalid input data: title is required.\" }` |\n| 400 | Duplicate Fields | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Duplicate fields: title. Please use other values!\", \"fields\": [\"title\"] }` |\n| 500 | Server Error | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` |\n\n---\n\n### **Notes**\n\n- Only one file can be uploaded per request.\n    \n- File size limit: 2MB.\n    \n- File path saved in DB: `/images/Certificates/`.\n    \n- If certificate creation fails after file upload, the uploaded file is deleted automatically."
+					},
+					"response": []
+				},
+				{
+					"name": "Get  A Single Certificate",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDg1NjAsImV4cCI6MTc3MTUwOTE2MH0.IV9z-LfymCty_VXycUPwRkK0HAdvtVfkGu08bgoRfTk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "certificateName",
+									"value": "Node.js Backend Certificate",
+									"type": "text"
+								},
+								{
+									"key": "certificateType",
+									"value": "Technical",
+									"type": "text"
+								},
+								{
+									"key": "certificateFrom",
+									"value": "Udemy",
+									"type": "text"
+								},
+								{
+									"key": "IssueDate",
+									"value": "2024-01-15",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "Active",
+									"type": "text"
+								},
+								{
+									"key": "certificateImage",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/banner.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/getCertificate/id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getCertificate",
+								"id"
+							]
+						},
+						"description": "## **GET /api/getCertificate/:id**\n\nFetch a certificate by its ID.\n\n**Endpoint:**\n\n```\nGET /api/getCertificate/:id\n\n ```\n\n**Middleware:**\n\n- `verifyToken` – Authenticates user\n    \n- `checkFirstTimeLogin` – Ensures user has completed first-time login\n    \n- `allowRoles('admin', 'user')` – Restricts to admin and user roles\n    \n\n---\n\n### **Request Parameters**\n\n| Parameter | Type | Description | Required |\n| --- | --- | --- | --- |\n| id | string | The MongoDB ObjectId of certificate | Yes |\n\n**Example URL:**\n\n```\nGET /api/getCertificate/63f4e8c2b8f12a00123abcd4\n\n ```\n\n---\n\n### **Request Headers**\n\n| Key | Value | Description |\n| --- | --- | --- |\n| Authorization | Bearer | Required. User token |\n\n---\n\n### **Successful Response (200 OK)**\n\n**Body:**\n\n```\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"certificate\": {\n      \"_id\": \"63f4e8c2b8f12a00123abcd4\",\n      \"title\": \"Completion Certificate\",\n      \"description\": \"Completed Node.js Bootcamp\",\n      \"issuedBy\": \"Academy XYZ\",\n      \"issueDate\": \"2026-02-19T00:00:00.000Z\",\n      \"certificateImage\": \"/images/Certificates/certificate.png\",\n      \"createdAt\": \"2026-02-19T10:45:00.000Z\",\n      \"updatedAt\": \"2026-02-19T10:45:00.000Z\",\n      \"__v\": 0\n    }\n  }\n}\n\n ```\n\n---\n\n### **Error Responses**\n\n| Status | Error Type | Response Example |\n| --- | --- | --- |\n| 404 | Not Found | `{ \"status\": \"error\", \"statusCode\": 404, \"message\": \"No Certificate found with ID 63f4e8c2b8f12a00123abcd4\" }` |\n| 400 | Invalid ID (CastError) | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Invalid _id: 1234abcd.\" }` |\n| 500 | Server Error | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` |\n\n---\n\n### **Notes**\n\n- Only users with roles `admin` or `user` can access this endpoint.\n    \n- Make sure the `id` parameter is a valid MongoDB ObjectId.\n    \n- Returns the certificate record, including the image path (`certificateImage`) which can be used to display the image."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Certificate",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDg2ODksImV4cCI6MTc3MTUwOTI4OX0.4JjzbZuDcJilltmgwBxo_6cJjQzRPekQCntyN8kM1QI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getAllCertificates",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getAllCertificates"
+							]
+						},
+						"description": "## **GET /api/getAllCertificates**\n\nFetch all certificates with optional pagination and sorting.\n\n**Endpoint:**\n\n```\nGET /api/getAllCertificates\n\n ```\n\n**Middleware:**\n\n- `verifyToken` – Authenticates user\n    \n- `checkFirstTimeLogin` – Ensures user has completed first-time login\n    \n- `allowRoles('admin', 'user')` – Restricts access to admin and user roles\n    \n\n---\n\n### **Request Query Parameters**\n\n| Parameter | Type | Description | Required | Default |\n| --- | --- | --- | --- | --- |\n| page | number | Page number for pagination | No | 1 |\n| sort | string | Sorting option. Possible values: `name-asc`, `name-desc`, `oldest`, `recent` | No | `recent` |\n\n**Example URL:**\n\n```\nGET /api/getAllCertificates?page=2&sort=name-asc\n\n ```\n\n---\n\n### **Request Headers**\n\n| Key | Value | Description |\n| --- | --- | --- |\n| Authorization | Bearer | Required. User token |\n\n---\n\n### **Successful Response (200 OK)**\n\n**Body:**\n\n```\n{\n  \"status\": \"success\",\n  \"totalCertificates\": 35,\n  \"certificates\": [\n    {\n      \"_id\": \"63f4e8c2b8f12a00123abcd4\",\n      \"title\": \"Completion Certificate\",\n      \"description\": \"Completed Node.js Bootcamp\",\n      \"issuedBy\": \"Academy XYZ\",\n      \"issueDate\": \"2026-02-19T00:00:00.000Z\",\n      \"certificateImage\": \"/images/Certificates/certificate.png\",\n      \"createdAt\": \"2026-02-19T10:45:00.000Z\",\n      \"updatedAt\": \"2026-02-19T10:45:00.000Z\",\n      \"__v\": 0\n    },\n    {\n      \"_id\": \"63f4e8c2b8f12a00123abcd5\",\n      \"title\": \"Excellence Award\",\n      \"description\": \"Outstanding performance\",\n      \"issuedBy\": \"Academy XYZ\",\n      \"issueDate\": \"2026-01-15T00:00:00.000Z\",\n      \"certificateImage\": \"/images/Certificates/excellence.png\",\n      \"createdAt\": \"2026-01-16T11:20:00.000Z\",\n      \"updatedAt\": \"2026-01-16T11:20:00.000Z\",\n      \"__v\": 0\n    }\n  ]\n}\n\n ```\n\n---\n\n### **Error Responses**\n\n| Status | Error Type | Response Example |\n| --- | --- | --- |\n| 500 | Server Error | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` |\n\n---\n\n### **Notes**\n\n- Pagination is 10 certificates per page.\n    \n- Sorting options:\n    \n    - `name-asc` – Certificate title A → Z\n        \n    - `name-desc` – Certificate title Z → A\n        \n    - `oldest` – By creation date ascending\n        \n    - `recent` – By creation date descending (default)\n        \n- Returns `totalCertificates` for all certificates in the database.\n    \n- Only users with roles `admin` or `user` can access this endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Certificate",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDk5NTgsImV4cCI6MTc3MTUxMDU1OH0.mib2FAnrGnwnwHGyrZz4Ir4z1798JBJ7paIX-8y53JA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "certificateName",
+									"value": "Node.js Backend Certificate",
+									"type": "text"
+								},
+								{
+									"key": "certificateType",
+									"value": "Technical",
+									"type": "text"
+								},
+								{
+									"key": "certificateFrom",
+									"value": "Udemy",
+									"type": "text"
+								},
+								{
+									"key": "IssueDate",
+									"value": "2024-01-15",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "Active",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/updateCertificate/69971103d70114109bc52c47",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"updateCertificate",
+								"69971103d70114109bc52c47"
+							]
+						},
+						"description": "## **PUT /api/updateCertificate/:id**\n\nUpdate an existing certificate, including uploading a new certificate image.\n\n**Endpoint:**\n\n```\nPUT /api/updateCertificate/:id\n\n ```\n\n**Middleware:**\n\n- `verifyToken` – Authenticates user\n    \n- `checkFirstTimeLogin` – Ensures user has completed first-time login\n    \n- `allowRoles('admin')` – Only accessible by admin users\n    \n\n---\n\n### **Request Parameters**\n\n| Parameter | Type | Description | Required |\n| --- | --- | --- | --- |\n| id | string | The MongoDB ObjectId of the certificate | Yes |\n\n**Example URL:**\n\n```\nPUT /api/updateCertificate/63f4e8c2b8f12a00123abcd4\n\n ```\n\n---\n\n### **Request Headers**\n\n| Key | Value | Description |\n| --- | --- | --- |\n| Authorization | Bearer | Required. Admin token |\n| Content-Type | multipart/form-data | Required if updating the image |\n\n---\n\n### **Request Body (multipart/form-data)**\n\n| Key | Type | Description | Required |\n| --- | --- | --- | --- |\n| certificateImage | file | New certificate image to upload | No |\n| title | string | Certificate title | No |\n| description | string | Description of certificate | No |\n| issuedBy | string | Issuer of the certificate | No |\n| issueDate | date/string | Date of issuance (ISO 8601) | No |\n\n**Example Form-data in Postman:**\n\n| Key | Value | Type |\n| --- | --- | --- |\n| certificateImage | `updated_certificate.png` | File |\n| title | `Advanced Certificate` | Text |\n| description | `Completed Advanced Node.js Course` | Text |\n| issuedBy | `Academy XYZ` | Text |\n| issueDate | `2026-03-01` | Text |\n\n---\n\n### **Successful Response (200 OK)**\n\n**Body:**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"Certificate updated successfully.\",\n  \"certificate\": {\n    \"_id\": \"63f4e8c2b8f12a00123abcd4\",\n    \"title\": \"Advanced Certificate\",\n    \"description\": \"Completed Advanced Node.js Course\",\n    \"issuedBy\": \"Academy XYZ\",\n    \"issueDate\": \"2026-03-01T00:00:00.000Z\",\n    \"certificateImage\": \"/images/Certificates/updated_certificate.png\",\n    \"createdAt\": \"2026-02-19T10:45:00.000Z\",\n    \"updatedAt\": \"2026-02-19T12:30:00.000Z\",\n    \"__v\": 0\n  }\n}\n\n ```\n\n---\n\n### **Error Responses**\n\n| Status | Error Type | Response Example |\n| --- | --- | --- |\n| 400 | Multer File Upload Error | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"certificateImage size exceeds 2MB limit.\" }` |\n| 404 | Not Found | `{ \"status\": \"error\", \"statusCode\": 404, \"message\": \"No Certificate found with ID 63f4e8c2b8f12a00123abcd4\" }` |\n| 400 | Validation Error | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Invalid input data: title is required.\" }` |\n| 500 | Server Error | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` |\n\n---\n\n### **Notes**\n\n- If a new file is uploaded, the old certificate image is deleted automatically from the server.\n    \n- Only `admin` users can update certificates.\n    \n- File upload limit: 2MB.\n    \n- If no new image is uploaded, the existing image remains unchanged.\n    \n- Validation rules apply on updated fields."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete A Certificate",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MTEwODYsImV4cCI6MTc3MTUxMTY4Nn0.7aK_lS_jwo_zhSyshVLyrC7u3TYA3feLhpjIuDQYTFQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\":\"nothing@gmail.com\",\n  \"password\":\"NewPas123\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/deleteCertificate/69971d12b85ce6a0008afec3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"deleteCertificate",
+								"69971d12b85ce6a0008afec3"
+							]
+						},
+						"description": "## **DELETE /api/deleteCertificate/:id**\n\nDelete a certificate by its ID. If the certificate has an uploaded image, it will be removed from the server as well.\n\n**Endpoint:**\n\n```\nDELETE /api/deleteCertificate/:id\n\n ```\n\n**Middleware:**\n\n- `verifyToken` – Authenticates user\n    \n- `checkFirstTimeLogin` – Ensures user has completed first-time login\n    \n- `allowRoles('admin')` – Only accessible by admin users\n    \n\n---\n\n### **Request Parameters**\n\n| Parameter | Type | Description | Required |\n| --- | --- | --- | --- |\n| id | string | The MongoDB ObjectId of the certificate | Yes |\n\n**Example URL:**\n\n```\nDELETE /api/deleteCertificate/63f4e8c2b8f12a00123abcd4\n\n ```\n\n---\n\n### **Request Headers**\n\n| Key | Value | Description |\n| --- | --- | --- |\n| Authorization | Bearer | Required. Admin token |\n\n---\n\n### **Successful Response (200 OK)**\n\n**Body:**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"Certificate deleted successfully.\",\n  \"deletedCertificate\": {\n    \"_id\": \"63f4e8c2b8f12a00123abcd4\",\n    \"certificateName\": \"Node.js Backend Certificate\",\n    \"certificateType\": \"Technical\",\n    \"certificateFrom\": \"Udemy\",\n    \"IssueDate\": \"2024-01-15T00:00:00.000Z\",\n    \"status\": \"Active\",\n    \"certificateImage\": \"/images/Certificates/certificate.png\",\n    \"createdAt\": \"2024-01-20T10:45:00.000Z\",\n    \"updatedAt\": \"2024-01-20T10:45:00.000Z\",\n    \"__v\": 0\n  }\n}\n\n ```\n\n---\n\n### **Error Responses**\n\n| Status | Error Type | Response Example |\n| --- | --- | --- |\n| 404 | Not Found | `{ \"status\": \"error\", \"statusCode\": 404, \"message\": \"No Certificate found with ID 63f4e8c2b8f12a00123abcd4\" }` |\n| 500 | Server Error | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` |\n\n---\n\n### **Notes**\n\n- Only `admin` users can delete certificates.\n    \n- If the certificate has an uploaded image (`certificateImage`), it will be automatically deleted from the server.\n    \n- Make sure the `id` parameter is a valid MongoDB ObjectId.\n    \n- Returns the deleted certificate object in the response for reference."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Counter",
+			"item": [
+				{
+					"name": "Add Counter",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MTMyNjgsImV4cCI6MTc3MTUxMzg2OH0.S1IX_Y4ZE4I1nNEDrk0P8Gt1nZbQO_XZsb5x80WVktI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Experiences\",\n  \"value\": 8,\n  \"status\": \"active\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/createCounter",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"createCounter"
+							]
+						},
+						"description": "# **Create Counter – API Documentation**\n\n**Endpoint:**\n\n```\nPOST http://localhost:8000/api/createCounter\n\n ```\n\n**Headers:**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| Content-Type | application/json |\n\n---\n\n### **Request Body Example**\n\n```\n{\n  \"name\": \"Clients\",\n  \"value\": 15,\n  \"status\": \"active\"\n}\n\n ```\n\n**Fields Explanation:**\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| name | String | Yes | Must be one of `Clients`, `Experiences`, `Projects`, `Awards`. Unique. |\n| value | Number | No | Default `0`. Number of items. |\n| status | String | Yes | Must be one of `active`, `inactive`, `draft`. |\n\n---\n\n### **Successful Response (201 Created)**\n\n```\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"counter\": {\n      \"_id\": \"63f4e8c2b8f12a00123abcd1\",\n      \"name\": \"Clients\",\n      \"value\": 15,\n      \"createdDate\": \"2026-02-19T10:45:00.000Z\",\n      \"status\": \"active\",\n      \"__v\": 0\n    }\n  }\n}\n\n ```\n\n---\n\n### **Possible Errors**\n\n| Error Type | Status Code | Example Response | When It Happens |\n| --- | --- | --- | --- |\n| **Validation Error** | 400 | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Invalid input data: Path` status `is required.\", \"fields\": [\"status\"] }` | Missing required fields or invalid enum values |\n| **Duplicate Fields** | 400 | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Duplicate fields: name. Please use other values!\", \"fields\": [\"name\"] }` | Trying to create a counter with a `name` that already exists |\n| **Cast Error (invalid ID format)** | 400 | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Invalid _id: 123abc.\" }` | Invalid ID format in other operations (less relevant for create) |\n| **Multer File Error** | 400 | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"certificateImage size exceeds 2MB limit.\" }` | Only relevant if you were uploading a file, e.g., certificates |\n| **Server Error** | 500 | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` | Any unexpected server error |\n\n---\n\n### **Notes**\n\n1. `name` is **unique**; trying to create a counter with a duplicate name will fail.\n    \n2. `status` must match one of the enum values: `\"active\"`, `\"inactive\"`, `\"draft\"`.\n    \n3. `value` is optional; if omitted, it defaults to `0`.\n    \n4. Only users with **Admin** or **User** roles can create counters."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Counter",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MTMzNzMsImV4cCI6MTc3MTUxMzk3M30.tg1yypWPe_mEOTaJm_tv_YXiOij305cM3ijyD2XgOeU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"value\": 20,\n  \"status\": \"active\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/updateCounter/69972332edb8e169d47b011c",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"updateCounter",
+								"69972332edb8e169d47b011c"
+							]
+						},
+						"description": "# **Update Counter – API Documentation**\n\n**Endpoint:**\n\n```\nPUT http://localhost:8000/api/updateCounter/:id\n\n ```\n\n**Purpose:**  \n  \nUpdate an existing counter’s `value` and/or `status` by its ID.\n\n---\n\n### **Request Headers**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| Content-Type | application/json |\n\n---\n\n### **URL Parameters**\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | Yes | The `_id` of the counter to update |\n\n**Example URL:**\n\n```\nPUT http://localhost:8000/api/updateCounter/63f4e8c2b8f12a00123abcd1\n\n ```\n\n---\n\n### **Request Body Examples**\n\n**Example 1 – Update value and status**\n\n```\n{\n  \"value\": 20,\n  \"status\": \"active\"\n}\n\n ```\n\n**Example 2 – Update only status**\n\n```\n{\n  \"status\": \"inactive\"\n}\n\n ```\n\n**Example 3 – Draft a counter**\n\n```\n{\n  \"value\": 0,\n  \"status\": \"draft\"\n}\n\n ```\n\n---\n\n### **Successful Response (200 OK)**\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"Counter updated successfully.\",\n  \"data\": {\n    \"counter\": {\n      \"_id\": \"63f4e8c2b8f12a00123abcd1\",\n      \"name\": \"Clients\",\n      \"value\": 20,\n      \"createdDate\": \"2026-02-19T10:45:00.000Z\",\n      \"status\": \"active\",\n      \"__v\": 0\n    }\n  }\n}\n\n ```\n\n---\n\n### **Possible Errors**\n\n| Error Type | Status Code | Example Response | When It Happens |\n| --- | --- | --- | --- |\n| **Validation Error** | 400 | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Invalid input data: Path` status `is required.\", \"fields\": [\"status\"] }` | Missing required fields or invalid enum values |\n| **Duplicate Fields** | 400 | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Duplicate fields: name. Please use other values!\", \"fields\": [\"name\"] }` | If attempting to update `name` to a value that already exists |\n| **Cast Error (invalid ID)** | 400 | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Invalid _id: 123abc.\" }` | Invalid MongoDB ObjectId in URL |\n| **Counter Not Found** | 404 | `{ \"status\": \"error\", \"statusCode\": 404, \"message\": \"No counter found with ID 63f4e8c2b8f12a00123abcd1\" }` | Counter with given ID does not exist |\n| **Server Error** | 500 | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` | Unexpected server error |\n\n---\n\n### **Notes**\n\n1. Only `value` and `status` can be updated. The `name` field is usually not changed (unique enum).\n    \n2. `status` must be one of `\"active\"`, `\"inactive\"`, or `\"draft\"`.\n    \n3. Only users with **Admin** or **User** roles can access this endpoint.\n    \n4. Include the `_id` of the counter in the URL when updating."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Counter Dropdown",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MTQwNTIsImV4cCI6MTc3MTUxNDY1Mn0.9QezEJEPs-ijFmpOOzWmklRXeEasvoRSuQP0TlciLAo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\":\"nothing@gmail.com\",\n  \"password\":\"NewPas123\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/counters/dropdown",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"counters",
+								"dropdown"
+							]
+						},
+						"description": "# **Get Counter Dropdown – API Documentation**\n\n**Endpoint:**\n\n```\nGET http://localhost:8000/api/counters/dropdown\n\n ```\n\n**Purpose:**  \n  \nFetch the valid `name` enum values for the `Counter` model. Useful for populating dropdowns in the frontend.\n\n---\n\n### **Request Headers**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n### **Request Parameters**\n\n- None (no body or query parameters needed)\n    \n\n---\n\n### **Successful Response (200 OK)**\n\n```\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"validNames\": [\"Clients\", \"Experiences\", \"Projects\", \"Awards\"]\n  }\n}\n\n ```\n\n**Explanation:**\n\n- `validNames` → An array of the allowed values for the `name` field in your `Counter` model.\n    \n- These values come directly from your enum definition in Mongoose:\n    \n\n```\nenum: ['Clients', 'Experiences', 'Projects', 'Awards']\n\n ```\n\n---\n\n### **Possible Errors**\n\n| Error Type | Status Code | Example Response | When It Happens |\n| --- | --- | --- | --- |\n| Server Error | 500 | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` | Unexpected server issues |\n| Authentication | 401 | `{ \"status\": \"error\", \"statusCode\": 401, \"message\": \"Unauthorized\" }` | No or invalid JWT token |\n| Forbidden | 403 | `{ \"status\": \"error\", \"statusCode\": 403, \"message\": \"Access denied\" }` | User role is not Admin/User |\n\n---\n\n### **Notes**\n\n1. Only users with roles `\"Admin\"` or `\"User\"` can access this endpoint.\n    \n2. No body is required; this is a **GET request**.\n    \n3. Useful for **frontend dropdowns** or form validation to ensure users can only select valid counter names."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Counter",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MTQwNTIsImV4cCI6MTc3MTUxNDY1Mn0.9QezEJEPs-ijFmpOOzWmklRXeEasvoRSuQP0TlciLAo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\":\"nothing@gmail.com\",\n  \"password\":\"NewPas123\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/getAllCounters",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getAllCounters"
+							]
+						},
+						"description": "# **Get All Counters – API Documentation**\n\n**Endpoint:**\n\n```\nGET http://localhost:8000/api/getAllCounters\n\n ```\n\n**Purpose:**  \n  \nFetch a list of all counters with optional sorting and pagination.\n\n---\n\n### **Request Headers**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n### **Query Parameters (Optional)**\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| page | Number | No | Page number for pagination (default: 1) |\n| sort | String | No | Sorting option: `\"name-asc\"`, `\"name-desc\"`, `\"oldest\"`, `\"recent\"` |\n\n**Example URL:**\n\n```\nGET http://localhost:8000/api/getAllCounters?page=1&sort=name-asc\n\n ```\n\n---\n\n### **Successful Response (200 OK)**\n\n```\n{\n  \"status\": \"success\",\n  \"totalCounters\": 4,\n  \"certificates\": [\n    {\n      \"_id\": \"63f4e8c2b8f12a00123abcd1\",\n      \"name\": \"Clients\",\n      \"value\": 15,\n      \"status\": \"active\",\n      \"createdDate\": \"2026-02-19T10:45:00.000Z\",\n      \"__v\": 0\n    },\n    {\n      \"_id\": \"63f4e8c2b8f12a00123abcd2\",\n      \"name\": \"Experiences\",\n      \"value\": 8,\n      \"status\": \"active\",\n      \"createdDate\": \"2026-02-19T10:50:00.000Z\",\n      \"__v\": 0\n    },\n    {\n      \"_id\": \"63f4e8c2b8f12a00123abcd3\",\n      \"name\": \"Projects\",\n      \"value\": 12,\n      \"status\": \"active\",\n      \"createdDate\": \"2026-02-19T10:55:00.000Z\",\n      \"__v\": 0\n    },\n    {\n      \"_id\": \"63f4e8c2b8f12a00123abcd4\",\n      \"name\": \"Awards\",\n      \"value\": 5,\n      \"status\": \"active\",\n      \"createdDate\": \"2026-02-19T11:00:00.000Z\",\n      \"__v\": 0\n    }\n  ]\n}\n\n ```\n\n---\n\n### **Possible Errors**\n\n| Error Type | Status Code | Example Response | When It Happens |\n| --- | --- | --- | --- |\n| **Server Error** | 500 | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` | Any unexpected server-side error |\n| **Authentication** | 401 | `{ \"status\": \"error\", \"statusCode\": 401, \"message\": \"Unauthorized\" }` | No or invalid JWT token |\n| **Forbidden** | 403 | `{ \"status\": \"error\", \"statusCode\": 403, \"message\": \"Access denied\" }` | User role is not Admin/User |\n\n---\n\n### **Notes**\n\n1. Pagination is **optional**. Default page is `1` and limit is `10`.\n    \n2. Sorting options:\n    \n    - `\"name-asc\"` → sort by name A→Z\n        \n    - `\"name-desc\"` → sort by name Z→A\n        \n    - `\"oldest\"` → sort by `createdDate` ascending\n        \n    - `\"recent\"` → sort by `createdDate` descending (default)\n        \n3. Only **Admin** and **User** roles can access this endpoint.\n    \n4. Response includes `totalCounters` to indicate how many counters exist in the database."
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Single Counter",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MTQwNTIsImV4cCI6MTc3MTUxNDY1Mn0.9QezEJEPs-ijFmpOOzWmklRXeEasvoRSuQP0TlciLAo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\":\"nothing@gmail.com\",\n  \"password\":\"NewPas123\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/counters/69972332edb8e169d47b011c",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"counters",
+								"69972332edb8e169d47b011c"
+							]
+						},
+						"description": "# **Get Counter By ID – API Documentation**\n\n**Endpoint:**\n\n```\nGET http://localhost:8000/api/counters/:id\n\n ```\n\n**Purpose:**  \n  \nFetch a single counter’s details using its `_id`.\n\n---\n\n### **Request Headers**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n### **URL Parameters**\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | Yes | The `_id` of the counter to fetch |\n\n**Example URL:**\n\n```\nGET http://localhost:8000/api/counters/63f4e8c2b8f12a00123abcd1\n\n ```\n\n---\n\n### **Successful Response (200 OK)**\n\n```\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"counter\": {\n      \"_id\": \"63f4e8c2b8f12a00123abcd1\",\n      \"name\": \"Clients\",\n      \"value\": 15,\n      \"status\": \"active\",\n      \"createdDate\": \"2026-02-19T10:45:00.000Z\",\n      \"__v\": 0\n    }\n  }\n}\n\n ```\n\n---\n\n### **Possible Errors**\n\n| Error Type | Status Code | Example Response | When It Happens |\n| --- | --- | --- | --- |\n| **Cast Error (invalid ID)** | 400 | `{ \"status\": \"error\", \"statusCode\": 400, \"message\": \"Invalid _id: 123abc.\" }` | If the provided `_id` is not a valid MongoDB ObjectId |\n| **Counter Not Found** | 404 | `{ \"status\": \"error\", \"statusCode\": 404, \"message\": \"No counter found with ID 63f4e8c2b8f12a00123abcd1\" }` | Counter with the given ID does not exist |\n| **Server Error** | 500 | `{ \"status\": \"error\", \"statusCode\": 500, \"message\": \"Internal server error\" }` | Any unexpected server-side error |\n| **Authentication** | 401 | `{ \"status\": \"error\", \"statusCode\": 401, \"message\": \"Unauthorized\" }` | No or invalid JWT token |\n| **Forbidden** | 403 | `{ \"status\": \"error\", \"statusCode\": 403, \"message\": \"Access denied\" }` | User role is not Admin/User |\n\n---\n\n### **Notes**\n\n1. Only users with roles **Admin** or **User** can access this endpoint.\n    \n2. Include the `_id` of the counter in the URL to fetch it.\n    \n3. Response includes the counter’s `name`, `value`, `status`, and `createdDate`.\n    \n\n---"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "FAQ",
+			"item": [
+				{
+					"name": "Add FAQ",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE4MzgwODMsImV4cCI6MTc3MTgzODY4M30.P5a4X63ON_Y0GNUrahNe7dRPtycWNMItvFL0lVVunnE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"question\": \"How do I reset my password?\",\n  \"answer\": \"Click on forgot password and follow the instructions sent to your email.\",\n  \"catagory\": \"Account\",\n  \"status\": \"published\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/createFAQ",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"createFAQ"
+							]
+						},
+						"description": "# 1️⃣ ADD FAQ (Create FAQ)\n\n---\n\n# 📌 Endpoint\n\n```\nPOST /api/createFAQ\n\n ```\n\n---\n\n# 🔐 Authentication Required\n\nYes\n\n### Headers\n\n```\nAuthorization: Bearer <your_token>Content-Type: application/json\n\n ```\n\n### Access Roles\n\n- `admin`\n    \n- `user`\n    \n\n(Handled by: `verifyToken`, `checkFirstTimeLogin`, `allowRoles(\"admin\",\"user\")`)\n\n---\n\n# 📥 Request Body (JSON)\n\n| Field | Type | Required | Description | Validation |\n| --- | --- | --- | --- | --- |\n| question | String | ✅ Yes | FAQ question | Max 100 characters, Unique |\n| answer | String | ✅ Yes | FAQ answer | Required |\n| catagory | String | ✅ Yes | FAQ category | Required |\n| status | String | ✅ Yes | FAQ status | Enum: `published`, `schedule`, `draft` |\n\n---\n\n## 🧪 Sample Request (Postman Body → raw → JSON)\n\n```\n{  \"question\": \"How do I reset my password?\",  \"answer\": \"Click on forgot password and follow the instructions sent to your email.\",  \"catagory\": \"Account\",  \"status\": \"published\"}\n\n ```\n\n---\n\n# ✅ Success Response\n\n### Status Code: `201 Created`\n\n```\n{  \"status\": \"success\",  \"message\": \"FAQ created successfully\",  \"data\": {    \"_id\": \"65f1c1234567890abc123456\",    \"question\": \"How do I reset my password?\",    \"answer\": \"Click on forgot password and follow the instructions sent to your email.\",    \"catagory\": \"Account\",    \"status\": \"published\",    \"createdDate\": \"2026-02-23T12:10:22.456Z\",    \"__v\": 0  }}\n\n ```\n\n---\n\n# ❌ Possible Error Responses\n\nYour global error handler supports multiple structured errors.\n\n---\n\n## 1️⃣ Duplicate Question Error\n\n### When:\n\n- Same question already exists (unique field)\n    \n\n### Status Code: `400 Bad Request`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: question. Please use other values!\",  \"fields\": [\"question\"]}\n\n ```\n\n---\n\n## 2️⃣ Validation Error – Required Field Missing\n\n### Example:\n\nMissing `answer`\n\n### Status Code: `400 Bad Request`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid input data: Path `answer` is required.\",  \"fields\": [\"answer\"]}\n\n ```\n\n---\n\n## 3️⃣ Validation Error – Question Exceeds 100 Characters\n\n### Status Code: `400 Bad Request`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid input data: Question cannot exceed 100 characters.\",  \"fields\": [\"question\"]}\n\n ```\n\n---\n\n## 4️⃣ Validation Error – Invalid Status Enum\n\n### Example:\n\n```\n{  \"status\": \"active\"}\n\n ```\n\n### Status Code: `400 Bad Request`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid input data: `active` is not a valid enum value for path `status`.\",  \"fields\": [\"status\"]}\n\n ```\n\n---\n\n## 5️⃣ Unauthorized (No Token)\n\n### Status Code: `401 Unauthorized`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 401,  \"message\": \"You are not logged in! Please log in to get access.\"}\n\n ```\n\n---\n\n## 6️⃣ Forbidden (Role Not Allowed)\n\n### Status Code: `403 Forbidden`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"You do not have permission to perform this action.\"}\n\n ```\n\n---\n\n# 🧪 Postman Testing Checklist\n\n✔ Set Method → POST  \n  \n✔ URL → `http://localhost:5000/api/createFAQ`  \n  \n✔ Headers → Authorization Bearer Token  \n  \n✔ Body → raw → JSON  \n  \n✔ Send\n\n---\n\n# 📌 Summary – Add FAQ\n\n| Case | Status Code |\n| --- | --- |\n| Created successfully | 201 |\n| Duplicate question | 400 |\n| Missing field | 400 |\n| Validation error | 400 |\n| Not authenticated | 401 |\n| Role forbidden | 403 |\n\n---"
+					},
+					"response": []
+				},
+				{
+					"name": "Update FAQ",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE4Mzg0MTUsImV4cCI6MTc3MTgzOTAxNX0.Lw888aId_Eaxb-TNxrB6u0jiMmbXF5W83lt6_vj8zJk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"published\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/updateFAQ/699c1aa105db27dc6d1dcd77",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"updateFAQ",
+								"699c1aa105db27dc6d1dcd77"
+							]
+						},
+						"description": "# UPDATE FAQ Documentation\n\nThis endpoint allows updating an existing FAQ by its ID.\n\n---\n\n# 📌 Endpoint\n\n```\nPUT /api/updateFAQ/:id\n\n ```\n\n---\n\n# 🔐 Authentication Required\n\nYes\n\n### Headers\n\n```\nAuthorization: Bearer <your_token>Content-Type: application/json\n\n ```\n\n### Access Roles\n\n- `admin`\n    \n- `user`\n    \n\nHandled by middleware:\n\n- `verifyToken`\n    \n- `checkFirstTimeLogin`\n    \n- `allowRoles(\"admin\",\"user\")`\n    \n\n---\n\n# 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String (MongoDB ObjectId) | Yes | FAQ ID to update |\n\n---\n\n# 📥 Request Body (JSON)\n\nYou can update one or more fields.\n\n| Field | Type | Required | Validation |\n| --- | --- | --- | --- |\n| question | String | No | Max 100 characters, Unique |\n| answer | String | No | Required if provided |\n| catagory | String | No | Required if provided |\n| status | String | No | Enum: published, schedule, draft |\n\n---\n\n# 🧪 Sample Request\n\n### URL\n\n```\nPUT http://localhost:8000/api/updateFAQ/65f1c1234567890abc123456\n\n ```\n\n### Body\n\n```\n{  \"question\": \"How do I reset my password easily?\",  \"answer\": \"Click forgot password and follow email instructions.\",  \"catagory\": \"Account\",  \"status\": \"published\"}\n\n ```\n\n---\n\n# ✅ Success Response\n\n### Status Code: `200 OK`\n\n```\n{  \"status\": \"success\",  \"message\": \"FAQ updated successfully\",  \"data\": {    \"_id\": \"65f1c1234567890abc123456\",    \"question\": \"How do I reset my password easily?\",    \"answer\": \"Click forgot password and follow email instructions.\",    \"catagory\": \"Account\",    \"status\": \"published\",    \"createdDate\": \"2026-02-23T12:10:22.456Z\",    \"__v\": 0  }}\n\n ```\n\n---\n\n# ❌ Possible Error Responses\n\n---\n\n## 1️⃣ FAQ Not Found\n\n### When:\n\nID does not exist in database\n\n### Status Code: `404 Not Found`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No FAQ found with ID 65f1c1234567890abc123456\"}\n\n ```\n\n---\n\n## 2️⃣ Invalid FAQ ID Format\n\n### When:\n\nID is not valid MongoDB ObjectId\n\nExample:\n\n```\nPUT /api/updateFAQ/123\n\n ```\n\n### Status Code: `400 Bad Request`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid FAQ ID\"}\n\n ```\n\n---\n\n## 3️⃣ Duplicate Question Error\n\n### When:\n\nUpdating with existing question\n\n### Status Code: `400 Bad Request`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: question. Please use other values!\",  \"fields\": [\"question\"]}\n\n ```\n\n---\n\n## 4️⃣ Validation Error – Question Too Long\n\n### Status Code: `400 Bad Request`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid input data: Question cannot exceed 100 characters.\",  \"fields\": [\"question\"]}\n\n ```\n\n---\n\n## 5️⃣ Validation Error – Invalid Status\n\nExample invalid status:\n\n```\n{  \"status\": \"active\"}\n\n ```\n\nResponse:\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid input data: `active` is not a valid enum value for path `status`.\",  \"fields\": [\"status\"]}\n\n ```\n\n---\n\n## 6️⃣ Unauthorized – No Token\n\n### Status Code: `401 Unauthorized`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 401,  \"message\": \"You are not logged in! Please log in to get access.\"}\n\n ```\n\n---\n\n## 7️⃣ Forbidden – Role Not Allowed\n\n### Status Code: `403 Forbidden`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"You do not have permission to perform this action.\"}\n\n ```\n\n---\n\n# 🧪 Postman Testing Steps\n\n1. Select Method → PUT\n    \n2. Enter URL:\n    \n\n```\nhttp://localhost:5000/api/updateFAQ/{FAQ_ID}\n\n ```\n\n1. Go to Headers\n    \n\n```\nAuthorization: Bearer YOUR_TOKENContent-Type: application/json\n\n ```\n\n1. Go to Body → raw → JSON\n    \n\n```\n{  \"answer\": \"Updated answer example\"}\n\n ```\n\n1. Click Send\n    \n\n---\n\n# 📌 Summary – Update FAQ\n\n| Case | Status Code |\n| --- | --- |\n| Updated successfully | 200 |\n| FAQ not found | 404 |\n| Invalid ID | 400 |\n| Duplicate question | 400 |\n| Validation error | 400 |\n| Unauthorized | 401 |\n| Forbidden | 403 |"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All FAQ",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE4Mzg1NzIsImV4cCI6MTc3MTgzOTE3Mn0.it0AalzXDTYZXbvROySP5N9eyFMUtIJsvoGeAvyCRyc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getAllFAQs",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getAllFAQs"
+							]
+						},
+						"description": "# GET ALL FAQs\n\n### 📌 Endpoint\n\n```\nGET /api/getAllFAQs\n\n ```\n\n---\n\n# 🔐 Authentication Required\n\nYes\n\n### Headers\n\n```\nAuthorization: Bearer <your_token>\n\n ```\n\n### Access Roles\n\n- `admin`\n    \n- `user`\n    \n\nHandled by middleware:  \n`verifyToken`, `checkFirstTimeLogin`, `allowRoles(\"admin\",\"user\")`\n\n---\n\n# 🔎 Optional Query Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| catagory | String | No | Filter FAQs by category |\n| status | String | No | Filter by status: `published`, `schedule`, `draft` |\n\n**Example URLs:**\n\n```\nGET /api/getAllFAQsGET /api/getAllFAQs?catagory=AccountGET /api/getAllFAQs?status=publishedGET /api/getAllFAQs?catagory=Billing&status=draft\n\n ```\n\n---\n\n# ✅ Success Response\n\n### Status Code: `200 OK`\n\n```\n{  \"status\": \"success\",  \"results\": 2,  \"data\": [    {      \"_id\": \"65f1c1234567890abc123456\",      \"question\": \"How do I reset my password?\",      \"answer\": \"Click forgot password and follow your email instructions.\",      \"catagory\": \"Account\",      \"status\": \"published\",      \"createdDate\": \"2026-02-23T12:10:22.456Z\"    },    {      \"_id\": \"65f1c9999999990abc123999\",      \"question\": \"How to update profile?\",      \"answer\": \"Go to settings and update your profile information.\",      \"catagory\": \"Profile\",      \"status\": \"draft\",      \"createdDate\": \"2026-02-22T15:45:12.123Z\"    }  ]}\n\n ```\n\n- `results` → total number of FAQs returned\n    \n- `data` → array of FAQ objects\n    \n\n---\n\n# ❌ Possible Error Responses\n\n### 1️⃣ Unauthorized – No Token\n\n```\n{  \"status\": \"error\",  \"statusCode\": 401,  \"message\": \"You are not logged in! Please log in to get access.\"}\n\n ```\n\n### 2️⃣ Forbidden – Role Not Allowed\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"You do not have permission to perform this action.\"}\n\n ```\n\n### 3️⃣ Validation Errors (Invalid query parameters)\n\nExample: Sending invalid status:\n\n```\nGET /api/getAllFAQs?status=active\n\n ```\n\nResponse:\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid input data: `active` is not a valid enum value for path `status`.\",  \"fields\": [\"status\"]}\n\n ```\n\n---\n\n# 🧪 Postman Testing Steps\n\n1. Select Method → GET\n    \n2. Enter URL → `http://localhost:8000/api/getAllFAQs`\n    \n3. Add Headers →\n    \n\n```\nAuthorization: Bearer <your_token>\n\n ```\n\n1. Optional: Add Query Params → `catagory` or `status`\n    \n2. Click Send\n    \n\n---\n\n# 📌 Summary – Get All FAQs\n\n| Case | Status Code |\n| --- | --- |\n| Success – FAQs returned | 200 |\n| Unauthorized | 401 |\n| Forbidden | 403 |\n| Invalid query | 400 |"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single FAQ",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE4Mzg3MjksImV4cCI6MTc3MTgzOTMyOX0.xeIDpE9ISt4TXiIPkzUFr44j1KwezVyTvCrlhJaHxSs",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getFAQS/699c1aa105db27dc6d1dcd77",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getFAQS",
+								"699c1aa105db27dc6d1dcd77"
+							]
+						},
+						"description": "# GET FAQ BY ID\n\n### 📌 Endpoint\n\n```\nGET /api/getFAQS/:id\n\n ```\n\n---\n\n# 🔐 Authentication Required\n\nYes\n\n### Headers\n\n```\nAuthorization: Bearer <your_token>\n\n ```\n\n### Access Roles\n\n- `admin`\n    \n- `user`\n    \n\nHandled by middleware:  \n`verifyToken`, `checkFirstTimeLogin`, `allowRoles(\"admin\",\"user\")`\n\n---\n\n# 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the FAQ to retrieve |\n\n### Example URL\n\n```\nGET http://localhost:5000/api/getFAQS/65f1c1234567890abc123456\n\n ```\n\n---\n\n# ✅ Success Response\n\n### Status Code: `200 OK`\n\n```\n{  \"status\": \"success\",  \"data\": {    \"_id\": \"65f1c1234567890abc123456\",    \"question\": \"How do I reset my password?\",    \"answer\": \"Click forgot password and follow your email instructions.\",    \"catagory\": \"Account\",    \"status\": \"published\",    \"createdDate\": \"2026-02-23T12:10:22.456Z\"  }}\n\n ```\n\n- Returns the FAQ object with all its fields.\n    \n- `status` can be `published`, `draft`, or `schedule`.\n    \n\n---\n\n# ❌ Possible Error Responses\n\n### 1️⃣ FAQ Not Found\n\n### When:\n\n- ID does not exist in the database\n    \n\n### Status Code: `404 Not Found`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No FAQ found with ID 65f1c1234567890abc123456\"}\n\n ```\n\n---\n\n### 2️⃣ Invalid FAQ ID Format\n\n### When:\n\n- ID is not a valid MongoDB ObjectId\n    \n\nExample:\n\n```\nGET /api/getFAQS/123\n\n ```\n\n### Status Code: `400 Bad Request`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid FAQ ID\"}\n\n ```\n\n---\n\n### 3️⃣ Unauthorized – No Token\n\n### Status Code: `401 Unauthorized`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 401,  \"message\": \"You are not logged in! Please log in to get access.\"}\n\n ```\n\n---\n\n### 4️⃣ Forbidden – Role Not Allowed\n\n### Status Code: `403 Forbidden`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"You do not have permission to perform this action.\"}\n\n ```\n\n---\n\n# 🧪 Postman Testing Steps\n\n1. Select Method → GET\n    \n2. Enter URL → `http://localhost:8000/api/getFAQS/{FAQ_ID}`\n    \n3. Add Headers →\n    \n\n```\nAuthorization: Bearer <your_token>\n\n ```\n\n1. Click Send\n    \n\n---\n\n# 📌 Summary – Get Single FAQ\n\n| Case | Status Code |\n| --- | --- |\n| FAQ found | 200 |\n| FAQ not found | 404 |\n| Invalid FAQ ID | 400 |\n| Unauthorized | 401 |\n| Forbidden | 403 |"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
