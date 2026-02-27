@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -7,7 +7,8 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { FAQData } from "../../data/FAQData";
+import { toast } from "sonner";
+import { getAllFAQs, createFAQ, updateFAQ } from "../../api/api";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
@@ -29,17 +30,48 @@ function FAQList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const categories = useMemo(() => ["All Categories", ...new Set(FAQData.map(s => s.category))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(FAQData.map(s => s.status))], []);
+    const [faqs, setFaqs] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchFAQs = async () => {
+        setIsLoading(true);
+        try {
+            const params = {};
+            if (categoryFilter !== "All Categories") params.catagory = categoryFilter;
+            if (statusFilter !== "All Status") params.status = statusFilter;
+
+            const response = await getAllFAQs(params);
+            if (response.status === "success") {
+                setFaqs(response.data || []);
+            }
+        } catch (error) {
+            toast.error("Failed to fetch FAQs");
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchFAQs();
+    }, [categoryFilter, statusFilter]);
+
+    const categories = useMemo(() => {
+        const base = ["All Categories"];
+        const unique = faqs.map(f => f.catagory || f.category).filter(Boolean);
+        return [...base, ...new Set(unique)];
+    }, [faqs]);
+
+    const statuses = ["All Status", "published", "draft", "schedule", "archived"];
 
     const filteredData = useMemo(() => {
-        return FAQData.filter((item) => {
-            const matchesSearch = item.question?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = categoryFilter === "All Categories" || item.category === categoryFilter;
+        return faqs.filter((item) => {
+            const questionText = item.question || "";
+            const matchesSearch = questionText.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesCategory && matchesStatus;
+            return matchesSearch && matchesStatus;
         });
-    }, [searchTerm, categoryFilter, statusFilter]);
+    }, [searchTerm, statusFilter, faqs]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -47,9 +79,8 @@ function FAQList() {
     const handleExportCSV = () => {
         exportToCSV(filteredData, "FAQ", {
             question: "Question",
-            category: "Category",
-            lastUpdated: "Last Updated",
-            publishDate: "Publish Date",
+            catagory: "Category",
+            createdDate: "Creation Date",
             status: "Status"
         });
     };
@@ -57,14 +88,15 @@ function FAQList() {
     // Modal Handlers
     const handleAddNew = () => {
         setFormType('add');
-        setFormData({ status: 'active' });
+        setFormData({ status: 'published' });
         setIsFormModalOpen(true);
     };
 
     const handleEdit = (item) => {
         setFormType('edit');
         setSelectedItem(item);
-        setFormData({ ...item });
+        // Map backend 'catagory' to frontend 'category' for form if needed
+        setFormData({ ...item, category: item.catagory || item.category });
         setIsFormModalOpen(true);
     };
 
@@ -73,52 +105,66 @@ function FAQList() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async () => {
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log(`FAQ ${formType === 'add' ? 'added' : 'updated'}:`, formData);
+        try {
+            const payload = {
+                question: formData.question,
+                answer: formData.answer,
+                catagory: formData.category || formData.catagory,
+                status: formData.status
+            };
+
+            let response;
+            if (formType === 'add') {
+                response = await createFAQ(payload);
+            } else {
+                const id = selectedItem._id || selectedItem.id;
+                response = await updateFAQ(id, payload);
+            }
+
+            if (response.status === "success") {
+                toast.success(`FAQ ${formType === 'add' ? 'added' : 'updated'} successfully!`);
+                setIsFormModalOpen(false);
+                fetchFAQs();
+            }
+        } catch (error) {
+            const msg = error.response?.data?.message || "Failed to save FAQ";
+            toast.error(msg);
+        } finally {
             setIsSubmitting(false);
-            setIsFormModalOpen(false);
-        }, 1000);
+        }
     };
 
-    const handleDeleteConfirm = () => {
+    const handleDeleteConfirm = async () => {
         setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("FAQ deleted:", selectedItem.id);
-            setIsDeleting(false);
+        try {
+            toast.info("Delete functionality not yet implemented in backend collection.");
             setIsDeleteModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            toast.error("Failed to delete FAQ");
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
-    // Columns: Icon, question, category, last updated,  publish date,  status, action
+    // Columns: Icon, question, category, create date, status, action
     const columns = [
-        {
-            key: "icon",
-            label: "Icon",
-            render: (Icon, row) => <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-gray-100 rounded-full text-gray-500"><Icon size={20} /></div>,
-        },
+
         {
             key: "question",
             label: "Question",
             render: (value) => <div className="font-medium text-gray-900 truncate max-w-xs" title={value}>{value}</div>,
         },
         {
-            key: "category",
+            key: "catagory",
             label: "Category",
-            render: (value) => <span className="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-yellow-50 text-yellow-700">{value}</span>,
+            render: (value, row) => <span className="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-yellow-50 text-yellow-700">{value || row.category}</span>,
         },
         {
-            key: "lastUpdated",
-            label: "Last Updated",
-            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
-        },
-        {
-            key: "publishDate",
-            label: "Publish Date",
-            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
+            key: "createdDate",
+            label: "Created",
+            render: (value) => <div className="text-sm text-gray-500">{value ? new Date(value).toLocaleDateString() : "N/A"}</div>,
         },
         {
             key: "status",
@@ -132,7 +178,7 @@ function FAQList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row.id)}
+                        onClick={() => console.log("View", row._id || row.id)}
                         title="View"
                     >
                         <FiEye size={21} />
@@ -221,22 +267,28 @@ function FAQList() {
             </div>
 
             <div>
-                <DynamicTable columns={columns} rows={currentData} />
+                {isLoading ? (
+                    <div className="flex justify-center py-10">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#00A3E0]"></div>
+                    </div>
+                ) : (
+                    <DynamicTable columns={columns} rows={currentData} />
+                )}
             </div>
 
             <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredData.length > 0
+                        {faqs.length > 0
                             ? (currentPage - 1) * itemsPerPage + 1
                             : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredData.length)}
+                        {Math.min(currentPage * itemsPerPage, faqs.length)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredData.length}</span>{" "}
+                    of <span className="font-medium text-gray-900">{faqs.length}</span>{" "}
                     FAQs
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
@@ -260,7 +312,7 @@ function FAQList() {
             >
                 <FAQForm
                     formData={formData}
-                    onChange={setFormData}
+                    setFormData={setFormData}
                 />
             </FormModal>
 

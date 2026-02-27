@@ -1,71 +1,109 @@
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/ui/select';
+import { getCounterDropdown } from '@/api/api';
 
 /**
  * CounterForm - Form component for Counter/Statistics entity
  * 
  * @param {object} formData - Current form data
- * @param {function} onChange - Callback when form data changes
+ * @param {function} setFormData - Callback when form data changes
  * @param {object} errors - Validation errors object
+ * @param {string[]} existingNames - Names already used in the counter table
+ * @param {string} formType - 'add' or 'edit'
  */
-export function CounterForm({ formData = {}, onChange, errors = {} }) {
+export function CounterForm({ formData = {}, setFormData, errors = {}, existingNames = [], formType = 'add' }) {
+    const [allNames, setAllNames] = useState(['Clients', 'Experiences', 'Projects', 'Awards']);
+
+    useEffect(() => {
+        const fetchNames = async () => {
+            try {
+                const response = await getCounterDropdown();
+                if (response.status === 'success' && response.data?.validNames) {
+                    setAllNames(response.data.validNames);
+                }
+            } catch (error) {
+                console.error("Failed to fetch counter names:", error);
+            }
+        };
+        fetchNames();
+    }, []);
+
+    // Filter names to only show those not already in use (except for the current item being edited)
+    const availableNames = React.useMemo(() => {
+        if (formType === 'edit') {
+            return allNames.filter(name => !existingNames.includes(name) || name === (formData.name || formData.title));
+        }
+        return allNames.filter(name => !existingNames.includes(name));
+    }, [allNames, existingNames, formType, formData.name, formData.title]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
-        onChange?.({ ...formData, [name]: value });
+        // Map UI field names to backend fields
+        const fieldName = name === 'number' ? 'value' : (name === 'title' ? 'name' : name);
+
+        // Cast to number if it's the value/number field
+        const finalValue = fieldName === 'value' ? (value === '' ? 0 : Number(value)) : value;
+
+        setFormData?.((prev) => ({ ...prev, [fieldName]: finalValue }));
     };
 
-    const handleStatusChange = (value) => {
-        onChange?.({ ...formData, status: value });
+    const handleSelectChange = (name, value) => {
+        setFormData?.((prev) => ({ ...prev, [name]: value }));
     };
 
     return (
-        <div className="space-y-4">
-            {/* Number */}
+        <div className="space-y-6">
+            {/* Number (Value) */}
             <div className="space-y-2">
-                <Label htmlFor="number">Number</Label>
+                <Label htmlFor="value">Value (Number)</Label>
                 <Input
-                    id="number"
+                    id="value"
                     name="number"
                     type="number"
-                    placeholder="e.g., 1,2,3..."
-                    value={formData.number || ''}
+                    placeholder="e.g., 15"
+                    value={formData.value ?? formData.number ?? ''}
                     onChange={handleChange}
+                    className={errors.value ? 'border-red-500' : ''}
                 />
-                {errors.number && (
-                    <p className="text-sm text-red-500">{errors.number}</p>
+                {errors.value && (
+                    <p className="text-sm text-red-500">{errors.value}</p>
                 )}
             </div>
 
-            {/* Title */}
+            {/* Title (Name Enum) */}
             <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                    id="title"
-                    name="title"
-                    placeholder="e.g., Clients, Projects,..."
-                    value={formData.title || ''}
-                    onChange={handleChange}
-                />
-                {errors.title && (
-                    <p className="text-sm text-red-500">{errors.title}</p>
+                <Label htmlFor="name">Counter Type</Label>
+                <Select
+                    value={(formData.name || formData.title) || ""}
+                    onValueChange={(value) => handleSelectChange('name', value)}
+                    disabled={formType === 'edit'} // Usually counter names (types) aren't changed after creation
+                >
+                    <SelectTrigger className={errors.name ? 'border-red-500' : ''}>
+                        <SelectValue placeholder={formType === 'edit' ? (formData.name || formData.title) : "Select counter type"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableNames.map((name) => (
+                            <SelectItem key={name} value={name}>
+                                {name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                {formType === 'edit' && (
+                    <p className="text-xs text-gray-400 mt-1 italic">Counter type cannot be changed. Values only.</p>
                 )}
-            </div>
-
-            {/* Date */}
-            <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                    id="date"
-                    name="date"
-                    type="date"
-                    value={formData.date || ''}
-                    onChange={handleChange}
-                />
-                {errors.date && (
-                    <p className="text-sm text-red-500">{errors.date}</p>
+                {errors.name && (
+                    <p className="text-sm text-red-500">{errors.name}</p>
                 )}
             </div>
 
@@ -73,21 +111,21 @@ export function CounterForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'published'}
-                    onValueChange={handleStatusChange}
-                    className="flex gap-4"
+                    value={formData.status || 'active'}
+                    onValueChange={(value) => handleSelectChange('status', value)}
+                    className="flex flex-wrap gap-6"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="published" id="counter-published" />
-                        <Label htmlFor="counter-published" className="font-normal cursor-pointer">Published</Label>
+                        <RadioGroupItem value="active" id="counter-active" />
+                        <Label htmlFor="counter-active" className="font-normal cursor-pointer text-slate-600">Active</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="inactive" id="counter-inactive" />
+                        <Label htmlFor="counter-inactive" className="font-normal cursor-pointer text-slate-600">Inactive</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="draft" id="counter-draft" />
-                        <Label htmlFor="counter-draft" className="font-normal cursor-pointer">Draft</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="archived" id="counter-archived" />
-                        <Label htmlFor="counter-archived" className="font-normal cursor-pointer">Archived</Label>
+                        <Label htmlFor="counter-draft" className="font-normal cursor-pointer text-slate-600">Draft</Label>
                     </div>
                 </RadioGroup>
                 {errors.status && (

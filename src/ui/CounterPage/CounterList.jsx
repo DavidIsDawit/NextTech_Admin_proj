@@ -1,13 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
+import { toast } from "sonner";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { CountersData } from "../../data/CountersData";
+import { getAllCounters, createCounter, updateCounter } from "../../api/api";
 import { exportToCSV } from "../../utils/csvExport";
 import { formatNumber } from "../../utils/formatters";
 import { FormModal } from "../modals/FormModal";
@@ -20,6 +21,10 @@ function CounterList() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
+    const [counters, setCounters] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [totalCounters, setTotalCounters] = useState(0);
+
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -29,28 +34,55 @@ function CounterList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const statuses = useMemo(() => ["All Status", ...new Set(CountersData.map(s => s.status))], []);
+    const fetchCounters = async () => {
+        setIsLoading(true);
+        try {
+            const params = {
+                page: currentPage,
+                sort: "recent"
+            };
+            // Note: The backend getAllCounters takes query params for page and sort.
+            // Search and status filtering might not be implemented on backend yet, 
+            // but we'll apply them on the results for now if needed.
+            const response = await getAllCounters(params);
+            if (response.status === "success") {
+                // Based on real Postman response: { data: { counters: [...] }, count: 4 }
+                setCounters(response.data?.counters || response.certificates || response.counters || []);
+                setTotalCounters(response.count || response.totalCounters || 0);
+            }
+        } catch (error) {
+            toast.error("Failed to fetch counters");
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCounters();
+    }, [currentPage]);
+
+    const statuses = ["All Status", "active", "inactive", "draft"];
 
     const filteredData = useMemo(() => {
-        return CountersData.filter((item) => {
-            const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
+        return counters.filter((item) => {
+            const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesStatus;
         });
-    }, [searchTerm, statusFilter]);
+    }, [searchTerm, statusFilter, counters]);
 
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const totalPages = Math.ceil(totalCounters / itemsPerPage) || 1;
 
     const handleExportCSV = () => {
         const dataToExport = filteredData.map(item => ({
             ...item,
-            number: formatNumber(item.number)
+            value: formatNumber(item.value)
         }));
         exportToCSV(dataToExport, "Counters", {
-            number: "Number",
-            title: "Counter Title",
-            date: "Date",
+            value: "Number",
+            name: "Counter Title",
+            createdDate: "Date",
             status: "Status"
         });
     };
@@ -58,7 +90,11 @@ function CounterList() {
     // Modal Handlers
     const handleAddNew = () => {
         setFormType('add');
-        setFormData({ status: 'active' });
+        setFormData({
+            name: '',      // Initialize explicitly
+            value: 0,
+            status: 'active'
+        });
         setIsFormModalOpen(true);
     };
 
@@ -74,42 +110,65 @@ function CounterList() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async () => {
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log(`Counter ${formType === 'add' ? 'added' : 'updated'}:`, formData);
+        try {
+            // Strictly control the payload fields to align with backend expectations
+            const payload = {
+                value: Number(formData.value || formData.number || 0),
+                status: formData.status
+            };
+
+            let response;
+            if (formType === 'add') {
+                // Name is only required/allowed during creation
+                payload.name = formData.name || formData.title;
+                response = await createCounter(payload);
+            } else {
+                const id = selectedItem._id || selectedItem.id;
+                response = await updateCounter(id, payload);
+            }
+
+            if (response.status === "success") {
+                toast.success(`Counter ${formType === 'add' ? 'added' : 'updated'} successfully!`);
+                setIsFormModalOpen(false);
+                fetchCounters();
+            }
+        } catch (error) {
+            const msg = error.response?.data?.message || "Failed to save counter";
+            toast.error(msg);
+        } finally {
             setIsSubmitting(false);
-            setIsFormModalOpen(false);
-        }, 1000);
+        }
     };
 
     const handleDeleteConfirm = () => {
         setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Counter deleted:", selectedItem.id);
-            setIsDeleting(false);
-            setIsDeleteModalOpen(false);
-        }, 1000);
+        // Delete endpoint not in collection, assuming not needed for now as per FAQ
+        toast.info("Delete functionality not yet implemented in backend collection.");
+        setIsDeleting(false);
+        setIsDeleteModalOpen(false);
     };
+
+    // Extract names of counters already in use to prevent duplicates in the form
+    const existingNames = useMemo(() => counters.map(c => c.name), [counters]);
 
     // Columns: Number , counter Title , date, status , action
     const columns = [
         {
-            key: "number",
+            key: "value",
             label: "Number",
             render: (value) => <span className="font-bold text-gray-900">{formatNumber(value)}</span>,
         },
         {
-            key: "title",
+            key: "name",
             label: "Counter Title",
             render: (value) => <div className="text-sm font-medium text-gray-900">{value}</div>,
         },
         {
-            key: "date",
+            key: "createdDate",
             label: "Date",
-            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
+            render: (value) => <div className="text-sm text-gray-500">{value ? new Date(value).toLocaleDateString() : "N/A"}</div>,
         },
         {
             key: "status",
@@ -123,7 +182,7 @@ function CounterList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row.id)}
+                        onClick={() => console.log("View", row._id || row.id)}
                         title="View"
                     >
                         <FiEye size={21} />
@@ -201,22 +260,28 @@ function CounterList() {
             </div>
 
             <div>
-                <DynamicTable columns={columns} rows={currentData} />
+                {isLoading ? (
+                    <div className="flex justify-center py-10">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#00A3E0]"></div>
+                    </div>
+                ) : (
+                    <DynamicTable columns={columns} rows={filteredData} />
+                )}
             </div>
 
             <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredData.length > 0
+                        {totalCounters > 0
                             ? (currentPage - 1) * itemsPerPage + 1
                             : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredData.length)}
+                        {Math.min(currentPage * itemsPerPage, totalCounters)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredData.length}</span>{" "}
+                    of <span className="font-medium text-gray-900">{totalCounters}</span>{" "}
                     counters
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
@@ -240,7 +305,9 @@ function CounterList() {
             >
                 <CounterForm
                     formData={formData}
-                    onChange={setFormData}
+                    setFormData={setFormData}
+                    existingNames={existingNames}
+                    formType={formType}
                 />
             </FormModal>
 
@@ -249,7 +316,7 @@ function CounterList() {
                 onOpenChange={setIsDeleteModalOpen}
                 onConfirm={handleDeleteConfirm}
                 entityName="Counter"
-                itemName={selectedItem?.title}
+                itemName={selectedItem?.name}
                 isDeleting={isDeleting}
             />
         </div>

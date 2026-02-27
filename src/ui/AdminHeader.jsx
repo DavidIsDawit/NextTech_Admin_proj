@@ -1,6 +1,6 @@
 // src/ui/AdminHeader.jsx
 import { useState, useRef, useEffect } from "react";
-import profile from "../../public/images/Profile_pic.png";
+// avatar image stored in public/images – reference by root URL instead of importing
 import { User, Edit3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import userItems from "../data/Userlist_data"; // ✅ Import your data
@@ -83,18 +83,14 @@ export default function AdminHeader() {
           onDragOver={handleDragOver}
           title="Click"
         >
-          {avatar ? (
-            <img
-              // src={avatar}
-              src={profile}
+          <img
+              src={avatar || "/images/Profile_pic.png"} // show uploaded image if present, otherwise default
               alt="Avatar"
               className="w-full h-full rounded-full object-cover object-top"
             />
-          ) : (
             <span className="text-white font-bold text-lg">
               {currentUser?.name ? currentUser.name.charAt(0) : "U"}
             </span>
-          )}
         
         </div>        
            
