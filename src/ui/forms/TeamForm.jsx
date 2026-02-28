@@ -48,19 +48,26 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
             {/* Image Upload */}
             <div className="space-y-2">
                 <div
-                    className="border-2 border-dashed border-sky-400 bg-sky-50 rounded-lg p-12 text-center cursor-pointer hover:bg-sky-100/50 transition-colors"
+                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
                     onClick={() => document.getElementById('team-image').click()}
                 >
-                    {imagePreview ? (
-                        <img src={imagePreview} alt="Team member preview" className="mx-auto max-h-32 rounded" />
-                    ) : (
-                        <>
-                            <img src="/upload-placeholder.png" alt="Upload" className="mx-auto h-12 w-12 mb-2" />
-                            <p className="text-sm text-sky-600 font-medium">
-                                Drag PDF here or <span className="underline">click to browse</span>
+                    <div className="flex flex-col items-center">
+                        {formData.image instanceof File && imagePreview && (
+                            <div className="flex flex-col items-center mb-6">
+                                <img
+                                    src={imagePreview}
+                                    alt="Team member preview"
+                                    className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                />
+                            </div>
+                        )}
+                        <div className="flex flex-col items-center justify-center">
+                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                            <p className="text-sm text-gray-600">
+                                Drag your team member image here or <span className="underline cursor-pointer">click to browse</span>
                             </p>
-                        </>
-                    )}
+                        </div>
+                    </div>
                 </div>
                 <Input
                     id="team-image"

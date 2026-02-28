@@ -8,7 +8,7 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { getAllCounters, createCounter, updateCounter } from "../../api/api";
+import { getAllCounters, createCounter, updateCounter, deleteCounter } from "../../api/counterApi";
 import { exportToCSV } from "../../utils/csvExport";
 import { formatNumber } from "../../utils/formatters";
 import { FormModal } from "../modals/FormModal";

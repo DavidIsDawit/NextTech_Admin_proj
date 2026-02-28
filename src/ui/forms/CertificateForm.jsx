@@ -4,6 +4,7 @@ import { Input } from '@/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
 import { BASE_URL, buildImageUrl } from '@/api/api';
 import { toast } from 'sonner';
+import { Upload } from 'lucide-react';
 
 /**
  * CertificateForm - Form component for Certificate entity
@@ -37,7 +38,7 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
             setFilePreview(url);
             setImageError(false);
         } else {
-            setFilePreview('/upload-placeholder.png');
+            setFilePreview(null);
         }
 
         return () => {
@@ -80,33 +81,34 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
             {/* Certificate Upload */}
             <div className="space-y-2">
                 <div
-                    className="border-2 border-dashed border-sky-400 bg-sky-50 rounded-lg p-6 text-center cursor-pointer hover:bg-sky-100/50 transition-colors h-48 flex flex-col items-center justify-center overflow-hidden"
+                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
                     onClick={() => document.getElementById('certificate-file').click()}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                 >
-                    {filePreview ? (
-                        <div className="h-full w-full flex items-center justify-center relative group">
-                            <img
-                                src={filePreview}
-                                alt="Preview"
-                                crossOrigin="anonymous"
-                                className="max-h-full max-w-full object-contain rounded"
-                                onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-sm font-medium">
-                                Click to change image
+                    <div className="flex flex-col items-center">
+                        {formData.certificate instanceof File && filePreview && (
+                            <div className="flex flex-col items-center mb-6">
+                                <img
+                                    src={filePreview}
+                                    alt="Preview"
+                                    crossOrigin="anonymous"
+                                    className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
+                                />
+                            </div>
+                        )}
+                        <div className="flex flex-col items-center justify-center">
+                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                            <p className="text-sm text-gray-600">
+                                Drag your certificate image to start uploading
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
+                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                                Browse files
                             </div>
                         </div>
-                    ) : (
-                        <>
-                            <img src="/upload-placeholder.png" alt="Upload" className="mx-auto h-12 w-12 mb-2 opacity-50" />
-                            <p className="text-sm text-sky-600 font-medium">
-                                Drag image here or <span className="underline">click to browse</span>
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">Supports: JPG, PNG, WEBP</p>
-                        </>
-                    )}
+                    </div>
                 </div>
                 <Input
                     id="certificate-file"

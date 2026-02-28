@@ -27,34 +27,41 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
         const file = e.target.files[0];
         if (file) {
             setFormData((prev) => ({ ...prev, file: file }));
+            setPreview(URL.createObjectURL(file));
         }
     };
 
     return (
         <div className="space-y-6">
             {/* File Upload Area */}
-            <div className="relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-sky-400 bg-sky-50 py-10 text-center hover:bg-sky-100/50 transition-colors">
-                <div className="mb-2 rounded-full bg-white p-3 shadow-sm">
-                    {preview ? (
-                        <img src={preview} alt="Preview" className="h-12 w-12 rounded-full object-cover" />
-                    ) : (
-                        <CloudUpload className="h-8 w-8 text-sky-500" />
+            <div
+                className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                onClick={() => document.getElementById('testimonial-file').click()}
+            >
+                <div className="flex flex-col items-center">
+                    {formData.file instanceof File && preview && (
+                        <div className="flex flex-col items-center mb-6">
+                            <img
+                                src={preview}
+                                alt="Preview"
+                                className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                            />
+                        </div>
                     )}
+                    <div className="flex flex-col items-center justify-center">
+                        <CloudUpload className="h-10 w-10 text-[#136ECA] mb-4" />
+                        <p className="text-sm text-gray-600">
+                            Drag testimonial image here or <span className="underline cursor-pointer">click to browse</span>
+                        </p>
+                    </div>
                 </div>
-                <p className="text-sm font-medium text-sky-600">
-                    Drag PDF here or click to browse
-                </p>
                 <input
+                    id="testimonial-file"
                     type="file"
-                    accept=".pdf,image/*"
+                    accept="image/*"
                     onChange={handleFileChange}
-                    className="absolute inset-0 cursor-pointer opacity-0"
+                    className="hidden"
                 />
-                {(formData.file || preview) && (
-                    <p className="mt-2 text-xs text-slate-600">
-                        {formData.file ? `Selected: ${formData.file.name}` : 'Current Image'}
-                    </p>
-                )}
             </div>
 
             {/* Name */}
