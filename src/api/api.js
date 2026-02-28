@@ -191,4 +191,18 @@ export const buildImageUrl = (relativePath) => {
   return `/img/${cleanPath}`;
 };
 
+/*==============================
+   Testimonial Api
+ =============================== */
+ export const getAllTestimonials = async (params) => {
+    try {
+      const res = await api.get("/getAllTestimonials", {
+                params: { page, limit, sort },
+                });
+                return res.data;
+            } catch (error) {
+        throw error;
+      } 
+ } ;
+
 export default api;
