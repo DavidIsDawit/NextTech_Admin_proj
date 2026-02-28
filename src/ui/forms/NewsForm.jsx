@@ -88,17 +88,30 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Thumbnail</Label>
                 <div
-                    className="border-2 border-dashed border-sky-400 bg-sky-50 rounded-lg p-8 text-center cursor-pointer hover:bg-sky-100/50 transition-colors"
+                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
                     onClick={() => document.getElementById('news-thumbnail').click()}
                 >
-                    {thumbnailPreview ? (
-                        <img src={thumbnailPreview} alt="Thumbnail preview" className="mx-auto max-h-32 rounded" />
-                    ) : (
-                        <>
-                            <img src="/upload-placeholder.png" alt="Upload" className="mx-auto h-12 w-12 mb-2" />
-                            <p className="text-sm text-sky-600 font-medium">Upload vertical icon or select from library</p>
-                        </>
-                    )}
+                    <div className="flex flex-col items-center">
+                        {formData.thumbnail instanceof File && thumbnailPreview && (
+                            <div className="flex flex-col items-center mb-6">
+                                <img
+                                    src={thumbnailPreview}
+                                    alt="Thumbnail preview"
+                                    className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                />
+                            </div>
+                        )}
+                        <div className="flex flex-col items-center justify-center">
+                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                            <p className="text-sm text-gray-600">
+                                Drag your news thumbnail to start uploading
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
+                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                                Browse files
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <Input
                     id="news-thumbnail"
@@ -117,21 +130,33 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>News Gallery</Label>
                 <div
-                    className="border-2 border-dashed border-sky-400 bg-sky-50 rounded-lg p-8 text-center cursor-pointer hover:bg-sky-100/50 transition-colors"
+                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
                     onClick={() => document.getElementById('news-gallery').click()}
                 >
-                    {galleryPreviews.length > 0 ? (
-                        <div className="grid grid-cols-3 gap-2">
-                            {galleryPreviews.map((preview, idx) => (
-                                <img key={idx} src={preview} alt={`Gallery ${idx + 1}`} className="h-20 w-full object-cover rounded" />
-                            ))}
+                    <div className="flex flex-col items-center">
+                        {galleryPreviews.length > 0 && Array.isArray(formData.newsGallery) && formData.newsGallery.some(item => item instanceof File) && (
+                            <div className="space-y-4 w-full mb-6 text-center">
+                                <div className="grid grid-cols-3 gap-2">
+                                    {galleryPreviews.map((preview, idx) => (
+                                        <img key={idx} src={preview} alt={`Gallery ${idx + 1}`} className="h-20 w-full object-cover rounded border border-gray-200" />
+                                    ))}
+                                </div>
+                                <p className="text-sm text-gray-600 italic">
+                                    {formData.newsGallery?.length} images selected
+                                </p>
+                            </div>
+                        )}
+                        <div className="flex flex-col items-center justify-center">
+                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                            <p className="text-sm text-gray-600">
+                                Drag news gallery images to start uploading
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
+                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                                Browse files
+                            </div>
                         </div>
-                    ) : (
-                        <>
-                            <img src="/upload-placeholder.png" alt="Upload" className="mx-auto h-12 w-12 mb-2" />
-                            <p className="text-sm text-sky-600 font-medium">Upload vertical icon or select from library</p>
-                        </>
-                    )}
+                    </div>
                 </div>
                 <Input
                     id="news-gallery"

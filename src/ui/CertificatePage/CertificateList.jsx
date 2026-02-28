@@ -11,7 +11,8 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { CertificateForm } from "../forms/CertificateForm";
-import { getAllCertificates, createCertificate, updateCertificate, deleteCertificate, BASE_URL, buildImageUrl } from "../../api/api";
+import { getAllCertificates, createCertificate, updateCertificate, deleteCertificate } from "../../api/certificateApi";
+import api, { buildImageUrl } from "../../api/api";
 import { toast } from "sonner";
 
 function CertificateList() {
@@ -398,7 +399,6 @@ function CertificateList() {
                 onConfirm={handleDeleteConfirm}
                 entityName="Certificate"
                 itemName={selectedItem?.title || selectedItem?.certificateName}
-                image={selectedItem?.certificateImage}
                 isDeleting={isDeleting}
             />
         </div>

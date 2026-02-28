@@ -17,7 +17,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE1MDE2NTgsImV4cCI6MTc3MTUwMjI1OH0.euNz-F9wX9jlQxIfF36kJm9QzFfhHxeRzsUOE9rQH0U",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5NDIxMjMsImV4cCI6MTc3MTk0MjcyM30.l3wifF-4OHp8sBFIb9l1poZ3SI9Q2McbvMzdre21IkU",
 									"type": "string"
 								}
 							]
@@ -1111,6 +1111,1331 @@
 							]
 						},
 						"description": "# GET FAQ BY ID\n\n### 📌 Endpoint\n\n```\nGET /api/getFAQS/:id\n\n ```\n\n---\n\n# 🔐 Authentication Required\n\nYes\n\n### Headers\n\n```\nAuthorization: Bearer <your_token>\n\n ```\n\n### Access Roles\n\n- `admin`\n    \n- `user`\n    \n\nHandled by middleware:  \n`verifyToken`, `checkFirstTimeLogin`, `allowRoles(\"admin\",\"user\")`\n\n---\n\n# 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the FAQ to retrieve |\n\n### Example URL\n\n```\nGET http://localhost:5000/api/getFAQS/65f1c1234567890abc123456\n\n ```\n\n---\n\n# ✅ Success Response\n\n### Status Code: `200 OK`\n\n```\n{  \"status\": \"success\",  \"data\": {    \"_id\": \"65f1c1234567890abc123456\",    \"question\": \"How do I reset my password?\",    \"answer\": \"Click forgot password and follow your email instructions.\",    \"catagory\": \"Account\",    \"status\": \"published\",    \"createdDate\": \"2026-02-23T12:10:22.456Z\"  }}\n\n ```\n\n- Returns the FAQ object with all its fields.\n    \n- `status` can be `published`, `draft`, or `schedule`.\n    \n\n---\n\n# ❌ Possible Error Responses\n\n### 1️⃣ FAQ Not Found\n\n### When:\n\n- ID does not exist in the database\n    \n\n### Status Code: `404 Not Found`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No FAQ found with ID 65f1c1234567890abc123456\"}\n\n ```\n\n---\n\n### 2️⃣ Invalid FAQ ID Format\n\n### When:\n\n- ID is not a valid MongoDB ObjectId\n    \n\nExample:\n\n```\nGET /api/getFAQS/123\n\n ```\n\n### Status Code: `400 Bad Request`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid FAQ ID\"}\n\n ```\n\n---\n\n### 3️⃣ Unauthorized – No Token\n\n### Status Code: `401 Unauthorized`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 401,  \"message\": \"You are not logged in! Please log in to get access.\"}\n\n ```\n\n---\n\n### 4️⃣ Forbidden – Role Not Allowed\n\n### Status Code: `403 Forbidden`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"You do not have permission to perform this action.\"}\n\n ```\n\n---\n\n# 🧪 Postman Testing Steps\n\n1. Select Method → GET\n    \n2. Enter URL → `http://localhost:8000/api/getFAQS/{FAQ_ID}`\n    \n3. Add Headers →\n    \n\n```\nAuthorization: Bearer <your_token>\n\n ```\n\n1. Click Send\n    \n\n---\n\n# 📌 Summary – Get Single FAQ\n\n| Case | Status Code |\n| --- | --- |\n| FAQ found | 200 |\n| FAQ not found | 404 |\n| Invalid FAQ ID | 400 |\n| Unauthorized | 401 |\n| Forbidden | 403 |"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Image Gallery",
+			"item": [
+				{
+					"name": "Add Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIxMjAzOTEsImV4cCI6MTc3MjEyMDk5MX0.i3V22_2ixExdmMyUX1EwFc-B2HMFJ4YhccGUd2YkPIc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "coverImage",
+									"type": "file",
+									"src": "/home/tsadiku-m/Downloads/bingo.jpg"
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": [
+										"/home/tsadiku-m/Downloads/bingo.jpg",
+										"/home/tsadiku-m/Downloads/h+1.jpg"
+									]
+								},
+								{
+									"key": "fileType",
+									"value": "png",
+									"type": "text"
+								},
+								{
+									"key": "catagory",
+									"value": "Nature",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "Active",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/addGallery",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"addGallery"
+							]
+						},
+						"description": "### Add Gallery Entry (POST)\n\nThis endpoint handles the mixed upload of a **cover image** and an **array of gallery images**, creating a structured record in the database.\n\n- **URL:** `{{base_url}}/api/addGallery`\n    \n- **Method:** `POST`\n    \n- **Auth:** `Bearer Token` (Required)\n    \n- **Body Type:** `form-data`\n    \n\n---\n\n### 📥 Request Body (form-data)\n\nIn Postman, go to the **Body** tab, select **form-data**, and enter these keys. **Note:** For file fields, hover over the Key cell and change the type from \"Text\" to \"File\".\n\n| **Key** | **Type** | **Value (Example)** | **Description** |\n| **coverImage** | **File** | `main_front.jpg` | **Required.** The primary display image (Max 2MB). |\n| **images** | **File** | `[Multiple Files]` | **Optional.** Select multiple files to populate the gallery array. |\n| **catagory** | Text | `Engineering` | **Required.** The group/category for the entry. |\n| **fileType** | Text | `image` | **Required.** Specify the type (e.g., image, video). |\n| **status** | Text | `Active` | Options: `Active` or `Inactive` (Defaults to Inactive). |\n\n---\n\n### ✅ Success Response (201 Created)\n\nJSON\n\n```\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"_id\": \"65d8f2a1b3c4d5e6f7g8h9i0\",\n    \"coverImage\": \"/GaImageGallery/main_front-1715832000.jpg\",\n    \"images\": [\n      \"/GaImageGallery/detail1-1715832001.jpg\",\n      \"/GaImageGallery/detail2-1715832002.jpg\"\n    ],\n    \"catagory\": \"Engineering\",\n    \"fileType\": \"image\",\n    \"status\": \"Active\",\n    \"Date\": \"2026-02-26T10:00:00.000Z\"\n  }\n}\n\n ```\n\n---\n\n### ❌ Possible Errors\n\nManaged by your `globalErrorHandler` and Multer limits:\n\n| **Status Code** | **Message** | **Scenario** |\n| **400** | `Please upload a cover image.` | The `coverImage` field was empty or missing. |\n| **400** | `coverImage size exceeds 2MB limit.` | One of your files is larger than the 2MB limit set in `fileUpload.js`. |\n| **400** | `Too many files uploaded for field \"images\".` | You attempted to upload more than 10 images at once. |\n| **401** | `Unauthorized` | Missing or expired JWT token in the Authorization header. |\n| **400** | `Invalid input data: ...` | Mongoose validation failed (e.g., missing `catagory` or `fileType`). |\n\n---\n\n### 🧪 Quick Test Steps\n\n1. Set method to **POST**.\n    \n2. In **Headers**, add `Authorization: Bearer` .\n    \n3. In **Body > form-data**:\n    \n    - Upload 1 image for `coverImage`.\n        \n    - Upload 2-3 images for `images` (Select multiple in the file picker).\n        \n    - Add Text keys for `catagory`, `fileType`, and `status`.\n        \n4. **Hit Send.**"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Data",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getAllgallery",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getAllgallery"
+							]
+						},
+						"description": "### Get All Gallery Entries (GET)\n\nThis endpoint fetches a list of gallery entries with built-in pagination. It returns the total number of records available in the database to help the frontend calculate how many pages to display.\n\n- **URL:** `{{base_url}}/api/getAllgallery`\n    \n- **Method:** `GET`\n    \n- **Auth:** None (Public)\n    \n\n---\n\n### 🔍 Query Parameters\n\nAdd these to the **Params** tab in Postman to control which results you see:\n\n| **Parameter** | **Type** | **Default** | **Description** |\n| **`page`** | Number | `1` | The specific page of results you want to view. |\n\n---\n\n### ✅ Success Response (200 OK)\n\nThe response is structured to provide both the metadata (`total`) and the actual gallery items (`data`).\n\nJSON\n\n```\n{\n  \"status\": \"success\",\n  \"total\": 45,\n  \"data\": [\n    {\n      \"_id\": \"65d8f2a1b3c4d5e6f7g8h9i0\",\n      \"coverImage\": \"/GaImageGallery/bridge_design-1715832000.jpg\",\n      \"images\": [\n        \"/GaImageGallery/blueprint1-1715832001.jpg\",\n        \"/GaImageGallery/site_photo-1715832002.jpg\"\n      ],\n      \"catagory\": \"Civil Engineering\",\n      \"fileType\": \"image\",\n      \"status\": \"Active\",\n      \"Date\": \"2026-02-26T10:00:00.000Z\"\n    }\n  ]\n}\n\n ```\n\n---\n\n### 🛠 Technical Logic\n\nThe controller uses an offset-based pagination strategy. Items are sorted by the `Date` field in descending order (`-Date`) so the newest uploads always appear first.\n\n- **Total:** Represents every document matching the criteria in your collection.\n    \n- **Skip:** Calculated as $(page - 1) \\\\times 12$. If you are on page 2, the API skips the first 12 items.\n    \n- **Limit:** Hardcoded to `12` to ensure consistent grid layouts on the frontend.\n    \n\n---\n\n### 🧪 Sample Testing in Postman\n\n1. Set method to **GET**.\n    \n2. Enter the URL: `{{base_url}}/api/getAllgallery?page=1`.\n    \n3. **Check the** **`total`** **field:** This tells you how many total items exist across all pages.\n    \n4. **Check the** **`data`** **array:** This contains the 12 most recent gallery entries."
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Single Image",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getGallery/69a0697fa877d1cfe41c413d",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getGallery",
+								"69a0697fa877d1cfe41c413d"
+							]
+						},
+						"description": "### Get Single Gallery Entry (GET)\n\nThis endpoint retrieves the full details of a specific gallery item using its unique database ID. It is useful for displaying a dedicated detail page or a full-screen gallery view.\n\n- **URL:** `{{base_url}}/api/getGallery/:id`\n    \n- **Method:** `GET`\n    \n- **Auth:** None (Public)\n    \n\n---\n\n### 🔍 Path Parameters\n\nTo use this in Postman, replace `:id` in the URL with the actual `_id` string from a previous \"Get All\" request.\n\n| **Parameter** | **Type** | **Example Value** | **Description** |\n| **`id`** | String | `65d8f2a1b3c4d5e6f7g8h9i0` | The MongoDB ObjectID of the gallery entry. |\n\n---\n\n### ✅ Success Response (200 OK)\n\nThe response returns a single object containing all fields, including the full array of gallery images.\n\nJSON\n\n```\n{\n  \"status\": \"success\",\n  \"data\": {\n    \"_id\": \"65d8f2a1b3c4d5e6f7g8h9i0\",\n    \"coverImage\": \"/GaImageGallery/main_design-1715832000.jpg\",\n    \"images\": [\n      \"/GaImageGallery/extra1-1715832001.jpg\",\n      \"/GaImageGallery/extra2-1715832002.jpg\",\n      \"/GaImageGallery/extra3-1715832003.jpg\"\n    ],\n    \"fileType\": \"image\",\n    \"catagory\": \"Architecture\",\n    \"status\": \"Active\",\n    \"Date\": \"2026-02-26T14:30:00.000Z\"\n  }\n}\n\n ```\n\n---\n\n### ❌ Possible Errors\n\n| **Status Code** | **Message** | **Scenario** |\n| **404** | `No gallery found with ID ...` | The ID is formatted correctly, but no document exists with that ID. |\n| **400** | `Invalid ID: ...` | The ID provided is not a valid MongoDB ObjectID (handled by `handleCastErrorDB`). |\n\n---\n\n### 🧪 Sample Testing in Postman\n\n1. Set the method to **GET**.\n    \n2. Copy an `_id` from your `getAllgallery` response.\n    \n3. Paste it into the URL: `{{base_url}}/api/getGallery/65d8f2a1b3c4d5e6f7g8h9i0`.\n    \n4. **Hit Send.**"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIxMjE0MzQsImV4cCI6MTc3MjEyMjAzNH0.xN-E7lTy1d1aU3OWbHO1XU0Y4nlkuoL64gtIwZE-Y5w",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/deleteGallery/69a0697fa877d1cfe41c413d",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"deleteGallery",
+								"69a0697fa877d1cfe41c413d"
+							]
+						},
+						"description": "### Delete Gallery Entry (DELETE)\n\nThis endpoint permanently removes a gallery record from the database and **automatically deletes** all associated image files (the `coverImage` and the `images` array) from the server's disk to save storage space.\n\n- **URL:** `{{base_url}}/api/deleteGallery/:id`\n    \n- **Method:** `DELETE`\n    \n- **Auth:** `Bearer Token` (Required)\n    \n- **Permissions:** `admin`, `user`\n    \n\n---\n\n### 🔍 Path Parameters\n\nReplace `:id` in the URL with the unique `_id` of the gallery entry you wish to remove.\n\n| **Parameter** | **Type** | **Example Value** | **Description** |\n| **`id`** | String | `65d8f2a1b3c4d5e6f7g8h9i0` | The MongoDB ObjectID of the entry. |\n\n---\n\n### 🛠 Behind the Scenes: Cleanup Logic\n\nUnlike a standard delete, your controller performs a \"Deep Delete\":\n\n1. **Find:** Locates the document to get the file paths.\n    \n2. **Unlink:** Loops through the `coverImage` string and the `images` array to delete the actual `.jpg` or `.png` files from the `/public/images/GaImageGallery` folder.\n    \n3. **Remove:** Deletes the document from MongoDB.\n    \n\n---\n\n### ✅ Success Response (200 OK)\n\nJSON\n\n```\n{\n  \"status\": \"success\",\n  \"message\": \"Gallery entry and associated files deleted successfully.\"\n}\n\n ```\n\n---\n\n### ❌ Possible Errors\n\n| **Status Code** | **Message** | **Scenario** |\n| **404** | `No Document found with ID ...` | The ID is valid but does not exist in the database. |\n| **401** | `Unauthorized` | No token provided or token has expired. |\n| **403** | `Forbidden` | You are logged in, but your role is not \"admin\" or \"user\". |\n| **400** | `Invalid ID: ...` | The ID string is malformed (e.g., `123-abc`). |\n\n---\n\n### 🧪 Sample Testing in Postman\n\n1. Set the method to **DELETE**.\n    \n2. In **Headers**, ensure `Authorization` is set to `Bearer` .\n    \n3. Enter the URL: `{{base_url}}/api/deleteGallery/65d8f2a1b3c4d5e6f7g8h9i0`.\n    \n4. **Hit Send.**\n    \n5. _Verification:_ Try to \"GET\" the same ID; it should now return a **404**."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "News",
+			"item": [
+				{
+					"name": "Add News",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5MzY1NjAsImV4cCI6MTc3MTkzNzE2MH0.PtAV9fHvWrmkTQR9jwC_X1QxcYbdwiJgB8Ia5DGAT_0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "author",
+									"value": " David Chen",
+									"type": "text"
+								},
+								{
+									"key": "title",
+									"value": " Fusion Power Grid Success",
+									"type": "text"
+								},
+								{
+									"key": "catagory",
+									"value": " Energy",
+									"type": "text"
+								},
+								{
+									"key": "descriptionOne",
+									"value": " A coastal city has become the first to be powered entirely by a commercial fusion reactor.",
+									"type": "text"
+								},
+								{
+									"key": "descriptionTwo",
+									"value": " The reactor provides clean, limitless energy without radioactive waste.",
+									"type": "text"
+								},
+								{
+									"key": "discriptionThree",
+									"value": " Local energy prices have dropped by 80% since the transition.",
+									"type": "text"
+								},
+								{
+									"key": "discriptionFour",
+									"value": " Global leaders are now looking to replicate this model by 2030.",
+									"type": "text"
+								},
+								{
+									"key": "tags",
+									"value": " GreenEnergy, Fusion, Climate",
+									"type": "text"
+								},
+								{
+									"key": "happenedOn",
+									"value": " 2026-01-10",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "draft",
+									"type": "text"
+								},
+								{
+									"key": "imageCover",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/banner.jpg"
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": [
+										"/home/tsadiku-m/Pictures/banner.jpg",
+										"/home/tsadiku-m/Pictures/test.jpg"
+									]
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/news",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"news"
+							]
+						},
+						"description": "# News API — Create News\n\n## 📌 Endpoint\n\n```\nPOST http://localhost:8000/api/news\n\n ```\n\n## 📌 Description\n\nCreates a **news item** with:\n\n- 1 `imageCover` (required)\n    \n- 0–5 additional `images` (optional)\n    \n- `author`, `title`, `catagory`, `tags`, `happenedOn` (required)\n    \n- `descriptionOne`, `descriptionTwo`, `discriptionThree`, `discriptionFour` (optional)\n    \n- `status` (enum: `draft` / `published`, default `draft`)\n    \n\n> \n\nAutomatically parses `tags` string into an array if sent as `\"AI, Tech, Science\"`.\n\n \n  \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Request Content Type\n\n`multipart/form-data`\n\n---\n\n## 📥 Body Parameters (form-data)\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| imageCover | File | ✅ Yes | Main cover image |\n| images | File | ❌ No | Additional images (up to 5) |\n| author | String | ✅ Yes | Author of the news |\n| title | String | ✅ Yes | News title (unique, max 40 chars) |\n| catagory | String | ✅ Yes | Category of the news |\n| descriptionOne | String | ❌ No | Description part 1 |\n| descriptionTwo | String | ❌ No | Description part 2 |\n| discriptionThree | String | ❌ No | Description part 3 |\n| discriptionFour | String | ❌ No | Description part 4 |\n| tags | String | ✅ Yes | Comma-separated tags `\"AI, Tech\"` |\n| happenedOn | Date | ✅ Yes | Date the news happened |\n| status | String | ❌ No | Enum: `draft` / `published` |\n\n---\n\n## 📥 Example Request (Postman)\n\n**Headers:**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n**Body → form-data:**\n\n| KEY | VALUE | TYPE |\n| --- | --- | --- |\n| imageCover | upload file | File |\n| images | upload multiple files | File |\n| author | John Doe | Text |\n| title | AI Breakthrough | Text |\n| catagory | Technology | Text |\n| tags | AI, Tech | Text |\n| happenedOn | 2026-02-25 | Text |\n| status | published | Text |\n\n---\n\n## ✅ Success Response\n\n**Status Code:** `201 Created`\n\n```\n{  \"status\": \"success\",  \"data\": {    \"news\": {      \"_id\": \"650abc123def456ghi789jkl\",      \"imageCover\": \"public/images/News/cover-1700000000000.jpg\",      \"images\": [        \"public/images/News/img1-1700000000100.jpg\",        \"public/images/News/img2-1700000000200.jpg\"      ],      \"author\": \"John Doe\",      \"title\": \"AI Breakthrough\",      \"catagory\": \"Technology\",      \"descriptionOne\": \"AI makes huge leaps\",      \"descriptionTwo\": \"\",      \"discriptionThree\": \"\",      \"discriptionFour\": \"\",      \"tags\": [\"AI\", \"Tech\"],      \"happenedOn\": \"2026-02-25T00:00:00.000Z\",      \"status\": \"published\",      \"createdDate\": \"2026-02-25T10:00:00.000Z\"    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n**Duplicate Title (400):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: title. Please use other values!\"}\n\n ```\n\n**Invalid File Type (400):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Only image files are allowed!\"}\n\n ```\n\n**File Too Large (400):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"imageCover size exceeds 2MB limit.\"}\n\n ```\n\n**No Token Provided (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n**Unauthorized / Access Denied (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n**First-Time Login Not Changed (403):**\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **POST** method\n    \n3. Enter URL: `http://localhost:8000/api/news`\n    \n4. Add Header: `Authorization: Bearer YOUR_TOKEN`\n    \n5. In **Body → form-data**, add required fields (`imageCover`, `author`, `title`, `catagory`, `tags`, `happenedOn`)\n    \n6. Optionally add `images`, `descriptionOne…Four`, `status`\n    \n7. Click **Send**\n    \n\n---"
+					},
+					"response": []
+				},
+				{
+					"name": "Get A single News",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5MzcwNzcsImV4cCI6MTc3MTkzNzY3N30.VJq6sYTBGNpi__yL2-u0TALUpLpsef5FPr4zoLpsaz0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nothing@example.com\",\n  \"password\": \"123456Abcd\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/news/699d9ae90ee2d10fd91314fd",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"news",
+								"699d9ae90ee2d10fd91314fd"
+							]
+						},
+						"description": "# News API — Get Single News\n\n## 📌 Endpoint\n\n```\nGET http://localhost:8000/api/news/:id\n\n ```\n\n## 📌 Description\n\nFetches **a single news item by its ID**.\n\n- Returns all details: `imageCover`, `images`, `author`, `title`, `catagory`, descriptions, `tags`, `happenedOn`, `status`, and `createdDate`.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the news item |\n\n---\n\n## 📥 Example Request (Postman)\n\n**URL:**\n\n```\nhttp://localhost:8000/api/news/650abc123def456ghi789jkl\n\n ```\n\n**Headers:**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n## ✅ Success Response\n\n**Status Code:** `200 OK`\n\n```\n{  \"status\": \"success\",  \"data\": {    \"news\": {      \"_id\": \"650abc123def456ghi789jkl\",      \"imageCover\": \"public/images/News/cover-1700000000000.jpg\",      \"images\": [        \"public/images/News/img1-1700000000100.jpg\",        \"public/images/News/img2-1700000000200.jpg\"      ],      \"author\": \"John Doe\",      \"title\": \"AI Breakthrough\",      \"catagory\": \"Technology\",      \"descriptionOne\": \"AI makes huge leaps\",      \"descriptionTwo\": \"\",      \"discriptionThree\": \"\",      \"discriptionFour\": \"\",      \"tags\": [\"AI\", \"Tech\"],      \"happenedOn\": \"2026-02-25T00:00:00.000Z\",      \"status\": \"published\",      \"createdDate\": \"2026-02-25T10:00:00.000Z\"    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n**News Not Found (404):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No Document Found With ID 650abc123def456ghi789jkl\"}\n\n ```\n\n**No Token Provided (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n**Unauthorized / Access Denied (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n**First-Time Login Not Changed (403):**\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **GET** method\n    \n3. Enter URL: `http://localhost:8000/api/news/`\n    \n4. Add Header: `Authorization: Bearer YOUR_TOKEN`\n    \n5. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All News",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5MzcwNzcsImV4cCI6MTc3MTkzNzY3N30.VJq6sYTBGNpi__yL2-u0TALUpLpsef5FPr4zoLpsaz0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nothing@example.com\",\n  \"password\": \"123456Abcd\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/AllNews",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"AllNews"
+							]
+						},
+						"description": "# News API — Get All News\n\n## 📌 Endpoint\n\n```\nGET http://localhost:8000/api/AllNews\n\n ```\n\n## 📌 Description\n\nFetches a **paginated list of all news items**.\n\n- Returns all fields: `_id`, `imageCover`, `images`, `author`, `title`, `catagory`, descriptions, `tags`, `happenedOn`, `status`, and `createdDate`.\n    \n- Supports **pagination** and **sorting**.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Query Parameters\n\n| Parameter | Type | Required | Default | Description |\n| --- | --- | --- | --- | --- |\n| page | Number | ❌ No | 1 | Page number for pagination |\n| limit | Number | ❌ No | 4 | Number of news items per page |\n| sort | String | ❌ No | `recent` | Sorting option: `name-asc`, `name-desc`, `oldest`, `recent` |\n\n---\n\n## 📥 Example Request (Postman)\n\n**URL:**\n\n```\nhttp://localhost:8000/api/AllNews?page=1&limit=5&sort=name-asc\n\n ```\n\n**Headers:**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n## ✅ Success Response\n\n**Status Code:** `200 OK`\n\n```\n{  \"status\": \"success\",  \"totalNews\": 12,  \"data\": {    \"news\": [      {        \"_id\": \"650abc123def456ghi789jkl\",        \"imageCover\": \"public/images/News/cover-1700000000000.jpg\",        \"images\": [          \"public/images/News/img1-1700000000100.jpg\",          \"public/images/News/img2-1700000000200.jpg\"        ],        \"author\": \"John Doe\",        \"title\": \"AI Breakthrough\",        \"catagory\": \"Technology\",        \"descriptionOne\": \"AI makes huge leaps\",        \"descriptionTwo\": \"\",        \"discriptionThree\": \"\",        \"discriptionFour\": \"\",        \"tags\": [\"AI\", \"Tech\"],        \"happenedOn\": \"2026-02-25T00:00:00.000Z\",        \"status\": \"published\",        \"createdDate\": \"2026-02-25T10:00:00.000Z\"      },      {        \"_id\": \"650abc123def456ghi789mno\",        \"imageCover\": \"public/images/News/cover2-1700000000300.jpg\",        \"images\": [],        \"author\": \"Jane Smith\",        \"title\": \"Tech Conference 2026\",        \"catagory\": \"Events\",        \"descriptionOne\": \"Annual tech conference\",        \"tags\": [\"Tech\", \"Conference\"],        \"happenedOn\": \"2026-02-24T12:00:00.000Z\",        \"status\": \"draft\",        \"createdDate\": \"2026-02-24T12:30:00.000Z\"      }      // More news items (up to 'limit' per page)    ]  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n**No Token Provided (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n**Unauthorized / Access Denied (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n**First-Time Login Not Changed (403):**\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Notes\n\n- Default pagination: `page=1`, `limit=4`\n    \n- Sorting:\n    \n    - `name-asc` → Title ascending\n        \n    - `name-desc` → Title descending\n        \n    - `oldest` → Created date ascending\n        \n    - `recent` → Created date descending (default)\n        \n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **GET** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/AllNews?page=1&limit=4&sort=recent\n\n ```\n\n1. Add Header: `Authorization: Bearer YOUR_TOKEN`\n    \n2. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete News",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5Mzc3NDEsImV4cCI6MTc3MTkzODM0MX0.gEY2fdkBC9TZx2GtRafitMsvITNH8ZLjHw7jX_7dlfM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nothing@example.com\",\n  \"password\": \"123456Abcd\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/DeleteNews/699d98d00ee2d10fd91314ed",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"DeleteNews",
+								"699d98d00ee2d10fd91314ed"
+							]
+						},
+						"description": "# News API — Delete News\n\n## 📌 Endpoint\n\n```\nDELETE http://localhost:8000/api/DeleteNews/:id\n\n ```\n\n## 📌 Description\n\nDeletes a **single news item by its ID**.\n\n- Removes the news document from the database.\n    \n- Deletes the associated files: `imageCover` and any additional `images`.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the news item |\n\n---\n\n## 📥 Example Request (Postman)\n\n**URL:**\n\n```\nhttp://localhost:8000/api/DeleteNews/650abc123def456ghi789jkl\n\n ```\n\n**Headers:**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n## ✅ Success Response\n\n**Status Code:** `200 OK`\n\n```\n{  \"status\": \"success\",  \"message\": \"News deleted successfully.\"}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n**News Not Found (404):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No Document Found With ID 650abc123def456ghi789jkl\"}\n\n ```\n\n**No Token Provided (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n**Unauthorized / Access Denied (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n**First-Time Login Not Changed (403):**\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **DELETE** method\n    \n3. Enter URL: `http://localhost:8000/api/DeleteNews/`\n    \n4. Add Header: `Authorization: Bearer YOUR_TOKEN`\n    \n5. Click **Send**\n    \n\n---\n\nIf you want, I can now prepare the **Create News** and **Update News** Postman docs so your full News API collection is complete.\n\nDo you want me to do that next?"
+					},
+					"response": []
+				},
+				{
+					"name": "Update A News",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5MzgwMTEsImV4cCI6MTc3MTkzODYxMX0.pzixyT9sIygUNpxVIfWKN4PWkG6vHxGQSQ_6MBkkGo0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "status",
+									"value": "published",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/news/699d9ae90ee2d10fd91314fd",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"news",
+								"699d9ae90ee2d10fd91314fd"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": null,
+									"disabled": true
+								}
+							]
+						},
+						"description": "# 📘 News API — Update News\n\n## 📌 Endpoint\n\n```\nPUT http://localhost:8000/api/news/:id\n\n ```\n\n## 📌 Description\n\nUpdates a **single news item by its ID**.\n\n- Can update all fields: `imageCover`, multiple `images`, `author`, `title`, `catagory`, `descriptionOne`, `descriptionTwo`, `discriptionThree`, `discriptionFour`, `tags`, `happenedOn`, and `status`.\n    \n- Handles **file uploads**: 1 cover image and up to 5 additional images.\n    \n- Deletes old files automatically if replaced.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the news item |\n\n---\n\n## 📥 Body Parameters (form-data)\n\n| Key | Type | Required | Description |\n| --- | --- | --- | --- |\n| imageCover | File | ❌ Optional | Cover image for the news (single file) |\n| images | File | ❌ Optional | Additional images for the news (up to 5 files) |\n| author | String | ❌ Optional | Author of the news |\n| title | String | ❌ Optional | Title of the news (max 40 chars, unique) |\n| catagory | String | ❌ Optional | News category |\n| descriptionOne | String | ❌ Optional | First description field |\n| descriptionTwo | String | ❌ Optional | Second description field |\n| discriptionThree | String | ❌ Optional | Third description field |\n| discriptionFour | String | ❌ Optional | Fourth description field |\n| tags | String | ❌ Optional | Comma-separated tags (Postman sends `\"AI, Tech\"` → stored as `[\"AI\",\"Tech\"]`) |\n| happenedOn | Date | ❌ Optional | Date when the news happened |\n| status | String | ❌ Optional | Enum: `draft`, `published` |\n\n---\n\n## 📥 Example Request (Postman)\n\n**URL:**\n\n```\nhttp://localhost:8000/api/news/650abc123def456ghi789jkl\n\n ```\n\n**Headers:**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n**Body (form-data example):**\n\n| Key | Value | Type |\n| --- | --- | --- |\n| imageCover | cover-new.jpg | File |\n| images | img1.jpg | File |\n| images | img2.jpg | File |\n| author | Jane Smith | Text |\n| title | Updated AI News | Text |\n| tags | AI, Tech | Text |\n| status | published | Text |\n\n---\n\n## ✅ Success Response\n\n**Status Code:** `200 OK`\n\n```\n{  \"status\": \"success\",  \"message\": \"News updated successfully.\",  \"data\": {    \"news\": {      \"_id\": \"650abc123def456ghi789jkl\",      \"imageCover\": \"public/images/News/cover-new-1700000000500.jpg\",      \"images\": [        \"public/images/News/img1-1700000000600.jpg\",        \"public/images/News/img2-1700000000700.jpg\"      ],      \"author\": \"Jane Smith\",      \"title\": \"Updated AI News\",      \"catagory\": \"Technology\",      \"descriptionOne\": \"AI advances faster than ever\",      \"descriptionTwo\": \"\",      \"discriptionThree\": \"\",      \"discriptionFour\": \"\",      \"tags\": [\"AI\", \"Tech\"],      \"happenedOn\": \"2026-02-25T00:00:00.000Z\",      \"status\": \"published\",      \"createdDate\": \"2026-02-25T10:00:00.000Z\"    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n**No Token Provided (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n**Unauthorized / Access Denied (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n**First-Time Login Not Changed (403):**\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n**News Not Found (404):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No Document Found With ID 650abc123def456ghi789jkl\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **PUT** method\n    \n3. Enter URL: `http://localhost:8000/api/news/`\n    \n4. Go to **Headers** → add: `Authorization: Bearer YOUR_TOKEN`\n    \n5. Go to **Body** → select **form-data**\n    \n6. Add any fields you want to update (text fields)\n    \n7. Add files for `imageCover` or `images` if needed\n    \n8. Click **Send**"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "partner",
+			"item": [
+				{
+					"name": "Add Partner",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5MzkwNjAsImV4cCI6MTc3MTkzOTY2MH0.ibd2_8QsuLEOcAlbJbKGCM_dLbMIjXSPVujbh57RaCE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "partnerName",
+									"value": " TechNova Solutions",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": " Active",
+									"type": "text"
+								},
+								{
+									"key": "partnerImage",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/banner.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/AddPartners",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"AddPartners"
+							]
+						},
+						"description": "# 📘 Partner API — Create Partner\n\n## 📌 Endpoint\n\n```\nPOST http://localhost:8000/api/Addpartners\n\n ```\n\n## 📌 Description\n\nCreates a **new partner** with logo image and name.\n\n- Requires `partnerImage` (file) and `partnerName` (string).\n    \n- Optional: `status` (defaults to `Active`).\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Request Content Type\n\n`multipart/form-data`\n\n---\n\n## 📥 Body Parameters\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| partnerImage | File | ✅ Yes | Partner logo image |\n| partnerName | String | ✅ Yes | Partner name (unique) |\n| status | String | ❌ No | Enum: `Active`, `Inactive` (default: Active) |\n\n---\n\n## 📥 Example Request (Postman)\n\n**Body → form-data:**\n\n| KEY | VALUE | TYPE |\n| --- | --- | --- |\n| partnerImage | upload file | File |\n| partnerName | Company Three | Text |\n| status | Active | Text |\n\n**Headers:**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n## ✅ Success Response\n\n**Status Code:** `201 Created`\n\n```\n{  \"status\": \"success\",  \"data\": {    \"partner\": {      \"_id\": \"650xyz123abc456def789mno\",      \"partnerImage\": \"public/images/Partners/logo3-1700000000500.jpg\",      \"partnerName\": \"Company Three\",      \"status\": \"Active\",      \"createdDate\": \"2026-02-25T15:00:00.000Z\"    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n**Duplicate Fields (400):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: partnerName. Please use other values!\"}\n\n ```\n\n**Invalid File Type (400):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Only image files are allowed!\"}\n\n ```\n\n**File Too Large (400):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"partnerImage size exceeds 2MB limit.\"}\n\n ```\n\n**No Token Provided (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n**Unauthorized / Access Denied (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n**First-Time Login Not Changed (403):**\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **POST** method\n    \n3. Enter URL: `http://localhost:8000/api/Addpartners`\n    \n4. Add Header: `Authorization: Bearer YOUR_TOKEN`\n    \n5. In **Body → form-data**, add `partnerImage` (file), `partnerName` (text), optionally `status`\n    \n6. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Partners",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMjA2OTAsImV4cCI6MTc3MjAyMTI5MH0.dx-tiS2zZedVNFI-UDqjq2Ks-PS3bdbjoeUVEfo6SxY",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "partnerName",
+									"value": " TechNova Solutions",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": " Active",
+									"type": "text"
+								},
+								{
+									"key": "partnerImage",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/banner.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/GetPartners",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"GetPartners"
+							]
+						},
+						"description": "# 📘 Partner API — Get All Partners\n\n## 📌 Endpoint\n\n```\nGET http://localhost:8000/api/GetPartners\n\n ```\n\n## 📌 Description\n\nFetches a **paginated list of all partners**.\n\n- Returns `partnerImage`, `partnerName`, `status`, and `createdDate`.\n    \n- Supports sorting and pagination.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Query Parameters\n\n| Parameter | Type | Required | Default | Description |\n| --- | --- | --- | --- | --- |\n| page | Number | ❌ No | 1 | Page number for pagination |\n| limit | Number | ❌ No | 10 | Number of partners per page |\n| sort | String | ❌ No | `recent` | Sorting order: `name-asc`, `name-desc`, `oldest`, `recent` |\n\n---\n\n## 📥 Example Request (Postman)\n\n**URL:**\n\n```\nhttp://localhost:8000/api/GetPartners?page=1&limit=5&sort=name-asc\n\n ```\n\n**Headers:**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n## ✅ Success Response\n\n**Status Code:** `200 OK`\n\n```\n{  \"status\": \"success\",  \"totalPartners\": 12,  \"data\": [    {      \"_id\": \"650xyz123abc456def789ghi\",      \"partnerImage\": \"public/images/Partners/logo1-1700000000000.jpg\",      \"partnerName\": \"Company One\",      \"status\": \"Active\",      \"createdDate\": \"2026-02-25T10:00:00.000Z\"    },    {      \"_id\": \"650xyz123abc456def789jkl\",      \"partnerImage\": \"public/images/Partners/logo2-1700000000300.jpg\",      \"partnerName\": \"Company Two\",      \"status\": \"Inactive\",      \"createdDate\": \"2026-02-24T12:00:00.000Z\"    }  ]}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n**No Token Provided (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n**Unauthorized / Access Denied (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n**First-Time Login Not Changed (403):**\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Notes\n\n- Pagination: Use `page` and `limit`\n    \n- Sorting: `sort=name-asc`, `name-desc`, `oldest`, `recent`\n    \n- Returned fields: `_id`, `partnerImage`, `partnerName`, `status`, `createdDate`\n    \n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **GET** method\n    \n3. Enter URL: `http://localhost:8000/api/GetPartners?page=1&limit=10&sort=recent`\n    \n4. Add Header: `Authorization: Bearer YOUR_TOKEN`\n    \n5. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Partner",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5MzkwNjAsImV4cCI6MTc3MTkzOTY2MH0.ibd2_8QsuLEOcAlbJbKGCM_dLbMIjXSPVujbh57RaCE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "partnerName",
+									"value": " TechNova Solutions",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": " Active",
+									"type": "text"
+								},
+								{
+									"key": "partnerImage",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/banner.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/DeletePartners/699da5df5752de737a0d1f65",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"DeletePartners",
+								"699da5df5752de737a0d1f65"
+							]
+						},
+						"description": "# Partner API — Delete Partner\n\n## 📌 Endpoint\n\n```\nDELETE http://localhost:8000/api/DeletePartners/:id\n\n ```\n\n## 📌 Description\n\nDeletes a **partner by ID**.\n\n- Removes the partner record from the database.\n    \n- Deletes the partner logo image (`partnerImage`) from the server.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the partner to delete |\n\n---\n\n## 📥 Example Request (Postman)\n\n**URL:**\n\n```\nhttp://localhost:8000/api/DeletePartners/650xyz123abc456def789ghi\n\n ```\n\n**Headers:**\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n\n---\n\n## ✅ Success Response\n\n**Status Code:** `200 OK`\n\n```\n{  \"status\": \"success\",  \"message\": \"Partner deleted successfully.\"}\n\n ```\n\n- The partner logo file (`partnerImage`) is automatically removed from the server.\n    \n\n---\n\n## ❌ Error Responses\n\n**Partner Not Found (404):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No Partner found with ID 650xyz123abc456def789ghi\"}\n\n ```\n\n**No Token Provided (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n**Unauthorized / Access Denied (403):**\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n**First-Time Login Not Changed (403):**\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **DELETE** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/DeletePartners/<partner_id>\n\n ```\n\n1. Add Header: `Authorization: Bearer YOUR_TOKEN`\n    \n2. Click **Send**"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "service",
+			"item": [
+				{
+					"name": "Add Service",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5NDE1NDIsImV4cCI6MTc3MTk0MjE0Mn0.JjNp446AbxEyJjAZaoqR64CZU1u2RnlS4SpHfD8_4gQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": " Enterprise Cloud Migration",
+									"type": "text"
+								},
+								{
+									"key": "catagory",
+									"value": " Cloud Computing",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": " active",
+									"type": "text"
+								},
+								{
+									"key": "headLine",
+									"value": " Scale Your Business to the Next Level",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": " We provide end-to-end migration services for legacy systems moving to AWS or Azure.",
+									"type": "text"
+								},
+								{
+									"key": "subTitleOne",
+									"value": " Security Compliance",
+									"type": "text"
+								},
+								{
+									"key": "subdescriptionOne",
+									"value": " We ensure all data meets ISO 27001 standards during transit.",
+									"type": "text"
+								},
+								{
+									"key": "imageCover",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/banner.jpg"
+								},
+								{
+									"key": "images",
+									"type": "file",
+									"src": [
+										"/home/tsadiku-m/Pictures/award.jpg",
+										"/home/tsadiku-m/Pictures/banner.jpg"
+									]
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/services",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"services"
+							]
+						},
+						"description": "# 📘 Service API — Create Service\n\n## 📌 Endpoint\n\n```\nPOST http://localhost:8000/api/createService\n\n ```\n\n## 📌 Description\n\nCreates a new service with:\n\n- 1 `imageCover`\n    \n- 0–5 additional `images`\n    \n- Required fields like `title`, `description`, `catagory`, and `headLine`.\n    \n\nAll uploaded files are saved on the server. Requires authentication.\n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Request Content Type\n\n`multipart/form-data`\n\n---\n\n## 📥 Request Body Parameters\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| imageCover | File | ✅ Yes | Main cover image (max 2MB) |\n| images | File\\[\\] | ❌ Optional | Up to 5 additional images (max 2MB each) |\n| catagory | String | ✅ Yes | Service category |\n| status | String | ✅ Yes | Enum: `active`, `inactive`, `draft` |\n| title | String | ✅ Yes | Service title (max 40 chars, unique) |\n| description | String | ✅ Yes | Main service description |\n| subTitleOne | String | ❌ Optional | Optional sub-title 1 |\n| subdescriptionOne | String | ❌ Optional | Optional sub-description 1 |\n| subTitleTwo | String | ❌ Optional | Optional sub-title 2 |\n| subdescriptionTwo | String | ❌ Optional | Optional sub-description 2 |\n| headLine | String | ✅ Yes | Main headline for service |\n\n---\n\n## 📥 Example Request (Postman)\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n### Body → form-data\n\n| KEY | VALUE | TYPE |\n| --- | --- | --- |\n| imageCover | upload file | File |\n| images | upload files (0–5) | File |\n| catagory | Web Development | Text |\n| status | active | Text |\n| title | Website Design | Text |\n| description | Full website design service | Text |\n| subTitleOne | Responsive Design | Text |\n| subdescriptionOne | Works on all devices | Text |\n| subTitleTwo | SEO Friendly | Text |\n| subdescriptionTwo | Optimized for search engines | Text |\n| headLine | Best Web Service | Text |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`201 Created`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"data\": {    \"service\": {      \"_id\": \"650xyz123abc456def789ghi\",      \"imageCover\": \"public/images/Services/cover-1700000000000.jpg\",      \"images\": [        \"public/images/Services/img1-1700000000100.jpg\",        \"public/images/Services/img2-1700000000200.jpg\"      ],      \"catagory\": \"Web Development\",      \"status\": \"active\",      \"title\": \"Website Design\",      \"description\": \"Full website design service\",      \"subTitleOne\": \"Responsive Design\",      \"subdescriptionOne\": \"Works on all devices\",      \"subTitleTwo\": \"SEO Friendly\",      \"subdescriptionTwo\": \"Optimized for search engines\",      \"headLine\": \"Best Web Service\",      \"createdDate\": \"2026-02-25T10:00:00.000Z\",      \"__v\": 0    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ Duplicate Title\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: title. Please use other values!\"}\n\n ```\n\n### ❌ Invalid File Type\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Only image files are allowed!\"}\n\n ```\n\n### ❌ File Too Large\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"imageCover size exceeds 2MB limit.\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **POST** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/createService\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Go to **Body → form-data** → add fields (imageCover required, images optional)\n    \n3. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Single Service",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5NDIxMjMsImV4cCI6MTc3MTk0MjcyM30.l3wifF-4OHp8sBFIb9l1poZ3SI9Q2McbvMzdre21IkU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nothing@example.com\",\n  \"password\": \"123456Abcd\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/services/699daf8f294b43e3b8ab214e",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"services",
+								"699daf8f294b43e3b8ab214e"
+							]
+						},
+						"description": "# 📘 Service API — Get Single Service\n\n## 📌 Endpoint\n\n```\nGET http://localhost:8000/api/getService/:id\n\n ```\n\n## 📌 Description\n\nFetch a **single service** by its unique ID.\n\n- Returns all details including `imageCover`, multiple `images`, titles, subtitles, descriptions, status, and headline.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the service |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/getService/650xyz123abc456def789ghi\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`200 OK`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"data\": {    \"service\": {      \"_id\": \"650xyz123abc456def789ghi\",      \"imageCover\": \"public/images/Services/cover-1700000000000.jpg\",      \"images\": [        \"public/images/Services/img1-1700000000100.jpg\",        \"public/images/Services/img2-1700000000200.jpg\"      ],      \"catagory\": \"Web Development\",      \"status\": \"active\",      \"title\": \"Website Design\",      \"description\": \"Full website design service\",      \"subTitleOne\": \"Responsive Design\",      \"subdescriptionOne\": \"Works on all devices\",      \"subTitleTwo\": \"SEO Friendly\",      \"subdescriptionTwo\": \"Optimized for search engines\",      \"headLine\": \"Best Web Service\",      \"createdDate\": \"2026-02-25T10:00:00.000Z\"    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ Service Not Found\n\nStatus: `404`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No service found with that ID\"}\n\n ```\n\n### ❌ Invalid ID Format\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid _id: 12345.\"}\n\n ```\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **GET** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/getService/<service_id>\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Service",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5NDIxMjMsImV4cCI6MTc3MTk0MjcyM30.l3wifF-4OHp8sBFIb9l1poZ3SI9Q2McbvMzdre21IkU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nothing@example.com\",\n  \"password\": \"123456Abcd\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/services",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"services"
+							]
+						},
+						"description": "# 📘 Service API — Get All Services\n\n## 📌 Endpoint\n\n```\nGET http://localhost:8000/api/getAllServices\n\n ```\n\n## 📌 Description\n\nFetches a **paginated list of all services**.\n\n- Default **10 services per page**\n    \n- Returns all service details including `imageCover`, multiple `images`, titles, subtitles, descriptions, status, and headline.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Query Parameters\n\n| Parameter | Type | Required | Default | Description |\n| --- | --- | --- | --- | --- |\n| page | Number | ❌ No | 1 | Page number for pagination |\n| limit | Number | ❌ No | 10 | Number of services per page |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/getAllServices?page=1&limit=5\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`200 OK`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"total\": 12,  \"data\": {    \"services\": [      {        \"_id\": \"650xyz123abc456def789ghi\",        \"imageCover\": \"public/images/Services/cover-1700000000000.jpg\",        \"images\": [          \"public/images/Services/img1-1700000000100.jpg\",          \"public/images/Services/img2-1700000000200.jpg\"        ],        \"catagory\": \"Web Development\",        \"status\": \"active\",        \"title\": \"Website Design\",        \"description\": \"Full website design service\",        \"subTitleOne\": \"Responsive Design\",        \"subdescriptionOne\": \"Works on all devices\",        \"subTitleTwo\": \"SEO Friendly\",        \"subdescriptionTwo\": \"Optimized for search engines\",        \"headLine\": \"Best Web Service\",        \"createdDate\": \"2026-02-25T10:00:00.000Z\"      },      {        \"_id\": \"650xyz123abc456def789jkl\",        \"imageCover\": \"public/images/Services/cover2-1700000000300.jpg\",        \"images\": [],        \"catagory\": \"Graphic Design\",        \"status\": \"active\",        \"title\": \"Logo Design\",        \"description\": \"Professional logo design\",        \"subTitleOne\": \"\",        \"subdescriptionOne\": \"\",        \"subTitleTwo\": \"\",        \"subdescriptionTwo\": \"\",        \"headLine\": \"Creative Logo\",        \"createdDate\": \"2026-02-24T12:00:00.000Z\"      }      // More services (up to 'limit' per page)    ]  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Notes\n\n- **Pagination:** Use `page` and `limit` query params (default `limit=10`)\n    \n- **Returned fields:** `_id`, `imageCover`, `images`, `catagory`, `status`, `title`, `description`, `subTitleOne`, `subdescriptionOne`, `subTitleTwo`, `subdescriptionTwo`, `headLine`, `createdDate`\n    \n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **GET** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/getAllServices?page=1&limit=10\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Update A Single Service",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5NDIxMjMsImV4cCI6MTc3MTk0MjcyM30.l3wifF-4OHp8sBFIb9l1poZ3SI9Q2McbvMzdre21IkU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": " Enterprise Cloud Migration",
+									"type": "text"
+								},
+								{
+									"key": "catagory",
+									"value": " Cloud Computing",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": " Inactive",
+									"type": "text"
+								},
+								{
+									"key": "headLine",
+									"value": " Scale Your Business to the Next Level",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": " We provide end-to-end migration services for legacy systems moving to AWS or Azure.",
+									"type": "text"
+								},
+								{
+									"key": "subTitleOne",
+									"value": " Security Compliance",
+									"type": "text"
+								},
+								{
+									"key": "subdescriptionOne",
+									"value": " We ensure all data meets ISO 27001 standards during transit.",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/services/699daf8f294b43e3b8ab214e",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"services",
+								"699daf8f294b43e3b8ab214e"
+							]
+						},
+						"description": "# 📘 Service API — Update Single Service\n\n## 📌 Endpoint\n\n```\nPUT http://localhost:8000/api/updateService/:id\n\n ```\n\n## 📌 Description\n\nUpdates a **single service by ID**.\n\n- Allows updating **imageCover** and **0–5 additional images**.\n    \n- Updates all other service fields like `title`, `description`, `catagory`, `status`, subtitles, and headline.\n    \n- Old images are deleted automatically if new ones are uploaded.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the service to update |\n\n---\n\n## 📥 Request Content Type\n\n`multipart/form-data`\n\n---\n\n## 📥 Request Body Parameters\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| imageCover | File | ❌ Optional | Main cover image (max 2MB). Replaces old image if uploaded |\n| images | File\\[\\] | ❌ Optional | 0–5 additional images (max 2MB each). Replaces old images if uploaded |\n| catagory | String | ❌ Optional | Service category |\n| status | String | ❌ Optional | Enum: `active`, `inactive`, `draft` |\n| title | String | ❌ Optional | Service title (max 40 chars, unique) |\n| description | String | ❌ Optional | Main service description |\n| subTitleOne | String | ❌ Optional | Optional sub-title 1 |\n| subdescriptionOne | String | ❌ Optional | Optional sub-description 1 |\n| subTitleTwo | String | ❌ Optional | Optional sub-title 2 |\n| subdescriptionTwo | String | ❌ Optional | Optional sub-description 2 |\n| headLine | String | ❌ Optional | Main headline for service |\n\n> \n\n**Note:** Only provide fields you want to update.\n\n \n  \n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/updateService/650xyz123abc456def789ghi\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n### Body → form-data\n\n| KEY | VALUE | TYPE |\n| --- | --- | --- |\n| imageCover | upload file | File |\n| images | upload files (0–5) | File |\n| title | Updated Website Design | Text |\n| description | Updated service description | Text |\n| status | active | Text |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`200 OK`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"data\": {    \"service\": {      \"_id\": \"650xyz123abc456def789ghi\",      \"imageCover\": \"public/images/Services/new-cover-1700000100000.jpg\",      \"images\": [        \"public/images/Services/new-img1-1700000100100.jpg\",        \"public/images/Services/new-img2-1700000100200.jpg\"      ],      \"catagory\": \"Web Development\",      \"status\": \"active\",      \"title\": \"Updated Website Design\",      \"description\": \"Updated service description\",      \"subTitleOne\": \"Responsive Design\",      \"subdescriptionOne\": \"Works on all devices\",      \"subTitleTwo\": \"SEO Friendly\",      \"subdescriptionTwo\": \"Optimized for search engines\",      \"headLine\": \"Best Web Service\",      \"createdDate\": \"2026-02-25T10:00:00.000Z\"    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ Service Not Found\n\nStatus: `404`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No Service found with ID 650xyz123abc456def789ghi\"}\n\n ```\n\n### ❌ Duplicate Title\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: title. Please use other values!\"}\n\n ```\n\n### ❌ Invalid File Type\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Only image files are allowed!\"}\n\n ```\n\n### ❌ File Too Large\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"imageCover size exceeds 2MB limit.\"}\n\n ```\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **PUT** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/updateService/<service_id>\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Go to **Body → form-data** → add fields you want to update (cover and/or images optional)\n    \n3. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete A Service",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzE5NDI2NTAsImV4cCI6MTc3MTk0MzI1MH0.ltFDoQt-724oyVB8bpOjHQ-mF0Cuomni1wTS8jfIPK8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"nothing@example.com\",\n  \"password\": \"123456Abcd\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/services/699daf8f294b43e3b8ab214e",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"services",
+								"699daf8f294b43e3b8ab214e"
+							]
+						},
+						"description": "# 📘 Service API — Delete Service\n\n## 📌 Endpoint\n\n```\nDELETE http://localhost:8000/api/deleteService/:id\n\n ```\n\n## 📌 Description\n\nDeletes a **service by ID**.\n\n- Removes the service record from the database.\n    \n- Deletes `imageCover` and all associated `images` from the server.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the service to delete |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/deleteService/650xyz123abc456def789ghi\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`200 OK`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"message\": \"Service and associated images deleted.\"}\n\n ```\n\n- `imageCover` and all files in the `images` array are automatically removed from the server.\n    \n\n---\n\n## ❌ Error Responses\n\n### ❌ Service Not Found\n\nStatus: `404`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No service found with that ID\"}\n\n ```\n\n### ❌ Invalid ID Format\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid _id: 12345.\"}\n\n ```\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **DELETE** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/deleteService/<service_id>\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Click **Send**"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Team",
+			"item": [
+				{
+					"name": "Add A New Team",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMDg2NTAsImV4cCI6MTc3MjAwOTI1MH0.0xd_0fG43gSX2HFb4BuyQaQBRwU8vHTG6bauNyVGhZ0",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "David Chen",
+									"type": "text"
+								},
+								{
+									"key": "specialty",
+									"value": "Fusion Power Grid Specialist",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "Active",
+									"type": "text"
+								},
+								{
+									"key": "socialMedia[0][platform]",
+									"value": "LinkedIn",
+									"type": "text"
+								},
+								{
+									"key": "socialMedia[0][url]",
+									"value": "https://linkedin.com/in/davidchen",
+									"type": "text"
+								},
+								{
+									"key": "socialMedia[1][platform]",
+									"value": "Twitter",
+									"type": "text"
+								},
+								{
+									"key": "socialMedia[1][url]",
+									"value": "https://twitter.com/dchen_fusion",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/createTeamOne",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"createTeamOne"
+							]
+						},
+						"description": "# Team API — Create Team Member\n\n## 📌 Endpoint\n\n```\nPOST http://localhost:8000/api/createTeamOne\n\n ```\n\n## 📌 Description\n\nCreates a new team member with **image upload** and optional **social media links**.\n\n- Handles form-data uploads.\n    \n- Social media must be a JSON string array.\n    \n- Requires authentication and proper role.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Request Content Type\n\n`multipart/form-data`\n\n---\n\n## 📥 Request Body Parameters\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| image | File | ❌ Optional | Profile image (max 2MB, images only) |\n| name | String | ✅ Yes | Name of the team member (unique) |\n| specialty | String | ✅ Yes | Specialty of the team member |\n| status | String | ❌ Optional | Active / Inactive (default: Active) |\n| socialMedia | JSON String | ❌ Optional | Example: `[{\"platform\":\"Facebook\",\"url\":\"https://facebook.com/john\"}]` |\n\n---\n\n## 📥 Example Request (Postman)\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n### Body → form-data\n\n| KEY | VALUE | TYPE |\n| --- | --- | --- |\n| image | upload file | File |\n| name | John Doe | Text |\n| specialty | Frontend Developer | Text |\n| status | Active | Text |\n| socialMedia | `[{\"platform\":\"Facebook\",\"url\":\"https://facebook.com/john\"}]` | Text |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`201 Created`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"data\": {    \"team\": {      \"_id\": \"650abc123def456ghi789jkl\",      \"image\": \"public/images/Teams/john-1700000000000.jpg\",      \"name\": \"John Doe\",      \"specialty\": \"Frontend Developer\",      \"status\": \"Active\",      \"socialMedia\": [        { \"platform\": \"Facebook\", \"url\": \"https://facebook.com/john\" }      ],      \"createdDate\": \"2026-02-25T10:00:00.000Z\",      \"__v\": 0    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ Duplicate Name\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: name. Please use other values!\"}\n\n ```\n\n### ❌ File Too Large\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"image size exceeds 2MB limit.\"}\n\n ```\n\n### ❌ Invalid File Type\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Only image files are allowed!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **POST** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/createTeamOne\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Go to **Body → form-data** → add fields:\n    \n\n- image → File (optional)\n    \n- name → Text\n    \n- specialty → Text\n    \n- status → Text (optional)\n    \n- socialMedia → Text (optional JSON string)\n    \n\n1. Click **Send**\n    \n\n---"
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Single Team",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMDg4NjEsImV4cCI6MTc3MjAwOTQ2MX0.tE-FwG4pcrOVLqxaON0CPNFMDT1VVa8VKUOB7jjw7cc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\":\"nothing@gmail.com\",\n  \"password\":\"NewPas123\"\n}\n"
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/team/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"team",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						},
+						"description": "# 📘 Team API — Get Single Team Member\n\n## 📌 Endpoint\n\n```\nGET http://localhost:8000/api/team/:id\n\n ```\n\n## 📌 Description\n\nFetch a **single team member** by their unique ID.  \n  \nRequires authentication (`admin` or `user`) and first-time login check.\n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the team member |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/team/650abc123def456ghi789jkl\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`200 OK`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"data\": {    \"team\": {      \"_id\": \"650abc123def456ghi789jkl\",      \"image\": \"public/images/Teams/john-1700000000000.jpg\",      \"name\": \"John Doe\",      \"specialty\": \"Frontend Developer\",      \"status\": \"Active\",      \"socialMedia\": [        { \"platform\": \"Facebook\", \"url\": \"https://facebook.com/john\" },        { \"platform\": \"LinkedIn\", \"url\": \"https://linkedin.com/in/john\" }      ],      \"createdDate\": \"2026-02-25T10:00:00.000Z\"    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ Team Member Not Found\n\nStatus: `404`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"Team member not found.\"}\n\n ```\n\n### ❌ Invalid ID Format\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid _id: 12345.\"}\n\n ```\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **GET** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/team/<team_id>\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMDg5NzEsImV4cCI6MTc3MjAwOTU3MX0.DFedUFnmE7JX9oKtlSPcKNa7fZ-61EKjdrSssDSD_iI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "David Chen",
+									"type": "text"
+								},
+								{
+									"key": "specialty",
+									"value": "Fusion Power Grid Specialist",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "Inactive",
+									"type": "text"
+								},
+								{
+									"key": "socialMedia[0][platform]",
+									"value": "LinkedIn",
+									"type": "text"
+								},
+								{
+									"key": "socialMedia[0][url]",
+									"value": "https://linkedin.com/in/davidchen",
+									"type": "text"
+								},
+								{
+									"key": "socialMedia[1][platform]",
+									"value": "Twitter",
+									"type": "text"
+								},
+								{
+									"key": "socialMedia[1][url]",
+									"value": "https://twitter.com/dchen_fusion",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/updateTeam/699eb4e4ff3a70a2faec6a43",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"updateTeam",
+								"699eb4e4ff3a70a2faec6a43"
+							]
+						},
+						"description": "# 📘 Team API — Update Team Member\n\n## 📌 Endpoint\n\n```\nPUT http://localhost:8000/api/updateTeam/:id\n\n ```\n\n## 📌 Description\n\nUpdates an existing team member by ID.\n\n- Supports updating **text fields** and optionally uploading a **new profile image**.\n    \n- Old image will be deleted automatically if a new one is uploaded.\n    \n- Social media links must be sent as JSON string if using form-data.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the team member |\n\n---\n\n## 📥 Request Content Type\n\n`multipart/form-data`\n\n---\n\n## 📥 Request Body Parameters (form-data)\n\n| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n| image | File | ❌ Optional | New profile image (Max 2MB, images only) |\n| name | String | ❌ Optional | Name of the team member |\n| specialty | String | ❌ Optional | Specialty of the team member |\n| status | String | ❌ Optional | Active / Inactive |\n| socialMedia | JSON String | ❌ Optional | Example: `[{\"platform\":\"Facebook\",\"url\":\"https://facebook.com/john\"}]` |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/updateTeam/650abc123def456ghi789jkl\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n### Body → form-data\n\n| KEY | VALUE | TYPE |\n| --- | --- | --- |\n| image | upload new file | File |\n| name | John Doe | Text |\n| specialty | Backend Developer | Text |\n| status | Active | Text |\n| socialMedia | `[{\"platform\":\"LinkedIn\",\"url\":\"https://linkedin.com/in/john\"}]` | Text |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`200 OK`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"message\": \"Team member updated successfully.\",  \"data\": {    \"team\": {      \"_id\": \"650abc123def456ghi789jkl\",      \"image\": \"public/images/Teams/john-new-1700000001000.jpg\",      \"name\": \"John Doe\",      \"specialty\": \"Backend Developer\",      \"status\": \"Active\",      \"socialMedia\": [        { \"platform\": \"LinkedIn\", \"url\": \"https://linkedin.com/in/john\" }      ],      \"createdDate\": \"2026-02-25T10:00:00.000Z\"    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ Team Member Not Found\n\nStatus: `404`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No team member found with ID: 650abc123def456ghi789jkl\"}\n\n ```\n\n### ❌ File Too Large\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"image size exceeds 2MB limit.\"}\n\n ```\n\n### ❌ Invalid File Type\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Only image files are allowed!\"}\n\n ```\n\n### ❌ Duplicate Name\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: name. Please use other values!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **PUT** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/updateTeam/<team_id>\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Go to **Body → form-data** → add fields to update:\n    \n\n- image → File (optional)\n    \n- name → Text (optional)\n    \n- specialty → Text (optional)\n    \n- status → Text (optional)\n    \n- socialMedia → Text (JSON string, optional)\n    \n\n1. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Teams",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMDkxMzYsImV4cCI6MTc3MjAwOTczNn0.JdZfTEmWjeZeNqpTqVlUadE8YbKP3tHD7_7NIbJe_-U",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getAllTeams",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getAllTeams"
+							]
+						},
+						"description": "# 📘 Team API — Get All Teams\n\n## 📌 Endpoint\n\n```\nGET http://localhost:8000/api/getAllTeams\n\n ```\n\n## 📌 Description\n\nFetches a **paginated list of all team members**.\n\n- Supports **sorting** by name or creation date.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Query Parameters\n\n| Parameter | Type | Required | Default | Description |\n| --- | --- | --- | --- | --- |\n| page | Number | ❌ No | 1 | Page number for pagination |\n| limit | Number | ❌ No | 4 | Number of team members per page |\n| sort | String | ❌ No | recent | Sorting option: `name-asc`, `name-desc`, `oldest`, `recent` |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/getAllTeams?page=1&limit=5&sort=name-asc\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`200 OK`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"totalTeams\": 12,  \"data\": [    {      \"_id\": \"650abc123def456ghi789jkl\",      \"image\": \"public/images/Teams/john-1700000000000.jpg\",      \"name\": \"Alice Brown\",      \"specialty\": \"UI/UX Designer\",      \"status\": \"Active\",      \"socialMedia\": [        { \"platform\": \"LinkedIn\", \"url\": \"https://linkedin.com/in/alice\" }      ],      \"createdDate\": \"2026-02-24T10:00:00.000Z\"    },    {      \"_id\": \"650abc123def456ghi789mno\",      \"image\": \"public/images/Teams/john-1700000000000.jpg\",      \"name\": \"John Doe\",      \"specialty\": \"Frontend Developer\",      \"status\": \"Active\",      \"socialMedia\": [        { \"platform\": \"Facebook\", \"url\": \"https://facebook.com/john\" },        { \"platform\": \"LinkedIn\", \"url\": \"https://linkedin.com/in/john\" }      ],      \"createdDate\": \"2026-02-25T10:00:00.000Z\"    }    // More team members (up to 'limit' per page)  ]}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Notes\n\n- **Pagination:** Use `page` and `limit` query params (default `limit=4`).\n    \n- **Sorting options:**\n    \n    - `name-asc` → sort by name ascending\n        \n    - `name-desc` → sort by name descending\n        \n    - `oldest` → sort by createdDate ascending\n        \n    - `recent` → sort by createdDate descending (default)\n        \n- **Returned fields:** `_id`, `image`, `name`, `specialty`, `status`, `socialMedia`, `createdDate`\n    \n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **GET** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/getAllTeams?page=1&limit=4&sort=recent\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Team",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMDkxMzYsImV4cCI6MTc3MjAwOTczNn0.JdZfTEmWjeZeNqpTqVlUadE8YbKP3tHD7_7NIbJe_-U",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/deleteTeam/699eb4e4ff3a70a2faec6a43",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"deleteTeam",
+								"699eb4e4ff3a70a2faec6a43"
+							]
+						},
+						"description": "# 📘 Team API — Delete Team Member\n\n## 📌 Endpoint\n\n```\nDELETE http://localhost:8000/api/deleteTeam/:id\n\n ```\n\n## 📌 Description\n\nDeletes a **team member by ID**.\n\n- Removes the team record from the database.\n    \n- Deletes the associated image from the server if it exists.\n    \n- Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | MongoDB ObjectId of the team member to delete |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/deleteTeam/650abc123def456ghi789jkl\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n`200 OK`\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"message\": \"Team member deleted successfully.\"}\n\n ```\n\n- Associated image file is automatically removed from `public/images/Teams/` if it exists.\n    \n\n---\n\n## ❌ Error Responses\n\n### ❌ Team Member Not Found\n\nStatus: `404`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"Team member not found.\"}\n\n ```\n\n### ❌ Invalid ID Format\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid _id: 12345.\"}\n\n ```\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **DELETE** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/deleteTeam/<team_id>\n\n ```\n\n1. Go to **Headers** → add `Authorization: Bearer YOUR_TOKEN`\n    \n2. Click **Send**"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Testimonial",
+			"item": [
+				{
+					"name": "Add  A New Testimonial",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMTAwNTksImV4cCI6MTc3MjAxMDY1OX0.bHmbWmd9mkH21qN2zXE9tnkAdKn7g867mJrTQ-egdwM",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Sarah Jenkins",
+									"type": "text"
+								},
+								{
+									"key": "testimony",
+									"value": "The engineering team was exceptional. They solved our power grid issues in record time!",
+									"type": "text"
+								},
+								{
+									"key": "rate",
+									"value": "5",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "Active",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/image.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/createTestimonial",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"createTestimonial"
+							]
+						},
+						"description": "# 📘 Testimonial API Documentation — Create Testimonial\n\n## 📌 Endpoint\n\n```\nPOST /api/createTestimonial\n\n ```\n\n## 📌 Description\n\nCreates a new testimonial with image upload.  \n  \nThis endpoint requires authentication and supports image upload using `multipart/form-data`.\n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n```\nAuthorization: Bearer <your_jwt_token>\n\n ```\n\nOR\n\n```\nx-access-token: <your_jwt_token>\n\n ```\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Request Content Type\n\n```\nmultipart/form-data\n\n ```\n\n---\n\n## 📥 Request Body Parameters\n\n| Field Name | Type | Required | Description |\n| --- | --- | --- | --- |\n| image | File | ✅ Yes | Testimonial image (Max 2MB, images only) |\n| name | String | ✅ Yes | Name of the person |\n| testimony | String | ✅ Yes | Testimonial text (Must be unique) |\n| rate | Number | ✅ Yes | Rating (Min: 1, Max: 5) |\n| status | String | ❌ No | Status values: Active, Inactive, draft, archieved (Default: Active) |\n\n---\n\n## 📥 Example Request (Postman)\n\n### Headers\n\n```\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\n ```\n\n### Body → form-data\n\n| KEY | VALUE | TYPE |\n| --- | --- | --- |\n| image | upload file | File |\n| name | John Doe | Text |\n| testimony | This service is excellent | Text |\n| rate | 5 | Text |\n| status | Active | Text |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n```\n201 Created\n\n ```\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"data\": {    \"testimonial\": {      \"_id\": \"65d123abc456def789012345\",      \"image\": \"/public/images/Testimonials/john-1700000000000.jpg\",      \"name\": \"John Doe\",      \"testimony\": \"This service is excellent\",      \"rate\": 5,      \"status\": \"Active\",      \"cratedDate\": \"2026-02-25T10:00:00.000Z\",      \"__v\": 0    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ No token provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n---\n\n### ❌ Invalid Token\n\nStatus: `401`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 401,  \"message\": \"Unauthorized! Invalid token.\"}\n\n ```\n\n---\n\n### ❌ No Image Uploaded\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Please upload a testimonial image.\"}\n\n ```\n\n---\n\n### ❌ Duplicate Testimony\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: testimony. Please use other values!\"}\n\n ```\n\n---\n\n### ❌ File Too Large\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"image size exceeds 2MB limit.\"}\n\n ```\n\n---\n\n### ❌ Invalid File Type\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Only image files are allowed!\"}\n\n ```\n\n---\n\n## 📁 File Upload Location\n\n```\npublic/images/Testimonials/\n\n ```\n\nExample saved path:\n\n```\npublic/images/Testimonials/john-1700000000000.jpg\n\n ```\n\nReturned as:\n\n```\n/public/images/Testimonials/john-1700000000000.jpg\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select POST method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/createTestimonial\n\n ```\n\n1. Go to Headers tab:\n    \n\n```\nAuthorization: Bearer YOUR_TOKEN\n\n ```\n\n1. Go to Body tab:  \n      \n    Select → form-data\n    \n\nAdd fields:\n\n- image → File\n    \n- name → Text\n    \n- testimony → Text\n    \n- rate → Text\n    \n- status → Text\n    \n\n1. Click Send\n    \n\n---\n\n## ✅ Validation Rules Summary\n\n| Field | Rule |\n| --- | --- |\n| image | Required, image only, max 2MB |\n| name | Required |\n| testimony | Required, unique |\n| rate | Required, number between 1–5 |\n| status | Optional, enum values |\n\n---"
+					},
+					"response": []
+				},
+				{
+					"name": "Get A Single Testimonial",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMTAyMzYsImV4cCI6MTc3MjAxMDgzNn0.sK2HUnxEtbhC3ClQBlUeoXmxkavzEP0MPyiMm43R3gI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getTestimonial/699eba88de9cd75a52bcdff9",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getTestimonial",
+								"699eba88de9cd75a52bcdff9"
+							]
+						},
+						"description": "# 📘 Testimonial API Documentation — Get Single Testimonial\n\n## 📌 Endpoint\n\n```\nGET http://localhost:8000/api/getTestimonial/:id\n\n ```\n\n## 📌 Description\n\nFetches a single testimonial by its unique ID.  \n  \nRequires authentication and proper role access (`admin` or `user`).\n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n```\nAuthorization: Bearer <your_jwt_token>\n\n ```\n\nOR\n\n```\nx-access-token: <your_jwt_token>\n\n ```\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | The unique ID of the testimonial to fetch |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/getTestimonial/65d123abc456def789012345\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n```\n200 OK\n\n ```\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"data\": {    \"testimonial\": {      \"_id\": \"65d123abc456def789012345\",      \"image\": \"/public/images/Testimonials/john-1700000000000.jpg\",      \"name\": \"John Doe\",      \"testimony\": \"This service is excellent\",      \"rate\": 5,      \"status\": \"Active\",      \"cratedDate\": \"2026-02-25T10:00:00.000Z\",      \"__v\": 0    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ Invalid ID Format\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Invalid _id: 12345.\"}\n\n ```\n\n---\n\n### ❌ Testimonial Not Found\n\nStatus: `404`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"Testimonial not found.\"}\n\n ```\n\n---\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n---\n\n### ❌ Unauthorized / Invalid Role\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **GET** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/getTestimonial/<testimonial_id>\n\n ```\n\n1. Go to **Headers** tab:\n    \n\n```\nAuthorization: Bearer YOUR_TOKEN\n\n ```\n\n1. Click **Send**\n    \n\n---\n\n## ✅ Notes\n\n- Ensure the `:id` in the URL is a valid MongoDB ObjectId.\n    \n- Only users with `admin` or `user` roles can access this endpoint.\n    \n- Returned `image` field provides the relative path to the uploaded testimonial image."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Testimonial",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMTAyMzYsImV4cCI6MTc3MjAxMDgzNn0.sK2HUnxEtbhC3ClQBlUeoXmxkavzEP0MPyiMm43R3gI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Sarah Jenkins",
+									"type": "text"
+								},
+								{
+									"key": "testimony",
+									"value": "The engineering team was exceptional. They solved our power grid issues in record time!",
+									"type": "text"
+								},
+								{
+									"key": "rate",
+									"value": "5",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "Inactive",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/home/tsadiku-m/Pictures/test.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8000/api/updateTestimonial/699eba88de9cd75a52bcdff9",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"updateTestimonial",
+								"699eba88de9cd75a52bcdff9"
+							]
+						},
+						"description": "# 📘 Testimonial API Documentation — Update Testimonial\n\n## 📌 Endpoint\n\n```\nPUT http://localhost:8000/api/updateTestimonial/:id\n\n ```\n\n## 📌 Description\n\nUpdates an existing testimonial by ID.  \n  \nSupports updating text fields **and optionally uploading a new image**.  \n  \nIf a new image is uploaded, the old image will be deleted automatically.\n\nRequires authentication (`admin` or `user`) and first-time login check.\n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n```\nAuthorization: Bearer <your_jwt_token>\n\n ```\n\nOR\n\n```\nx-access-token: <your_jwt_token>\n\n ```\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | The unique ID of the testimonial to update |\n\n---\n\n## 📥 Request Content Type\n\n```\nmultipart/form-data\n\n ```\n\n---\n\n## 📥 Request Body Parameters\n\n| Field Name | Type | Required | Description |\n| --- | --- | --- | --- |\n| image | File | ❌ Optional | New testimonial image (Max 2MB, images only) |\n| name | String | ❌ Optional | Name of the person |\n| testimony | String | ❌ Optional | Testimonial text (Must remain unique) |\n| rate | Number | ❌ Optional | Rating (Min: 1, Max: 5) |\n| status | String | ❌ Optional | Status values: Active, Inactive, draft, archieved |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/updateTestimonial/65d123abc456def789012345\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... |\n\n### Body → form-data\n\n| KEY | VALUE | TYPE |\n| --- | --- | --- |\n| image | upload new file (optional) | File |\n| name | Jane Doe | Text |\n| testimony | Updated testimonial text | Text |\n| rate | 4 | Text |\n| status | Active | Text |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n```\n200 OK\n\n ```\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"message\": \"Testimonial updated successfully.\",  \"data\": {    \"testimonial\": {      \"_id\": \"65d123abc456def789012345\",      \"image\": \"/public/images/Testimonials/jane-1700000000000.jpg\",      \"name\": \"Jane Doe\",      \"testimony\": \"Updated testimonial text\",      \"rate\": 4,      \"status\": \"Active\",      \"cratedDate\": \"2026-02-25T10:00:00.000Z\",      \"__v\": 0    }  }}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ Testimonial Not Found\n\nStatus: `404`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"No Document Found with ID 65d123abc456def789012345\"}\n\n ```\n\n---\n\n### ❌ Duplicate Testimony\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Duplicate fields: testimony. Please use other values!\"}\n\n ```\n\n---\n\n### ❌ File Too Large\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"image size exceeds 2MB limit.\"}\n\n ```\n\n---\n\n### ❌ Invalid File Type\n\nStatus: `400`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 400,  \"message\": \"Only image files are allowed!\"}\n\n ```\n\n---\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n---\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **PUT** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/updateTestimonial/<testimonial_id>\n\n ```\n\n1. Go to **Headers** tab:\n    \n\n```\nAuthorization: Bearer YOUR_TOKEN\n\n ```\n\n1. Go to **Body** tab → **form-data**\n    \n2. Add fields to update:\n    \n\n- image → optional, file\n    \n- name → optional, text\n    \n- testimony → optional, text\n    \n- rate → optional, text\n    \n- status → optional, text\n    \n\n1. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Testimonials",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMTAyMzYsImV4cCI6MTc3MjAxMDgzNn0.sK2HUnxEtbhC3ClQBlUeoXmxkavzEP0MPyiMm43R3gI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/getAllTestimonials",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"getAllTestimonials"
+							]
+						},
+						"description": "# 📘 Testimonial API Documentation — Get All Testimonials (Paginated & Short)\n\n## 📌 Endpoint\n\n```\nGET http://localhost:8000/api/getAllTestimonials\n\n ```\n\n## 📌 Description\n\nFetches a **paginated list of testimonials**, sorted by newest first.  \n  \nSupports query parameters for pagination and can return **short summaries** if needed.  \n  \nRequires authentication (`admin` or `user`) and first-time login check.\n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 Query Parameters\n\n| Parameter | Type | Required | Default | Description |\n| --- | --- | --- | --- | --- |\n| page | Number | ❌ No | 1 | Page number for pagination |\n| limit | Number | ❌ No | 4 | Number of testimonials per page (default 4) |\n| short | Boolean | ❌ No | false | If `true`, returns only `name`, `testimony`, and `rate` for each testimonial (no image or timestamps) |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL (Paginated, Short)\n\n```\nhttp://localhost:8000/api/getAllTestimonials?page=2&limit=5&short=true\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n---\n\n## ✅ Success Response (Full Details)\n\n### Status Code\n\n```\n200 OK\n\n ```\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"totalCount\": 12,  \"data\": [    {      \"_id\": \"65d123abc456def789012345\",      \"image\": \"/public/images/Testimonials/john-1700000000000.jpg\",      \"name\": \"John Doe\",      \"testimony\": \"This service is excellent\",      \"rate\": 5,      \"status\": \"Active\",      \"cratedDate\": \"2026-02-25T10:00:00.000Z\",      \"__v\": 0    },    {      \"_id\": \"65d123abc456def789012346\",      \"image\": \"/public/images/Testimonials/jane-1700000000000.jpg\",      \"name\": \"Jane Smith\",      \"testimony\": \"Highly recommended!\",      \"rate\": 4,      \"status\": \"Active\",      \"cratedDate\": \"2026-02-24T15:00:00.000Z\",      \"__v\": 0    }  ]}\n\n ```\n\n---\n\n## ✅ Success Response (Short Version)\n\nSet `short=true` in query params:\n\n```\n{  \"status\": \"success\",  \"totalCount\": 12,  \"data\": [    {      \"name\": \"John Doe\",      \"testimony\": \"This service is excellent\",      \"rate\": 5    },    {      \"name\": \"Jane Smith\",      \"testimony\": \"Highly recommended!\",      \"rate\": 4    }  ]}\n\n ```\n\n---\n\n## ❌ Error Responses\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Notes\n\n- **Pagination**: Use `page` and `limit` query params to navigate pages. Default limit = 4.\n    \n- **Short version**: Use `short=true` to get only essential testimonial info.\n    \n- **Sorting**: Testimonials are sorted by `cratedDate` descending (newest first).\n    \n- **Image field**: Only returned in full mode (not in `short=true`).\n    \n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **GET** method\n    \n3. Enter URL with optional query parameters:\n    \n\n```\nhttp://localhost:8000/api/getAllTestimonials?page=1&limit=4&short=false\n\n ```\n\n1. Go to **Headers** tab:\n    \n\n```\nAuthorization: Bearer YOUR_TOKEN\n\n ```\n\n1. Click **Send**"
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OTZjNjk1ZmIyM2E5YjAwMDY2ZjExYyIsInJvbGUiOiJhZG1pbiIsImVtYWlsIjoibm90aGluZ0BnbWFpbC5jb20iLCJpYXQiOjE3NzIwMTAyMzYsImV4cCI6MTc3MjAxMDgzNn0.sK2HUnxEtbhC3ClQBlUeoXmxkavzEP0MPyiMm43R3gI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8000/api/deleteTestimonial/699eba88de9cd75a52bcdff9",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"deleteTestimonial",
+								"699eba88de9cd75a52bcdff9"
+							]
+						},
+						"description": "# 📘 Testimonial API Documentation — Delete Testimonial\n\n## 📌 Endpoint\n\n```\nDELETE http://localhost:8000/api/deleteTestimonial/:id\n\n ```\n\n## 📌 Description\n\nDeletes a testimonial by its unique ID.\n\n- Removes the testimonial record from the database.\n    \n- Deletes the associated image from the server if it exists.  \n      \n    Requires authentication (`admin` or `user`) and first-time login check.\n    \n\n---\n\n## 🔐 Authentication Required\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer |\n| OR |  |\n| x-access-token |  |\n\n---\n\n## 👤 Allowed Roles\n\n- admin\n    \n- user\n    \n\n---\n\n## 📥 URL Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | ✅ Yes | The unique ID of the testimonial to delete |\n\n---\n\n## 📥 Example Request (Postman)\n\n### URL\n\n```\nhttp://localhost:8000/api/deleteTestimonial/65d123abc456def789012345\n\n ```\n\n### Headers\n\n| Key | Value |\n| --- | --- |\n| Authorization | Bearer `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |\n\n---\n\n## ✅ Success Response\n\n### Status Code\n\n```\n200 OK\n\n ```\n\n### Response Body\n\n```\n{  \"status\": \"success\",  \"message\": \"Testimonial deleted successfully.\"}\n\n ```\n\n- The testimonial is removed from the database.\n    \n- Associated image file is deleted from `public/images/Testimonials/` folder if it exists.\n    \n\n---\n\n## ❌ Error Responses\n\n### ❌ Testimonial Not Found\n\nStatus: `404`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 404,  \"message\": \"Testimonial not found.\"}\n\n ```\n\n---\n\n### ❌ No Token Provided\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"No token provided!\"}\n\n ```\n\n---\n\n### ❌ Unauthorized / Access Denied\n\nStatus: `403`\n\n```\n{  \"status\": \"error\",  \"statusCode\": 403,  \"message\": \"Access denied! You do not have permission.\"}\n\n ```\n\n---\n\n### ❌ First-Time Login Not Changed\n\nStatus: `403`\n\n```\n{  \"status\": \"fail\",  \"message\": \"You must change your password first.\"}\n\n ```\n\n---\n\n## 📌 Postman Setup Instructions\n\n1. Open Postman\n    \n2. Select **DELETE** method\n    \n3. Enter URL:\n    \n\n```\nhttp://localhost:8000/api/deleteTestimonial/<testimonial_id>\n\n ```\n\n1. Go to **Headers** tab:\n    \n\n```\nAuthorization: Bearer YOUR_TOKEN\n\n ```\n\n1. Click **Send**\n    \n\n---\n\n✅ **Notes**:\n\n- Make sure the testimonial ID is valid (MongoDB ObjectId).\n    \n- Image deletion happens automatically if a testimonial had an image.\n    \n- Only users with `admin` or `user` roles can perform deletion."
 					},
 					"response": []
 				}

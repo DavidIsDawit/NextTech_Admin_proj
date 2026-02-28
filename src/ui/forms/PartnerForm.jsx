@@ -17,12 +17,12 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
 
     // Initialize preview from existing data
     React.useEffect(() => {
-        if (formData.partnerFile && typeof formData.partnerFile === 'string') {
+        if (formData.partnerImage && typeof formData.partnerImage === 'string') {
             // If it's a URL, show the filename or a placeholder
-            const fileName = formData.partnerFile.split('/').pop();
+            const fileName = formData.partnerImage.split('/').pop();
             setFilePreview(fileName);
         }
-    }, [formData.partnerFile]);
+    }, [formData.partnerImage]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -32,7 +32,7 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            onChange?.({ ...formData, partnerFile: file });
+            onChange?.({ ...formData, partnerImage: file });
             setFilePreview(file.name);
         }
     };
@@ -40,8 +40,8 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
     const handleDrop = (e) => {
         e.preventDefault();
         const file = e.dataTransfer.files?.[0];
-        if (file && file.type === 'application/pdf') {
-            onChange?.({ ...formData, partnerFile: file });
+        if (file && file.type.startsWith('image/')) {
+            onChange?.({ ...formData, partnerImage: file });
             setFilePreview(file.name);
         }
     };
@@ -59,81 +59,58 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
             {/* Partner File Upload */}
             <div className="space-y-2">
                 <div
-                    className="border-2 border-dashed border-sky-400 bg-sky-50 rounded-lg p-12 text-center cursor-pointer hover:bg-sky-100/50 transition-colors"
-                    onClick={() => document.getElementById('partner-file').click()}
+                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                    onClick={() => document.getElementById('partnerImage').click()}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                 >
-                    {filePreview ? (
-                        <div className="space-y-2">
-                            <img src="/upload-placeholder.png" alt="Upload" className="mx-auto h-12 w-12" />
-                            <p className="text-sm font-medium text-gray-700">{filePreview}</p>
-                            <p className="text-xs text-gray-500">Click to change file</p>
-                        </div>
-                    ) : (
-                        <>
-                            <img src="/upload-placeholder.png" alt="Upload" className="mx-auto h-12 w-12 mb-2" />
-                            <p className="text-sm text-sky-600 font-medium">
-                                Drag PDF here or <span className="underline">click to browse</span>
+                    <div className="flex flex-col items-center">
+                        {formData.partnerImage instanceof File && (
+                            <div className="flex flex-col items-center mb-6">
+                                <img
+                                    src={URL.createObjectURL(formData.partnerImage)}
+                                    alt="Preview"
+                                    className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                />
+                            </div>
+                        )}
+                        <div className="flex flex-col items-center justify-center">
+                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                            <p className="text-sm text-gray-600">
+                                Drag your partner image to start uploading
                             </p>
-                        </>
-                    )}
+                            <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
+                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                                Browse files
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <Input
-                    id="partner-file"
-                    name="partnerFile"
+                    id="partnerImage"
+                    name="partnerImage"
                     type="file"
-                    accept=".pdf,application/pdf,image/*"
+                    accept="image/*"
                     onChange={handleFileChange}
                     className="hidden"
                 />
-                {errors.partnerFile && (
-                    <p className="text-sm text-red-500">{errors.partnerFile}</p>
+                {errors.partnerImage && (
+                    <p className="text-sm text-red-500">{errors.partnerImage}</p>
                 )}
             </div>
 
-            {/* Name */}
+            {/* Company / Partner Name */}
             <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="partnerName">Partner Name</Label>
                 <Input
-                    id="name"
-                    name="name"
+                    id="partnerName"
+                    name="partnerName"
                     placeholder="e.g., Ethiopian Airline, EthioTelecom, SafariCom..."
-                    value={formData.name || ''}
+                    value={formData.partnerName || ''}
                     onChange={handleChange}
                 />
-                {errors.name && (
-                    <p className="text-sm text-red-500">{errors.name}</p>
-                )}
-            </div>
-
-            {/* Company */}
-            <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
-                <Input
-                    id="company"
-                    name="company"
-                    placeholder="e.g., Ethiopian Airline, EthioTelecom, SafariCom..."
-                    value={formData.company || ''}
-                    onChange={handleChange}
-                />
-                {errors.company && (
-                    <p className="text-sm text-red-500">{errors.company}</p>
-                )}
-            </div>
-
-            {/* Date */}
-            <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                    id="date"
-                    name="date"
-                    type="date"
-                    value={formData.date || ''}
-                    onChange={handleChange}
-                />
-                {errors.date && (
-                    <p className="text-sm text-red-500">{errors.date}</p>
+                {errors.partnerName && (
+                    <p className="text-sm text-red-500">{errors.partnerName}</p>
                 )}
             </div>
 
@@ -141,21 +118,17 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'published'}
+                    value={formData.status || 'Active'}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="published" id="partner-published" />
-                        <Label htmlFor="partner-published" className="font-normal cursor-pointer">Published</Label>
+                        <RadioGroupItem value="Active" id="partner-active" />
+                        <Label htmlFor="partner-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="draft" id="partner-draft" />
-                        <Label htmlFor="partner-draft" className="font-normal cursor-pointer">Draft</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="archived" id="partner-archived" />
-                        <Label htmlFor="partner-archived" className="font-normal cursor-pointer">Archived</Label>
+                        <RadioGroupItem value="Inactive" id="partner-inactive" />
+                        <Label htmlFor="partner-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                 </RadioGroup>
                 {errors.status && (

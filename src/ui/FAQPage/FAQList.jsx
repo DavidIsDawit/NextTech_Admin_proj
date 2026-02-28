@@ -8,7 +8,7 @@ import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
 import { toast } from "sonner";
-import { getAllFAQs, createFAQ, updateFAQ } from "../../api/api";
+import { getAllFAQs, createFAQ, updateFAQ, deleteFAQ } from "../../api/faqApi";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { FAQForm } from "../forms/FAQForm";

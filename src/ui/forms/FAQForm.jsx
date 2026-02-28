@@ -23,7 +23,7 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
 
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Question */}
             <div className="space-y-2">
                 <Label htmlFor="question">Question</Label>

@@ -7,7 +7,7 @@ import { Input } from '@/ui/input';
 import { useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 const NextTech_logo = "/NextTech_logo.png";
-import { login } from "../../api/api";
+import { login } from "../../api/userApi";
 import { toast } from "sonner";
 
 function Login() {

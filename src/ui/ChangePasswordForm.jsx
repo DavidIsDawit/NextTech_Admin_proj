@@ -4,7 +4,7 @@ import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { toast } from "sonner";
-import { updatePassword } from "../api/api";
+import { updatePassword } from "../api/userApi";
 
 export default function ChangePasswordForm() {
   const navigate = useNavigate();

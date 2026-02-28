@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -7,17 +7,21 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { PartnersData } from "../../data/PartnersData";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { PartnerForm } from "../forms/PartnerForm";
+import { getAllPartners, createPartner, updatePartner, deletePartner } from "../../api/partnerApi";
+import { toast } from "sonner";
 
 function PartnerList() {
+    const [partners, setPartners] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [totalPartners, setTotalPartners] = useState(0);
+    const itemsPerPage = 10;
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -28,23 +32,47 @@ function PartnerList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const statuses = useMemo(() => ["All Status", ...new Set(PartnersData.map(s => s.status))], []);
+    const [selectedId, setSelectedId] = useState(null);
+
+    const fetchPartners = async () => {
+        setIsLoading(true);
+        try {
+            const params = { page: currentPage, limit: itemsPerPage, sort: 'recent' };
+            const data = await getAllPartners(params);
+            if (data.status === "success") {
+                setPartners(data.data || []);
+                setTotalPartners(data.totalPartners || 0);
+            }
+        } catch (error) {
+            console.error("Failed to fetch partners:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPartners();
+    }, [currentPage]);
+
+    const statuses = useMemo(() => ["All Status", "Active", "Inactive"], []);
 
     const filteredData = useMemo(() => {
-        return PartnersData.filter((item) => {
-            const matchesSearch = item.company?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+        return partners.filter((item) => {
+            const name = item.partnerName || item.company || item.name || "";
+            const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase());
+            const status = item.status || "Active";
+            const matchesStatus = statusFilter === "All Status" || status.toLowerCase() === statusFilter.toLowerCase();
             return matchesSearch && matchesStatus;
         });
-    }, [searchTerm, statusFilter]);
+    }, [searchTerm, statusFilter, partners]);
 
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const totalPages = Math.ceil(totalPartners / itemsPerPage);
+    const currentData = filteredData;
 
     const handleExportCSV = () => {
         exportToCSV(filteredData, "Partners", {
-            company: "Company",
-            date: "Upload Date",
+            partnerName: "Partner Name",
+            createdDate: "Upload Date",
             status: "Status"
         });
     };
@@ -52,66 +80,140 @@ function PartnerList() {
     // Modal Handlers
     const handleAddNew = () => {
         setFormType('add');
-        setFormData({ status: 'active' });
+        setFormData({ status: 'Active' });
         setIsFormModalOpen(true);
     };
 
     const handleEdit = (item) => {
         setFormType('edit');
         setSelectedItem(item);
-        setFormData({ ...item });
+        setSelectedId(item._id || item.id);
+
+        setFormData({
+            ...item,
+            partnerImage: item.partnerImage || item.image || item.partnerFile || '',
+            partnerName: item.partnerName || item.company || item.name || '',
+            status: item.status || 'Active'
+        });
         setIsFormModalOpen(true);
     };
 
     const handleDeleteClick = (item) => {
         setSelectedItem(item);
+        setSelectedId(item._id || item.id);
         setIsDeleteModalOpen(true);
     };
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
+        e?.preventDefault?.();
+
+        const partnerName = formData.partnerName || "";
+        if (!partnerName.trim()) {
+            toast.error("Partner Name is required");
+            return;
+        }
+
+        if (formType === 'add' && !(formData.partnerImage instanceof File)) {
+            toast.error("Partner Image is required");
+            return;
+        }
+
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log(`Partner ${formType === 'add' ? 'added' : 'updated'}:`, formData);
+
+        const data = new FormData();
+
+        // Match API requirement: partnerImage
+        if (formData.partnerImage instanceof File) {
+            data.append('partnerImage', formData.partnerImage);
+        }
+
+        // Match API requirement: partnerName
+        data.append('partnerName', partnerName);
+        data.append('status', formData.status || "Active");
+
+        try {
+            if (formType === 'add') {
+                const res = await createPartner(data);
+                if (res.status === "success") {
+                    toast.success("Partner added successfully");
+                    fetchPartners();
+                    setIsFormModalOpen(false);
+                } else {
+                    toast.error(res.message || "Failed to add partner");
+                }
+            } else {
+                const res = await updatePartner(selectedId, data);
+                if (res.status === "success") {
+                    toast.success("Partner updated successfully");
+                    fetchPartners();
+                    setIsFormModalOpen(false);
+                } else {
+                    toast.error(res.message || "Failed to update partner");
+                }
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "An error occurred");
+        } finally {
             setIsSubmitting(false);
-            setIsFormModalOpen(false);
-        }, 1000);
+        }
     };
 
-    const handleDeleteConfirm = () => {
+    const handleDeleteConfirm = async () => {
         setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Partner deleted:", selectedItem.id);
+        try {
+            const res = await deletePartner(selectedId);
+            if (res.status === "success") {
+                toast.success("Partner deleted successfully");
+                fetchPartners();
+                setIsDeleteModalOpen(false);
+            } else {
+                toast.error(res.message || "Failed to delete partner");
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "An error occurred");
+        } finally {
             setIsDeleting(false);
-            setIsDeleteModalOpen(false);
-        }, 1000);
+        }
     };
 
     // Columns: Image,  company,  upload date, status, action
     const columns = [
         {
-            key: "partnerFile",
+            key: "partnerImage",
             label: "Image",
             render: (value, row) => (
                 <div className="flex-shrink-0 h-14 w-14">
-                    <img
-                        src={value}
-                        alt={row.company}
-                        className="h-full w-full rounded object-cover"
-                    />
+                    {value || row.partnerFile || row.image ? (
+                        <img
+                            src={value || row.partnerFile || row.image}
+                            alt={row.partnerName || row.company}
+                            className="h-full w-full rounded object-cover"
+                        />
+                    ) : (
+                        <div className="h-full w-full rounded bg-gray-100 flex items-center justify-center text-gray-400">
+                            N/A
+                        </div>
+                    )}
                 </div>
             ),
         },
         {
-            key: "company",
-            label: "Company",
-            render: (value) => <div className="font-medium text-gray-900">{value}</div>,
+            key: "partnerName",
+            label: "Partner Name",
+            render: (value, row) => <div className="font-medium text-gray-900">{value || row.company || row.name}</div>,
         },
         {
-            key: "date",
+            key: "createdDate",
             label: "Upload Date",
-            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
+            render: (value, row) => {
+                const displayDate = value || row.date;
+                if (!displayDate) return <div className="text-sm text-gray-500">N/A</div>;
+                try {
+                    return <div className="text-sm text-gray-500">{new Date(displayDate).toLocaleDateString()}</div>;
+                } catch (e) {
+                    return <div className="text-sm text-gray-500">{displayDate}</div>;
+                }
+            },
         },
         {
             key: "status",
@@ -125,7 +227,7 @@ function PartnerList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row.id)}
+                        onClick={() => console.log("View", row._id || row.id)}
                         title="View"
                     >
                         <FiEye size={21} />
@@ -251,8 +353,7 @@ function PartnerList() {
                 onOpenChange={setIsDeleteModalOpen}
                 onConfirm={handleDeleteConfirm}
                 entityName="Partner"
-                itemName={selectedItem?.company}
-                image={selectedItem?.image}
+                itemName={selectedItem?.partnerName || selectedItem?.company || selectedItem?.name}
                 isDeleting={isDeleting}
             />
         </div>

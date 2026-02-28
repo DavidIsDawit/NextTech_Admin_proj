@@ -10,7 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/ui/select';
-import { getCounterDropdown } from '@/api/api';
+import { getCounterDropdown } from '@/api/counterApi';
 
 /**
  * CounterForm - Form component for Counter/Statistics entity
@@ -62,7 +62,7 @@ export function CounterForm({ formData = {}, setFormData, errors = {}, existingN
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Number (Value) */}
             <div className="space-y-2">
                 <Label htmlFor="value">Value (Number)</Label>

@@ -1,7 +1,8 @@
 // src/components/ViewProfile.jsx  (or wherever it lives)
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api, { BASE_URL, updatePassword, getMe, buildImageUrl, cleanupAuth } from "../../api/api";
+import api, { BASE_URL, buildImageUrl } from "../../api/api";
+import { updatePassword, getMe, uploadPhoto, cleanupAuth } from "../../api/userApi";
 // static profile picture lives in public/images; reference via root URL
 const defaultAvatar = "/images/Profile_pic.png";
 import { LuBuilding2 } from "react-icons/lu";
@@ -122,40 +123,6 @@ function ProfileSetting() {
     }
   };
 
-  const handleSaveProfile = async () => {
-    if (!formData.userId) {
-      toast.error("User ID not found. Please refresh.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await api.put(`/updateUser/${formData.userId}`, {
-        name: formData.name,
-        email: formData.email,
-        phoneNumber: formData.phoneNumber,
-        location: formData.location,
-        bio: formData.bio,
-        employeId: formData.employeId,
-        department: formData.department,
-        role: formData.role,
-      });
-
-      if (response.data?.status === "success" || response.status === 200) {
-        toast.success("Profile updated successfully!");
-      }
-    } catch (error) {
-      console.error("Save profile error", error);
-      if (error.response?.status === 403) {
-        toast.error("Permission Denied: Only administrators can update profile fields (name, email, bio, etc).");
-      } else {
-        const msg = error.response?.data?.message || "Failed to save profile";
-        toast.error(msg);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleUpdatePassword = async () => {
     if (passwordData.new !== passwordData.confirm) {
@@ -273,12 +240,6 @@ function ProfileSetting() {
                 </div>
               </div>
 
-              <Button
-                variant="outline"
-                className="px-6 py-2.5 bg-white border-2 border-[#00A3E0] text-[#00A3E0] font-medium rounded-lg hover:bg-blue-50 transition whitespace-nowrap"
-              >
-                Edit Profile
-              </Button>
             </div>
 
             {/* Form Sections */}
@@ -292,6 +253,7 @@ function ProfileSetting() {
                     value={formData.name}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] border"
+                    readOnly
                   />
                 </div>
 
@@ -303,6 +265,7 @@ function ProfileSetting() {
                     value={formData.role}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] border"
+                    readOnly
                   />
                 </div>
 
@@ -315,6 +278,7 @@ function ProfileSetting() {
                     value={formData.email}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] border"
+                    readOnly
                   />
                 </div>
 
@@ -326,6 +290,7 @@ function ProfileSetting() {
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] border"
+                    readOnly
                   />
                 </div>
 
@@ -337,6 +302,7 @@ function ProfileSetting() {
                     value={formData.employeId}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] border"
+                    readOnly
                   />
                 </div>
 
@@ -361,6 +327,7 @@ function ProfileSetting() {
                     <Select
                       value={formData.department}
                       onValueChange={(val) => handleSelectChange('department', val)}
+                      disabled
                     >
                       <SelectTrigger className="pl-10 h-11 border-[#D1D5DB] border focus:ring-[#00A3E0]">
                         <SelectValue placeholder="Select Department" />
@@ -383,6 +350,7 @@ function ProfileSetting() {
                     value={formData.location}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] border"
+                    readOnly
                   />
                 </div>
               </div>
@@ -398,6 +366,7 @@ function ProfileSetting() {
                     onChange={handleInputChange}
                     rows={4}
                     className="border-[#D1D5DB] border focus:ring-[#00A3E0] rounded-xl resize-none p-4 min-h-[120px]"
+                    readOnly
                   />
                   <div className="absolute bottom-2 right-4 text-[10px] text-gray-400 font-medium">
                     {formData.bio.length}/500
@@ -405,15 +374,6 @@ function ProfileSetting() {
                 </div>
               </div>
 
-              {/* Save Button */}
-              <div className="flex justify-center pt-4 pb-10">
-                <Button
-                  onClick={handleSaveProfile}
-                  className="bg-[#00A3E0] hover:bg-blue-600 text-white px-12  h-12 rounded-xl text-md font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
-                >
-                  Save Changes
-                </Button>
-              </div>
             </div>
 
 
