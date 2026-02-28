@@ -48,8 +48,7 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
                     type="file"
                     accept=".pdf,image/*"
                     onChange={handleFileChange}
-                    className="absolute inset-0 cursor-pointer opacity-0"
-                />
+                    className="absolute inset-0 cursor-pointer opacity-0" />
                 {(formData.file || preview) && (
                     <p className="mt-2 text-xs text-slate-600">
                         {formData.file ? `Selected: ${formData.file.name}` : 'Current Image'}

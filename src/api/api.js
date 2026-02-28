@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 
 // fixed base URL for backend; ensures image paths are resolvable even if env var is missing
-export const BASE_URL = "http://192.168.1.16:8000/public/";
+export const BASE_URL = "http://192.168.1.16:8000";
 
 const api = axios.create({
   baseURL: "/api",
@@ -439,5 +439,19 @@ export const getCounterDropdown = async () => {
     throw error;
   }
 };
+
+/*==============================
+   Testimonial Api
+ =============================== */
+ export const getAllTestimonials = async (params) => {
+    try {
+      const res = await api.get("/getAllTestimonials", {
+                params: { page, limit, sort },
+                });
+                return res.data;
+            } catch (error) {
+        throw error;
+      } 
+ } ;
 
 export default api;

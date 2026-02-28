@@ -71,15 +71,13 @@ export function FormModal({
                                 type="button"
                                 variant="outline"
                                 onClick={() => onOpenChange(false)}
-                                disabled={isSubmitting}
-                            >
+                                disabled={isSubmitting} >
                                 Cancel
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="bg-[#00adef] hover:bg-[#00adef]/90 text-white"
-                            >
+                                className="bg-[#00adef] hover:bg-[#00adef]/90 text-white">
                                 {isSubmitting ? 'Saving...' : submitLabel}
                             </Button>
                         </DialogFooter>

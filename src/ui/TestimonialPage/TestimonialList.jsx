@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo ,useEffect} from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -7,13 +7,16 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { TestimonialsData } from "../../data/TestimonialsData";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { TestimonialForm } from "../forms/TestimonialForm";
+import  getAllTestimonials from "../../api/api_testimonial";
+import {BASE_URL} from "../../api/api";
 
 function TestimonialList() {
+    const [testimonials, setTestimonials] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
     const [statusFilter, setStatusFilter] = useState("All Status");
@@ -28,12 +31,47 @@ function TestimonialList() {
     const [formData, setFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [totalTestimonials, setTotalTestimonials] = useState(0);
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(TestimonialsData.map(s => s.specialty))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(TestimonialsData.map(s => s.status))], []);
+        const fetchTestimonials = async () => {
+            setIsLoading(true);
+            console.log("[FETCH START] Current page:", currentPage);
+            try {
+                // Backend handles pagination
+                const params = {
+                    page: currentPage,
+                    sort: 'recent' // Default according to Postman docs
+                };
+                console.log("[FETCH] Sending params to API:", params);                
+                    
+                const data = await getAllTestimonials(params);
+                console.log("[FETCH] data:", data); 
+                
+                if (data.status === "success") {
+                    console.log("[FETCH] Status",data)
+                    setTestimonials(data.data );
+                    setTotalTestimonials(data.data?.totalCount || 0);
+                }
+            } catch (error) {
+                // Error handled globally in api.js
+
+                console.log(error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+    
+        useEffect(() => {
+            fetchTestimonials();
+        }, [currentPage]);
+
+   
+
+    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specialty))], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], []);
 
     const filteredData = useMemo(() => {
-        return TestimonialsData.filter((item) => {
+        return testimonials.filter((item) => {
             const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesSpecialty = specialtyFilter === "All Specialties" || item.specialty === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
@@ -41,8 +79,10 @@ function TestimonialList() {
         });
     }, [searchTerm, specialtyFilter, statusFilter]);
 
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    // const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    // const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+     const totalPages = Math.ceil(totalTestimonials / itemsPerPage);
+    const currentData = testimonials;
 
     const handleExportCSV = () => {
         exportToCSV(filteredData, "Testimonials", {
@@ -95,36 +135,50 @@ function TestimonialList() {
 
     // Columns: Image, name , review, upload date, specialty, status, action
     const columns = [
-        {
-            key: "thumbnail",
-            label: "Image",
-            render: (value, row) => (
-                <div className="flex-shrink-0 h-14 w-14">
-                    <img
-                        src={value}
-                        alt={row.name}
-                        className="h-full w-full rounded object-cover"
-                    />
-                </div>
-            ),
-        },
+    {
+  key: "image",
+  label: "Image",
+  render: (value, row) => {
+    
+    console.log("[TABLE IMAGE] Raw 'image' value:", value);
+    const finalSrc = `${BASE_URL}${value}`;
+
+    console.log("[TABLE IMAGE] Cleaned path:", value);
+    console.log("[TABLE IMAGE] Final src:", finalSrc);
+
+    return (
+      <div className="flex-shrink-0 h-14 w-14 rounded overflow-hidden bg-gray-100">
+        <img
+          src={finalSrc}
+          alt={row.name || "Testimonial"}
+          className="h-full w-full object-cover"
+          onError={(e) => {
+            console.e
+            console.error("[TABLE IMAGE ERROR] Failed to load:", finalSrc);
+          
+          }}
+        />
+      </div>
+    );
+  },
+},
         {
             key: "name",
             label: "Name",
             render: (value) => <div className="font-medium text-gray-900">{value}</div>,
         },
         {
-            key: "review",
+            key: "rate",
             label: "Review",
             render: (value) => <div className="text-sm text-gray-500 truncate max-w-xs" title={value}>{value}</div>,
         },
         {
-            key: "date",
+            key: "cratedDate",
             label: "Date",
             render: (value) => <div className="text-sm text-gray-500">{value}</div>,
         },
         {
-            key: "specialty",
+            key: "testimony",
             label: "Role/Specialty",
             render: (value) => <div className="text-sm text-gray-700">{value}</div>,
         },
