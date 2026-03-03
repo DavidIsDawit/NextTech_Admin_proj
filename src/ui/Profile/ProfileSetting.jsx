@@ -206,7 +206,12 @@ function ProfileSetting() {
                       }
                       alt={formData.name || "User"}
                       className="w-full h-full object-cover"
-                      onError={(e) => (e.target.src = "/Avatar.png")}
+                      onError={(e) => {
+                        // Prevent infinite loop if fallback also fails
+                        if (!e.target.src.endsWith(defaultAvatar)) {
+                          e.target.src = defaultAvatar;
+                        }
+                      }}
                     />
                   </div>
                   <input
