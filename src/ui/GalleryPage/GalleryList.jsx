@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2, FiPlay } from "react-icons/fi";
+import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
@@ -12,19 +13,10 @@ import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { MediaForm } from "../forms/MediaForm";
 import { getAllGallery, addGallery, deleteGallery } from "../../api/galleryApi";
+import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 
-// Helper to extract the most useful error message from a backend error
-const extractErrorMessage = (error, fallback = "An error occurred") => {
-    const data = error?.response?.data;
-    if (!data) return error?.message || fallback;
-
-    // Backend validation errors can come as: { message, fields } or { errors: [...] }
-    if (data.message) return data.message;
-    if (Array.isArray(data.errors) && data.errors.length > 0) {
-        return data.errors.map((e) => e.message || e.msg || e).join(", ");
-    }
-    return fallback;
-};
+// Helper to extract the most useful error message from a backend error - REMOVED, using shared helper
+// Backend validation errors can come as: { message, fields } or { errors: [...] } - REMOVED, using shared helper
 
 function GalleryList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -41,9 +33,11 @@ function GalleryList() {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [formType, setFormType] = useState('add'); // 'add' or 'edit'
     const [formData, setFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const fetchGallery = async () => {
         setIsLoading(true);
@@ -56,7 +50,9 @@ function GalleryList() {
                 toast.error(result.message || "Failed to fetch gallery");
             }
         } catch (error) {
-            toast.error(extractErrorMessage(error, "Failed to fetch gallery"));
+            const status = error.response?.status;
+            const msg = error.response?.data?.message || error.message;
+            toast.error(`Failed to fetch gallery (${status || 'Network Error'}): ${msg}`);
             console.error("Failed to fetch gallery:", error);
         } finally {
             setIsLoading(false);
@@ -65,7 +61,7 @@ function GalleryList() {
 
     useEffect(() => {
         fetchGallery();
-    }, []);
+    }, [currentPage]);
 
     const categories = useMemo(
         () => ["All Categories", ...new Set(gallery.map((s) => s.catagory || s.category).filter(Boolean))],
@@ -77,8 +73,13 @@ function GalleryList() {
     );
 
     const filteredData = useMemo(() => {
+        const term = searchTerm.toLowerCase();
         return gallery.filter((item) => {
-            const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch =
+                !term ||
+                (item.catagory || item.category || "").toLowerCase().includes(term) ||
+                (item.fileType || "").toLowerCase().includes(term) ||
+                (item.status || "").toLowerCase().includes(term);
             const matchesCategory =
                 categoryFilter === "All Categories" ||
                 (item.catagory || item.category) === categoryFilter;
@@ -105,7 +106,31 @@ function GalleryList() {
 
     // Modal Handlers
     const handleAddNew = () => {
-        setFormData({ status: "Active" });
+        setFormType('add');
+        setFormData({
+            title: '',
+            catagory: '',
+            fileType: '',
+            status: 'Active',
+            coverImage: null,
+            images: []
+        });
+        setErrors({});
+        setIsFormModalOpen(true);
+    };
+
+    const handleEdit = (item) => {
+        setFormType('edit');
+        setSelectedItem(item);
+        setErrors({});
+
+        // Prepare data for the form
+        setFormData({
+            ...item,
+            coverImage: item.coverImage || item.image || '',
+            images: Array.isArray(item.images) ? item.images : []
+        });
+
         setIsFormModalOpen(true);
     };
 
@@ -114,20 +139,26 @@ function GalleryList() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleFormSubmit = async () => {
+    const handleFormSubmit = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        setErrors({});
         setIsSubmitting(true);
         try {
-            // Validate required cover image
-            if (!formData.coverImage || !(formData.coverImage instanceof File)) {
-                toast.error("Cover image is required");
+            // Simple Client-side validation: coverImage is only strictly required on add if not already present
+            if (formType === 'add' && (!formData.coverImage || !(formData.coverImage instanceof File))) {
+                setErrors({ coverImage: "Cover image is required" });
                 setIsSubmitting(false);
                 return;
             }
 
             const data = new FormData();
-            data.append("coverImage", formData.coverImage);
 
-            // Append additional gallery images if present
+            // Only append coverImage if it's a new file
+            if (formData.coverImage instanceof File) {
+                data.append("coverImage", formData.coverImage);
+            }
+
+            // Append additional gallery images if they are new files
             if (Array.isArray(formData.images)) {
                 formData.images.forEach((img) => {
                     if (img instanceof File) data.append("images", img);
@@ -142,20 +173,36 @@ function GalleryList() {
                 }
             });
 
-            const result = await addGallery(data);
+            console.log(`Submitting gallery item (${formType})...`, { title: formData.title });
+
+            let result;
+            if (formType === 'add') {
+                result = await addGallery(data);
+            } else {
+                const id = selectedItem?._id || selectedItem?.id;
+                result = await updateGallery(id, data);
+            }
 
             if (result.status === "success") {
-                toast.success("Gallery item added successfully!");
+                toast.success(`Gallery item ${formType === 'add' ? 'added' : 'updated'} successfully!`);
                 setIsFormModalOpen(false);
                 setFormData({});
                 await fetchGallery();
             } else {
-                // Surface the backend message if present
-                toast.error(result.message || "Failed to add gallery item");
+                toast.error(result.message || `Failed to ${formType} gallery item`);
             }
         } catch (error) {
-            toast.error(extractErrorMessage(error, "Failed to add gallery item"));
             console.error("Gallery add error:", error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+
+            const backendErrors = mapBackendErrors(error);
+            console.log("Mapped field errors:", backendErrors);
+
+            if (Object.keys(backendErrors).length > 0) {
+                setErrors(backendErrors);
+            }
+            toast.error(extractErrorMessage(error, "Failed to save gallery item"));
         } finally {
             setIsSubmitting(false);
         }
@@ -213,23 +260,18 @@ function GalleryList() {
             ),
         },
         {
-            key: "title",
-            label: "Media Title",
-            render: (value) => <div className="font-medium text-gray-900">{value}</div>,
-        },
-        {
             key: "fileType",
             label: "File Type",
             render: (value) => (
-                <span className="text-sm text-gray-500 uppercase">{value}</span>
+                <span className="text-sm text-gray-500 uppercase font-medium">{value || "—"}</span>
             ),
         },
         {
-            key: "createdDate",
+            key: "Date",
             label: "Upload Date",
-            render: (value, row) => (
+            render: (value) => (
                 <div className="text-sm text-gray-500">
-                    {value ? new Date(value).toLocaleDateString() : row.uploadDate || "N/A"}
+                    {value ? new Date(value).toLocaleDateString() : "N/A"}
                 </div>
             ),
         },
@@ -267,6 +309,13 @@ function GalleryList() {
                         title="View"
                     >
                         <FiEye size={21} />
+                    </button>
+                    <button
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
+                        onClick={() => handleEdit(row)}
+                        title="Edit"
+                    >
+                        <BiEdit size={21} />
                     </button>
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
@@ -380,13 +429,13 @@ function GalleryList() {
             <FormModal
                 open={isFormModalOpen}
                 onOpenChange={setIsFormModalOpen}
-                title="Add New Media"
+                title={formType === 'add' ? 'Add New Media' : 'Edit Media'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel="Add Media"
+                submitLabel={formType === 'add' ? 'Add Media' : 'Save Changes'}
                 size="lg"
             >
-                <MediaForm formData={formData} onChange={setFormData} />
+                <MediaForm formData={formData} onChange={setFormData} errors={errors} />
             </FormModal>
 
             <DeleteModal

@@ -12,6 +12,8 @@ import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { NewsForm } from "../forms/NewsForm";
 import { getAllNews, createNews, updateNews, deleteNews } from "../../api/newsApi";
+import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
+import { toast } from "sonner";
 
 function NewsList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -33,6 +35,7 @@ function NewsList() {
     const [formData, setFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const fetchNews = async () => {
         setIsLoading(true);
@@ -85,7 +88,19 @@ function NewsList() {
     // Modal Handlers
     const handleAddNew = () => {
         setFormType('add');
-        setFormData({ status: 'active' });
+        setFormData({
+            title: '',
+            catagory: 'company-news',
+            author: '',
+            descriptionOne: '',
+            descriptionTwo: '',
+            tags: '',
+            happenedOn: '',
+            status: 'Published',
+            imageCover: null,
+            images: []
+        });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
@@ -93,6 +108,7 @@ function NewsList() {
         setFormType('edit');
         setSelectedItem(item);
         setFormData({ ...item });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
@@ -102,26 +118,46 @@ function NewsList() {
     };
 
     const handleFormSubmit = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        setErrors({});
         setIsSubmitting(true);
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
                 if (key === 'images' && Array.isArray(formData[key])) {
-                    formData[key].forEach(file => data.append('images', file));
-                } else if (formData[key] !== null && formData[key] !== undefined) {
+                    formData[key].forEach(file => {
+                        if (file instanceof File) data.append('images', file);
+                    });
+                } else if (key === 'imageCover' && formData[key] instanceof File) {
+                    data.append('imageCover', formData[key]);
+                } else if (key !== 'images' && key !== 'imageCover' && formData[key] !== null && formData[key] !== undefined) {
                     data.append(key, formData[key]);
                 }
             });
 
+            console.log('Submitting news article...', { formType, title: formData.title });
+
             if (formType === 'add') {
                 await createNews(data);
+                toast.success("News article created successfully!");
             } else {
                 await updateNews(selectedItem._id || selectedItem.id, data);
+                toast.success("News article updated successfully!");
             }
             await fetchNews();
             setIsFormModalOpen(false);
         } catch (error) {
-            console.error("Failed to save news:", error);
+            console.error("News submission error:", error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+
+            const backendErrors = mapBackendErrors(error);
+            console.log("Mapped field errors:", backendErrors);
+
+            if (Object.keys(backendErrors).length > 0) {
+                setErrors(backendErrors);
+            }
+            toast.error(extractErrorMessage(error, "Failed to save news"));
         } finally {
             setIsSubmitting(false);
         }
@@ -322,6 +358,7 @@ function NewsList() {
                 <NewsForm
                     formData={formData}
                     onChange={setFormData}
+                    errors={errors}
                 />
             </FormModal>
 

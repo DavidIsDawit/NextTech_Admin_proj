@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
 import { Upload } from 'lucide-react';
 import { buildImageUrl } from '@/api/api';
 
@@ -67,7 +68,7 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
             {/* Partner File Upload */}
             <div className="space-y-2">
                 <div
-                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.partnerImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('partnerImage').click()}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
@@ -120,6 +121,7 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
                     placeholder="e.g., Ethiopian Airline, EthioTelecom, SafariCom..."
                     value={formData.partnerName || ''}
                     onChange={handleChange}
+                    className={errors.partnerName ? 'border-red-500' : ''}
                 />
                 {errors.partnerName && (
                     <p className="text-sm text-red-500">{errors.partnerName}</p>

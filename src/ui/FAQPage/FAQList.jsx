@@ -12,6 +12,7 @@ import { getAllFAQs, createFAQ, updateFAQ, deleteFAQ } from "../../api/faqApi";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { FAQForm } from "../forms/FAQForm";
+import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 
 function FAQList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -26,6 +27,7 @@ function FAQList() {
     const [selectedItem, setSelectedItem] = useState(null);
     const [formType, setFormType] = useState('add'); // 'add' or 'edit'
     const [formData, setFormData] = useState({});
+    const [errors, setErrors] = useState({});
 
     const [faqs, setFaqs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -85,20 +87,35 @@ function FAQList() {
     // Modal Handlers
     const handleAddNew = () => {
         setFormType('add');
-        setFormData({ status: 'published' });
+        setFormData({
+            question: '',
+            answer: '',
+            category: 'general',
+            status: 'published'
+        });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
     const handleEdit = (item) => {
         setFormType('edit');
         setSelectedItem(item);
-        // Map backend 'catagory' to frontend 'category' for form if needed
-        setFormData({ ...item, category: item.catagory || item.category });
+        setErrors({});
+        // Map backend 'catagory' to frontend 'category' for form
+        setFormData({
+            ...item,
+            category: item.catagory || item.category || 'general',
+            question: item.question || '',
+            answer: item.answer || ''
+        });
         setIsFormModalOpen(true);
     };
 
-    const handleFormSubmit = async () => {
+    const handleFormSubmit = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
         setIsSubmitting(true);
+        setErrors({}); // Clear previous errors
+
         try {
             const payload = {
                 question: formData.question,
@@ -119,9 +136,26 @@ function FAQList() {
                 toast.success(`FAQ ${formType === 'add' ? 'added' : 'updated'} successfully!`);
                 setIsFormModalOpen(false);
                 fetchFAQs();
+            } else {
+                // If backend returns status failure but 200 OK
+                const msg = response.message || "Failed to save FAQ";
+                toast.error(msg);
+                // Try to extract errors if present in non-throwing case
+                const manualMapped = mapBackendErrors({ response: { data: response } });
+                if (Object.keys(manualMapped).length > 0) setErrors(manualMapped);
             }
         } catch (error) {
-            const msg = error.response?.data?.message || "Failed to save FAQ";
+            console.error("FAQ submission error:", error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+
+            const backendErrors = mapBackendErrors(error);
+            console.log("Mapped field errors:", backendErrors);
+
+            if (Object.keys(backendErrors).length > 0) {
+                setErrors(backendErrors);
+            }
+            const msg = extractErrorMessage(error, "Failed to save FAQ");
             toast.error(msg);
         } finally {
             setIsSubmitting(false);
@@ -287,6 +321,7 @@ function FAQList() {
                 <FAQForm
                     formData={formData}
                     setFormData={setFormData}
+                    errors={errors}
                 />
             </FormModal>
 

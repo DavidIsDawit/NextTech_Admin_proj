@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
 import { Upload } from 'lucide-react';
 import { buildImageUrl } from '@/api/api';
 
-export function TestimonialForm({ formData, setFormData, errors = {} }) {
+export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
     const [preview, setPreview] = useState(null);
 
     useEffect(() => {
@@ -23,17 +23,17 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        onChange?.({ ...formData, [name]: value });
     };
 
     const handleSelectChange = (name, value) => {
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        onChange?.({ ...formData, [name]: value });
     };
 
     const handleFileChange = (e) => {
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (file) {
-            setFormData((prev) => ({ ...prev, file: file }));
+            onChange?.({ ...formData, file: file });
             setPreview(URL.createObjectURL(file));
         }
     };
@@ -42,7 +42,7 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
         <div className="space-y-6">
             {/* File Upload Area */}
             <div
-                className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.image || errors.file ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                 onClick={() => document.getElementById('testimonial-file').click()}
             >
                 <div className="flex flex-col items-center">
@@ -68,11 +68,15 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
                 </div>
                 <input
                     id="testimonial-file"
+                    name="file"
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                     className="hidden"
                 />
+                {(errors.image || errors.file) && (
+                    <p className="text-sm text-red-500">{errors.image || errors.file}</p>
+                )}
             </div>
 
             {/* Name */}
@@ -97,26 +101,29 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
                 <Input
                     id="speciality"
                     name="speciality"
-                    value={formData.speciality}
+                    value={formData.speciality || ''}
                     onChange={handleChange}
                     placeholder="e.g., CEO, CTO,...."
                     className={errors.speciality ? 'border-red-500' : ''}
                 />
+                {errors.speciality && (
+                    <p className="text-sm text-red-500">{errors.speciality}</p>
+                )}
             </div>
 
-            {/* Review */}
+            {/* Testimony / Review */}
             <div className="space-y-2">
-                <Label htmlFor="review">Review</Label>
+                <Label htmlFor="testimony">Testimony</Label>
                 <Textarea
-                    id="review"
-                    name="review"
-                    value={formData.review}
+                    id="testimony"
+                    name="testimony"
+                    value={formData.testimony || formData.review || ''}
                     onChange={handleChange}
                     placeholder="Describe the project, offerings, capabilities, and key features..."
-                    className="min-h-[100px]"
+                    className={`min-h-[100px] ${errors.testimony || errors.review ? 'border-red-500' : ''}`}
                 />
-                {errors.review && (
-                    <p className="text-sm text-red-500">{errors.review}</p>
+                {(errors.testimony || errors.review) && (
+                    <p className="text-sm text-red-500">{errors.testimony || errors.review}</p>
                 )}
             </div>
 
@@ -127,39 +134,45 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
                     id="date"
                     name="date"
                     type="date"
-                    value={formData.date}
+                    value={formData.date || ''}
                     onChange={handleChange}
                     className={errors.date ? 'border-red-500' : ''}
                 />
+                {errors.date && (
+                    <p className="text-sm text-red-500">{errors.date}</p>
+                )}
             </div>
 
             {/* Status */}
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status}
+                    value={formData.status || 'Active'}
                     onValueChange={(value) => handleSelectChange('status', value)}
                     className="flex items-center gap-6"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="published" id="t-published" />
-                        <Label htmlFor="t-published" className="font-normal text-slate-600">
-                            Published
+                        <RadioGroupItem value="Active" id="t-active" />
+                        <Label htmlFor="t-active" className="font-normal text-slate-600">
+                            Active
                         </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="draft" id="t-draft" />
+                        <RadioGroupItem value="Inactive" id="t-inactive" />
+                        <Label htmlFor="t-inactive" className="font-normal text-slate-600">
+                            Inactive
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="Draft" id="t-draft" />
                         <Label htmlFor="t-draft" className="font-normal text-slate-600">
                             Draft
                         </Label>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="archived" id="t-archived" />
-                        <Label htmlFor="t-archived" className="font-normal text-slate-600">
-                            Archived
-                        </Label>
-                    </div>
                 </RadioGroup>
+                {errors.status && (
+                    <p className="text-sm text-red-500">{errors.status}</p>
+                )}
             </div>
         </div>
     );

@@ -87,7 +87,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Cover Image</Label>
                 <div
-                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.coverImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('media-coverImage').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -129,7 +129,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Gallery Images</Label>
                 <div
-                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('media-gallery').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -171,6 +171,22 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
+            {/* Title */}
+            <div className="space-y-2">
+                <Label htmlFor="title">Media Title</Label>
+                <Input
+                    id="title"
+                    name="title"
+                    placeholder="Enter media title"
+                    value={formData.title || ''}
+                    onChange={handleChange}
+                    className={errors.title ? 'border-red-500' : ''}
+                />
+                {errors.title && (
+                    <p className="text-sm text-red-500">{errors.title}</p>
+                )}
+            </div>
+
 
             {/* Category */}
             <div className="space-y-2">
@@ -179,7 +195,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                     value={formData.catagory || ''}
                     onValueChange={(value) => handleSelectChange('catagory', value)}
                 >
-                    <SelectTrigger>
+                    <SelectTrigger className={errors.catagory ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -202,7 +218,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                     value={formData.fileType || ''}
                     onValueChange={(value) => handleSelectChange('fileType', value)}
                 >
-                    <SelectTrigger>
+                    <SelectTrigger className={errors.fileType ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Select file type" />
                     </SelectTrigger>
                     <SelectContent>

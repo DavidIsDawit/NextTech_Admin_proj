@@ -12,6 +12,8 @@ import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { TeamForm } from "../forms/TeamForm";
 import { getAllTeams, createTeamMember, updateTeamMember, deleteTeamMember } from "../../api/teamApi";
+import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
+import { toast } from "sonner";
 
 function TeamList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -33,6 +35,7 @@ function TeamList() {
     const [formData, setFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const fetchTeam = async () => {
         setIsLoading(true);
@@ -80,7 +83,14 @@ function TeamList() {
     // Modal Handlers
     const handleAddNew = () => {
         setFormType('add');
-        setFormData({ status: 'active' });
+        setFormData({
+            name: '',
+            specialty: '',
+            status: 'Active',
+            image: null,
+            socialMedia: []
+        });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
@@ -88,6 +98,7 @@ function TeamList() {
         setFormType('edit');
         setSelectedItem(item);
         setFormData({ ...item });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
@@ -97,26 +108,44 @@ function TeamList() {
     };
 
     const handleFormSubmit = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        setErrors({});
         setIsSubmitting(true);
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
                 if (key === 'socialMedia' && Array.isArray(formData[key])) {
                     data.append(key, JSON.stringify(formData[key]));
-                } else if (formData[key] !== null && formData[key] !== undefined) {
+                } else if (key === 'image' && formData[key] instanceof File) {
+                    data.append('image', formData[key]);
+                } else if (key !== 'socialMedia' && key !== 'image' && formData[key] !== null && formData[key] !== undefined) {
                     data.append(key, formData[key]);
                 }
             });
 
+            console.log('Submitting team member...', { formType, name: formData.name });
+
             if (formType === 'add') {
                 await createTeamMember(data);
+                toast.success("Team member added successfully!");
             } else {
                 await updateTeamMember(selectedItem._id || selectedItem.id, data);
+                toast.success("Team member updated successfully!");
             }
             await fetchTeam();
             setIsFormModalOpen(false);
         } catch (error) {
-            console.error("Failed to save team member:", error);
+            console.error("Team member submission error:", error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+
+            const backendErrors = mapBackendErrors(error);
+            console.log("Mapped field errors:", backendErrors);
+
+            if (Object.keys(backendErrors).length > 0) {
+                setErrors(backendErrors);
+            }
+            toast.error(extractErrorMessage(error, "Failed to save team member"));
         } finally {
             setIsSubmitting(false);
         }
@@ -312,6 +341,7 @@ function TeamList() {
                 <TeamForm
                     formData={formData}
                     onChange={setFormData}
+                    errors={errors}
                 />
             </FormModal>
 

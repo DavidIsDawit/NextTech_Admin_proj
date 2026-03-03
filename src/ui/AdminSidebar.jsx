@@ -17,7 +17,7 @@ import { Button } from "@/ui/button"
 const gamenuItems = [
   { title: "Services", path: "/admin/services", icon: "/images/Services.png" },
   { title: "Partner Management", path: "/admin/partners", icon: "/images/partner.png" },
-  { title: "Projects", path: "/admin/projects", icon: "/images/Project.png" },
+  { title: "Portfolio", path: "/admin/projects", icon: "/images/Project.png" },
   { title: "Gallery", path: "/admin/gallery", icon: "/images/Gallary.png" },
   { title: "Certificates", path: "/admin/certificates", icon: "/images/certificate.png" },
   { title: "Team Management", path: "/admin/teams", icon: "/images/team_page.jpg" },

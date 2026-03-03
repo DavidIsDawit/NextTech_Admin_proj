@@ -13,6 +13,7 @@ import { exportToCSV } from "../../utils/csvExport";
 import { formatNumber } from "../../utils/formatters";
 import { FormModal } from "../modals/FormModal";
 import { CounterForm } from "../forms/CounterForm";
+import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 
 function CounterList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -30,6 +31,7 @@ function CounterList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [formType, setFormType] = useState('add'); // 'add' or 'edit'
+    const [errors, setErrors] = useState({});
 
     const fetchCounters = async () => {
         setIsLoading(true);
@@ -92,6 +94,7 @@ function CounterList() {
             value: 0,
             status: 'active'
         });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
@@ -99,10 +102,25 @@ function CounterList() {
         setFormType('edit');
         setSelectedItem(item);
         setFormData({ ...item });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
-    const handleFormSubmit = async () => {
+    const handleFormSubmit = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        setErrors({});
+
+        // Simple client-side validation
+        const localErrors = {};
+        if (formType === 'add' && !formData.name) {
+            localErrors.name = "Counter Title is required";
+        }
+
+        if (Object.keys(localErrors).length > 0) {
+            setErrors(localErrors);
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             // Strictly control the payload fields to align with backend expectations
@@ -127,7 +145,17 @@ function CounterList() {
                 fetchCounters();
             }
         } catch (error) {
-            const msg = error.response?.data?.message || "Failed to save counter";
+            console.error("Counter submission error:", error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+
+            const backendErrors = mapBackendErrors(error);
+            console.log("Mapped field errors:", backendErrors);
+
+            if (Object.keys(backendErrors).length > 0) {
+                setErrors(backendErrors);
+            }
+            const msg = extractErrorMessage(error, "Failed to save counter");
             toast.error(msg);
         } finally {
             setIsSubmitting(false);
@@ -286,6 +314,7 @@ function CounterList() {
                     setFormData={setFormData}
                     existingNames={existingNames}
                     formType={formType}
+                    errors={errors}
                 />
             </FormModal>
 
