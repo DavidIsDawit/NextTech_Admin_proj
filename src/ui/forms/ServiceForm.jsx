@@ -1,10 +1,18 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { Textarea } from '@/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/ui/select';
 import { Upload } from 'lucide-react';
+import { buildImageUrl } from '@/api/api';
 
 /**
  * ServiceForm - Form component for Service entity
@@ -14,52 +22,62 @@ import { Upload } from 'lucide-react';
  * @param {object} errors - Validation errors object
  */
 export function ServiceForm({ formData = {}, onChange, errors = {} }) {
-    const [thumbnailPreview, setThumbnailPreview] = useState(null);
-    const [galleryPreviews, setGalleryPreviews] = useState([]);
+    const [imageCoverPreview, setImageCoverPreview] = useState(null);
+    const [imagesPreview, setImagesPreview] = useState([]);
 
     // Initialize previews from existing data
     React.useEffect(() => {
-        if (formData.thumbnail && typeof formData.thumbnail === 'string') {
-            setThumbnailPreview(formData.thumbnail);
+        let objectUrl;
+        if (formData.imageCover instanceof File) {
+            objectUrl = URL.createObjectURL(formData.imageCover);
+            setImageCoverPreview(objectUrl);
+        } else if (formData.imageCover && typeof formData.imageCover === 'string') {
+            setImageCoverPreview(buildImageUrl(formData.imageCover));
+        } else {
+            setImageCoverPreview(null);
         }
-        if (formData.serviceGallery && Array.isArray(formData.serviceGallery)) {
-            const strings = formData.serviceGallery.filter(item => typeof item === 'string');
+
+        if (formData.images && Array.isArray(formData.images)) {
+            const strings = formData.images.filter(item => typeof item === 'string');
             if (strings.length > 0) {
-                setGalleryPreviews(strings);
+                setImagesPreview(strings.map(s => buildImageUrl(s)));
             }
         }
-    }, [formData.thumbnail, formData.serviceGallery]);
+
+        return () => {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
+    }, [formData.imageCover, formData.images]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         onChange?.({ ...formData, [name]: value });
     };
 
-    const handleThumbnailChange = (e) => {
+    const handleImageCoverChange = (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            onChange?.({ ...formData, thumbnail: file });
+            onChange?.({ ...formData, imageCover: file });
             const reader = new FileReader();
             reader.onloadend = () => {
-                setThumbnailPreview(reader.result);
+                setImageCoverPreview(reader.result);
             };
             reader.readAsDataURL(file);
         }
     };
 
-    const handleGalleryChange = (e) => {
+    const handleImagesChange = (e) => {
         const files = Array.from(e.target.files || []);
         if (files.length > 0) {
-            onChange?.({ ...formData, serviceGallery: files });
+            onChange?.({ ...formData, images: files });
 
-            // Create previews
             const previews = [];
             files.forEach(file => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     previews.push(reader.result);
                     if (previews.length === files.length) {
-                        setGalleryPreviews(previews);
+                        setImagesPreview(previews);
                     }
                 };
                 reader.readAsDataURL(file);
@@ -73,27 +91,31 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
 
     return (
         <div className="space-y-4">
-            {/* Thumbnail Upload */}
+            {/* Image Cover Upload */}
             <div className="space-y-2">
-                <Label>Thumbnail</Label>
+                <Label>Cover Image</Label>
                 <div
                     className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
-                    onClick={() => document.getElementById('service-thumbnail').click()}
+                    onClick={() => document.getElementById('service-imageCover').click()}
                 >
                     <div className="flex flex-col items-center">
-                        {formData.thumbnail instanceof File && thumbnailPreview && (
+                        {imageCoverPreview && (
                             <div className="flex flex-col items-center mb-6">
                                 <img
-                                    src={thumbnailPreview}
-                                    alt="Thumbnail preview"
+                                    src={imageCoverPreview}
+                                    alt="Cover preview"
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                                 />
+                                {!(formData.imageCover instanceof File) && (
+                                    <span className="text-xs text-gray-400 mt-2 italic text-center">Current Cover</span>
+                                )}
                             </div>
                         )}
                         <div className="flex flex-col items-center justify-center">
                             <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
                             <p className="text-sm text-gray-600">
-                                Drag your service thumbnail to start uploading
+                                Drag your service cover image to start uploading
                             </p>
                             <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
                             <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
@@ -103,35 +125,35 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
                     </div>
                 </div>
                 <Input
-                    id="service-thumbnail"
-                    name="thumbnail"
+                    id="service-imageCover"
+                    name="imageCover"
                     type="file"
                     accept="image/*"
-                    onChange={handleThumbnailChange}
+                    onChange={handleImageCoverChange}
                     className="hidden"
                 />
-                {errors.thumbnail && (
-                    <p className="text-sm text-red-500">{errors.thumbnail}</p>
+                {errors.imageCover && (
+                    <p className="text-sm text-red-500">{errors.imageCover}</p>
                 )}
             </div>
 
-            {/* Service Gallery Upload */}
+            {/* Service Images Upload */}
             <div className="space-y-2">
-                <Label>Service Gallery</Label>
+                <Label>Service Images (Gallery)</Label>
                 <div
                     className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
-                    onClick={() => document.getElementById('service-gallery').click()}
+                    onClick={() => document.getElementById('service-images').click()}
                 >
                     <div className="flex flex-col items-center">
-                        {galleryPreviews.length > 0 && Array.isArray(formData.serviceGallery) && formData.serviceGallery.some(item => item instanceof File) && (
+                        {imagesPreview.length > 0 && (
                             <div className="space-y-4 w-full mb-6 text-center">
                                 <div className="grid grid-cols-3 gap-2">
-                                    {galleryPreviews.map((preview, idx) => (
+                                    {imagesPreview.map((preview, idx) => (
                                         <img key={idx} src={preview} alt={`Gallery ${idx + 1}`} className="h-20 w-full object-cover rounded border border-gray-200" />
                                     ))}
                                 </div>
                                 <p className="text-sm text-gray-600 italic">
-                                    {formData.serviceGallery?.length} images selected
+                                    {imagesPreview.length} images selected
                                 </p>
                             </div>
                         )}
@@ -148,16 +170,16 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
                     </div>
                 </div>
                 <Input
-                    id="service-gallery"
-                    name="serviceGallery"
+                    id="service-images"
+                    name="images"
                     type="file"
                     accept="image/*"
                     multiple
-                    onChange={handleGalleryChange}
+                    onChange={handleImagesChange}
                     className="hidden"
                 />
-                {errors.serviceGallery && (
-                    <p className="text-sm text-red-500">{errors.serviceGallery}</p>
+                {errors.images && (
+                    <p className="text-sm text-red-500">{errors.images}</p>
                 )}
             </div>
 
@@ -178,49 +200,68 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Category */}
             <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="catagory">Category</Label>
                 <Input
-                    id="category"
-                    name="category"
+                    id="catagory"
+                    name="catagory"
                     placeholder="e.g., Consultation"
-                    value={formData.category || ''}
+                    value={formData.catagory || ''}
                     onChange={handleChange}
                 />
-                {errors.category && (
-                    <p className="text-sm text-red-500">{errors.category}</p>
+                {errors.catagory && (
+                    <p className="text-sm text-red-500">{errors.catagory}</p>
                 )}
             </div>
 
-            {/* Service Short Description */}
+            {/* Service Description */}
             <div className="space-y-2">
-                <Label htmlFor="shortDescription">Service Short Description</Label>
+                <Label htmlFor="description">Service Description</Label>
                 <Textarea
-                    id="shortDescription"
-                    name="shortDescription"
+                    id="description"
+                    name="description"
                     placeholder="Brief description of the service..."
-                    value={formData.shortDescription || ''}
+                    value={formData.description || ''}
                     onChange={handleChange}
                     rows={3}
                 />
-                {errors.shortDescription && (
-                    <p className="text-sm text-red-500">{errors.shortDescription}</p>
+                {errors.description && (
+                    <p className="text-sm text-red-500">{errors.description}</p>
                 )}
             </div>
 
-            {/* Full Service Description */}
+            {/* Headline */}
             <div className="space-y-2">
-                <Label htmlFor="fullDescription">Sub Service Description</Label>
-                <Textarea
-                    id="fullDescription"
-                    name="fullDescription"
-                    placeholder="Detailed description of the service..."
-                    value={formData.fullDescription || ''}
+                <Label htmlFor="headLine">Headline</Label>
+                <Input
+                    id="headLine"
+                    name="headLine"
+                    placeholder="Enter main headline"
+                    value={formData.headLine || ''}
                     onChange={handleChange}
-                    rows={4}
                 />
-                {errors.fullDescription && (
-                    <p className="text-sm text-red-500">{errors.fullDescription}</p>
+                {errors.headLine && (
+                    <p className="text-sm text-red-500">{errors.headLine}</p>
                 )}
+            </div>
+
+            {/* Optional Subsections */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="subTitleOne">Sub Title One</Label>
+                    <Input id="subTitleOne" name="subTitleOne" value={formData.subTitleOne || ''} onChange={handleChange} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="subdescriptionOne">Sub Description One</Label>
+                    <Input id="subdescriptionOne" name="subdescriptionOne" value={formData.subdescriptionOne || ''} onChange={handleChange} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="subTitleTwo">Sub Title Two</Label>
+                    <Input id="subTitleTwo" name="subTitleTwo" value={formData.subTitleTwo || ''} onChange={handleChange} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="subdescriptionTwo">Sub Description Two</Label>
+                    <Input id="subdescriptionTwo" name="subdescriptionTwo" value={formData.subdescriptionTwo || ''} onChange={handleChange} />
+                </div>
             </div>
 
             {/* Status */}
@@ -236,8 +277,8 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
                         <Label htmlFor="service-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="disable" id="service-disable" />
-                        <Label htmlFor="service-disable" className="font-normal cursor-pointer">Inactive</Label>
+                        <RadioGroupItem value="inactive" id="service-inactive" />
+                        <Label htmlFor="service-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="draft" id="service-draft" />

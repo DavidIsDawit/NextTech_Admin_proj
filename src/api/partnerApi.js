@@ -47,7 +47,7 @@ export const getAllPartners = async ({ page = 1, limit = 10, sort = "recent" } =
 ------------------------------------------------------------------ */
 export const createPartner = async (formData) => {
     try {
-        const response = await api.post("/Addpartners", formData, {
+        const response = await api.post("/AddPartners", formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
         const result = response.data;
@@ -64,6 +64,7 @@ export const createPartner = async (formData) => {
 
 /* ------------------------------------------------------------------
    UPDATE
+   (CRITICAL: Not yet available in backend — this will return 404)
    PUT /api/UpdatePartners/:id   (multipart/form-data)
    Body: any subset of create fields
    Returns: { status, data: { partner: {} } }

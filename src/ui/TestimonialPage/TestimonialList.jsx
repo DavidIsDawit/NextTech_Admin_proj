@@ -1,4 +1,4 @@
-import { useState, useMemo ,useEffect} from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -11,8 +11,7 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { TestimonialForm } from "../forms/TestimonialForm";
-import  getAllTestimonials from "../../api/api_testimonial";
-import {BASE_URL} from "../../api/api";
+import { getAllTestimonials, createTestimonial, updateTestimonial, deleteTestimonial } from "../../api/api_testimonial";
 
 function TestimonialList() {
     const [testimonials, setTestimonials] = useState([]);
@@ -33,63 +32,53 @@ function TestimonialList() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [totalTestimonials, setTotalTestimonials] = useState(0);
 
-        const fetchTestimonials = async () => {
-            setIsLoading(true);
-            console.log("[FETCH START] Current page:", currentPage);
-            try {
-                // Backend handles pagination
-                const params = {
-                    page: currentPage,
-                    sort: 'recent' // Default according to Postman docs
-                };
-                console.log("[FETCH] Sending params to API:", params);                
-                    
-                const data = await getAllTestimonials(params);
-                console.log("[FETCH] data:", data); 
-                
-                if (data.status === "success") {
-                    console.log("[FETCH] Status",data)
-                    setTestimonials(data.data );
-                    setTotalTestimonials(data.data?.totalCount || 0);
-                }
-            } catch (error) {
-                // Error handled globally in api.js
+    const fetchTestimonials = async () => {
+        setIsLoading(true);
+        try {
+            // Backend handles pagination
+            const params = {
+                page: currentPage,
+                limit: itemsPerPage,
+                sort: 'recent'
+            };
+            const result = await getAllTestimonials(params);
 
-                console.log(error);
-            } finally {
-                setIsLoading(false);
+            if (result.status === "success") {
+                setTestimonials(result.data || []);
+                setTotalTestimonials(result.totalCount || result.total || result.data?.length || 0);
             }
-        };
-    
-        useEffect(() => {
-            fetchTestimonials();
-        }, [currentPage]);
+        } catch (error) {
+            console.error("Failed to fetch testimonials:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-   
+    useEffect(() => {
+        fetchTestimonials();
+    }, [currentPage]);
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specialty))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], []);
+    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specialty || s.testimony))], [testimonials]);
+    const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], [testimonials]);
 
     const filteredData = useMemo(() => {
         return testimonials.filter((item) => {
             const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesSpecialty = specialtyFilter === "All Specialties" || item.specialty === specialtyFilter;
+            const matchesSpecialty = specialtyFilter === "All Specialties" || (item.specialty || item.testimony) === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesSpecialty && matchesStatus;
         });
-    }, [searchTerm, specialtyFilter, statusFilter]);
+    }, [searchTerm, specialtyFilter, statusFilter, testimonials]);
 
-    // const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    // const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-     const totalPages = Math.ceil(totalTestimonials / itemsPerPage);
-    const currentData = testimonials;
+    // Pagination Logic
+    const totalPages = Math.ceil(totalTestimonials / itemsPerPage);
+    const currentData = testimonials; // API already paginates
 
     const handleExportCSV = () => {
         exportToCSV(filteredData, "Testimonials", {
             name: "Name",
-            review: "Review",
-            date: "Date",
-            specialty: "Role/Specialty",
+            testimony: "Testimony",
+            rate: "Rating",
             status: "Status"
         });
     };
@@ -97,7 +86,7 @@ function TestimonialList() {
     // Modal Handlers
     const handleAddNew = () => {
         setFormType('add');
-        setFormData({ status: 'active' });
+        setFormData({ status: 'active', rate: 5 });
         setIsFormModalOpen(true);
     };
 
@@ -113,55 +102,64 @@ function TestimonialList() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log(`Testimonial ${formType === 'add' ? 'added' : 'updated'}:`, formData);
-            setIsSubmitting(false);
+        try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                // If it's the 'image' field and it's from the file input (instance of File)
+                if (key === 'file' && formData[key] instanceof File) {
+                    data.append('image', formData[key]);
+                } else if (formData[key] !== null && formData[key] !== undefined) {
+                    data.append(key, formData[key]);
+                }
+            });
+
+            if (formType === 'add') {
+                await createTestimonial(data);
+            } else {
+                await updateTestimonial(selectedItem._id || selectedItem.id, data);
+            }
+            await fetchTestimonials();
             setIsFormModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to save testimonial:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const handleDeleteConfirm = () => {
+    const handleDeleteConfirm = async () => {
         setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Testimonial deleted:", selectedItem.id);
-            setIsDeleting(false);
+        try {
+            await deleteTestimonial(selectedItem._id || selectedItem.id);
+            await fetchTestimonials();
             setIsDeleteModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to delete testimonial:", error);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     // Columns: Image, name , review, upload date, specialty, status, action
     const columns = [
-    {
-  key: "image",
-  label: "Image",
-  render: (value, row) => {
-    
-    console.log("[TABLE IMAGE] Raw 'image' value:", value);
-    const finalSrc = `${BASE_URL}${value}`;
-
-    console.log("[TABLE IMAGE] Cleaned path:", value);
-    console.log("[TABLE IMAGE] Final src:", finalSrc);
-
-    return (
-      <div className="flex-shrink-0 h-14 w-14 rounded overflow-hidden bg-gray-100">
-        <img
-          src={finalSrc}
-          alt={row.name || "Testimonial"}
-          className="h-full w-full object-cover"
-          onError={(e) => {
-            console.e
-            console.error("[TABLE IMAGE ERROR] Failed to load:", finalSrc);
-          
-          }}
-        />
-      </div>
-    );
-  },
-},
+        {
+            key: "image",
+            label: "Image",
+            render: (value, row) => (
+                <div className="flex-shrink-0 h-14 w-14 rounded overflow-hidden bg-gray-100">
+                    <img
+                        src={value || "/upload-placeholder.png"}
+                        alt={row.name || "Testimonial"}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                            e.target.src = "/upload-placeholder.png";
+                        }}
+                    />
+                </div>
+            ),
+        },
         {
             key: "name",
             label: "Name",

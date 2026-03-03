@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -7,11 +7,11 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { TeamData } from "../../data/TeamData";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { TeamForm } from "../forms/TeamForm";
+import { getAllTeams, createTeamMember, updateTeamMember, deleteTeamMember } from "../../api/teamApi";
 
 function TeamList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +19,11 @@ function TeamList() {
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
+
+    // Data State
+    const [team, setTeam] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [totalItems, setTotalItems] = useState(0);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -29,17 +34,36 @@ function TeamList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(TeamData.map(s => s.specialty))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(TeamData.map(s => s.status))], []);
+    const fetchTeam = async () => {
+        setIsLoading(true);
+        try {
+            const result = await getAllTeams({ page: currentPage, limit: 100 });
+            if (result.status === "success") {
+                setTeam(result.data || []);
+                setTotalItems(result.totalTeams || result.data?.length || 0);
+            }
+        } catch (error) {
+            console.error("Failed to fetch team:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTeam();
+    }, []);
+
+    const specialties = useMemo(() => ["All Specialties", ...new Set(team.map(s => s.specialty))], [team]);
+    const statuses = useMemo(() => ["All Status", ...new Set(team.map(s => s.status))], [team]);
 
     const filteredData = useMemo(() => {
-        return TeamData.filter((item) => {
+        return team.filter((item) => {
             const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesSpecialty = specialtyFilter === "All Specialties" || item.specialty === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesSpecialty && matchesStatus;
         });
-    }, [searchTerm, specialtyFilter, statusFilter]);
+    }, [searchTerm, specialtyFilter, statusFilter, team]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -72,24 +96,43 @@ function TeamList() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log(`Team member ${formType === 'add' ? 'added' : 'updated'}:`, formData);
-            setIsSubmitting(false);
+        try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (key === 'socialMedia' && Array.isArray(formData[key])) {
+                    data.append(key, JSON.stringify(formData[key]));
+                } else if (formData[key] !== null && formData[key] !== undefined) {
+                    data.append(key, formData[key]);
+                }
+            });
+
+            if (formType === 'add') {
+                await createTeamMember(data);
+            } else {
+                await updateTeamMember(selectedItem._id || selectedItem.id, data);
+            }
+            await fetchTeam();
             setIsFormModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to save team member:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const handleDeleteConfirm = () => {
+    const handleDeleteConfirm = async () => {
         setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Team member deleted:", selectedItem.id);
-            setIsDeleting(false);
+        try {
+            await deleteTeamMember(selectedItem._id || selectedItem.id);
+            await fetchTeam();
             setIsDeleteModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to delete team member:", error);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     // Columns: Image , name , upload date , specialty, status, action
@@ -113,9 +156,9 @@ function TeamList() {
             render: (value) => <div className="font-medium text-gray-900">{value}</div>,
         },
         {
-            key: "date",
+            key: "createdDate",
             label: "Joining Date",
-            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
+            render: (value, row) => <div className="text-sm text-gray-500">{value?.split('T')[0] || row.date}</div>,
         },
         {
             key: "specialty",
@@ -223,7 +266,13 @@ function TeamList() {
             </div>
 
             <div>
-                <DynamicTable columns={columns} rows={currentData} />
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
+                    </div>
+                ) : (
+                    <DynamicTable columns={columns} rows={currentData} />
+                )}
             </div>
 
             <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">

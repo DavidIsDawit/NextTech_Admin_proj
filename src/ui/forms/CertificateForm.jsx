@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
-import { BASE_URL, buildImageUrl } from '@/api/api';
+import { buildImageUrl } from '@/api/api';
 import { toast } from 'sonner';
 import { Upload } from 'lucide-react';
 
@@ -87,15 +87,21 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                     onDragOver={handleDragOver}
                 >
                     <div className="flex flex-col items-center">
-                        {formData.certificate instanceof File && filePreview && (
+                        {filePreview && (
                             <div className="flex flex-col items-center mb-6">
                                 <img
                                     src={filePreview}
                                     alt="Preview"
                                     crossOrigin="anonymous"
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
-                                    onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
+                                    onError={(e) => {
+                                        console.error("Preview load error:", filePreview);
+                                        e.target.src = "/upload-placeholder.png";
+                                    }}
                                 />
+                                {!(formData.certificate instanceof File) && (
+                                    <span className="text-xs text-gray-400 mt-2 italic text-center">Current Certificate</span>
+                                )}
                             </div>
                         )}
                         <div className="flex flex-col items-center justify-center">

@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 
 // Use Vite env var with fallback to local IP
-export const BASE_URL = import.meta.env.VITE_PUBLIC_URL;
+// export const BASE_URL = import.meta.env.VITE_PUBLIC_URL;
 
 const api = axios.create({
   baseURL: "/api",
@@ -190,19 +190,5 @@ export const buildImageUrl = (relativePath) => {
 
   return `/img/${cleanPath}`;
 };
-
-/*==============================
-   Testimonial Api
- =============================== */
- export const getAllTestimonials = async (params) => {
-    try {
-      const res = await api.get("/getAllTestimonials", {
-                params: { page, limit, sort },
-                });
-                return res.data;
-            } catch (error) {
-        throw error;
-      } 
- } ;
 
 export default api;

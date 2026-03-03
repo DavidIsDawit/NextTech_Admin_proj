@@ -80,7 +80,7 @@ export const updateCounter = async (id, data) => {
 
 /* ------------------------------------------------------------------
    DELETE
-   (Not yet available in backend — placeholder for when added)
+   (CRITICAL: Not yet available in backend — this will return 404)
    DELETE /api/deleteCounter/:id
    Returns: { status, message }
 ------------------------------------------------------------------ */

@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { Textarea } from '@/ui/textarea';
@@ -81,13 +81,17 @@ export function ProjectForm({ formData = {}, onChange, errors = {} }) {
                     onClick={() => document.getElementById('thumbnail').click()}
                 >
                     <div className="flex flex-col items-center">
-                        {formData.thumbnail instanceof File && thumbnailPreview && (
+                        {thumbnailPreview && (
                             <div className="flex flex-col items-center mb-6">
                                 <img
                                     src={thumbnailPreview}
                                     alt="Thumbnail preview"
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                                 />
+                                {!(formData.thumbnail instanceof File) && (
+                                    <span className="text-xs text-gray-400 mt-2 italic text-center">Current Thumbnail</span>
+                                )}
                             </div>
                         )}
                         <div className="flex flex-col items-center justify-center">

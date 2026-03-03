@@ -1,18 +1,25 @@
-import { useState, useEffect } from 'react';
+/* eslint-disable react/prop-types */
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { Textarea } from '@/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
-import { CloudUpload } from 'lucide-react';
+import { Upload } from 'lucide-react';
+import { buildImageUrl } from '@/api/api';
 
 export function TestimonialForm({ formData, setFormData, errors = {} }) {
     const [preview, setPreview] = useState(null);
 
     useEffect(() => {
-        if (formData.thumbnail && typeof formData.thumbnail === 'string') {
-            setPreview(formData.thumbnail);
+        if (formData.file instanceof File) {
+            // Handled by handleFileChange for new uploads
+        } else if (formData.image && typeof formData.image === 'string') {
+            setPreview(buildImageUrl(formData.image));
+        } else if (formData.thumbnail && typeof formData.thumbnail === 'string') {
+            // some older code might use .thumbnail
+            setPreview(buildImageUrl(formData.thumbnail));
         }
-    }, [formData.thumbnail]);
+    }, [formData.image, formData.thumbnail, formData.file]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -39,17 +46,21 @@ export function TestimonialForm({ formData, setFormData, errors = {} }) {
                 onClick={() => document.getElementById('testimonial-file').click()}
             >
                 <div className="flex flex-col items-center">
-                    {formData.file instanceof File && preview && (
+                    {preview && (
                         <div className="flex flex-col items-center mb-6">
                             <img
                                 src={preview}
                                 alt="Preview"
                                 className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                             />
+                            {!(formData.file instanceof File) && (
+                                <span className="text-xs text-gray-400 mt-2 italic text-center">Current Photo</span>
+                            )}
                         </div>
                     )}
                     <div className="flex flex-col items-center justify-center">
-                        <CloudUpload className="h-10 w-10 text-[#136ECA] mb-4" />
+                        <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
                         <p className="text-sm text-gray-600">
                             Drag testimonial image here or <span className="underline cursor-pointer">click to browse</span>
                         </p>
