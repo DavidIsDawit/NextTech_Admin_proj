@@ -1,46 +1,44 @@
 // src/ui/AdminHeader.jsx
 import { useState, useRef, useEffect } from "react";
-// avatar image stored in public/images – reference by root URL instead of importing
-import { User, Edit3 } from "lucide-react";
+import { Search, ChevronUp, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import userItems from "../data/Userlist_data"; // ✅ Import your data
-import { Mail, Lock, EyeOff, Search, ArrowDown, ArrowUp, ChevronUp, ChevronDown } from 'lucide-react';
+import { getMe } from "../api/userApi";
+import { buildImageUrl } from "../api/api";
 
 export default function AdminHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatar, setAvatar] = useState(null);
+  const [userName, setUserName] = useState("");
+  const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
 
-  // Pick current admin user (you can change this logic as needed)
-  const currentUser = userItems.find((user) => user.role === "Admin") || userItems[0];
-
-  // Load default avatar from user data
-  useEffect(() => {
-    if (currentUser?.image) {
-      setAvatar(currentUser.image);
-    }
-  }, [currentUser]);
-
-  // Refs for avatar and menu
   const avatarRef = useRef(null);
   const menuRef = useRef(null);
 
+  // Fetch the logged-in user from the backend on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await getMe();
+        // API returns: { status, user: { name, role, photo, ... } }
+        const user = res?.user || res?.data?.user || res?.data || null;
+        if (user) {
+          setUserName(user.name || "");
+          setUserRole(user.role || "");
+          if (user.photo) {
+            setAvatar(buildImageUrl(user.photo));
+          }
+        }
+      } catch {
+        // Silent fail — header should still render even if /getme fails
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   function handleAvatarClick() {
-    setMenuOpen(!menuOpen);
-  }
-
-  function handleDragOver(e) {
-    e.preventDefault();
-  }
-
-  function handleDrop(e) {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setAvatar(reader.result);
-      reader.readAsDataURL(file);
-    }
+    setMenuOpen((prev) => !prev);
   }
 
   // Close dropdown when clicking outside
@@ -56,63 +54,72 @@ export default function AdminHeader() {
         setMenuOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
   return (
-    <header className=" bg-white shadow-sm rounded-lg ml-2 border-black p-4 flex justify-end lg:justify-between items-center relative">
-      <div className="relative  w-1/4 hidden lg:flex  ">
-                  <Search  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input 
-                    id="search"
-                    type="search"
-                    placeholder="Search anything ...."
-                    className="w-full pl-10 pr-4 py-1  rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
-                  />
+    <header className="bg-white shadow-sm rounded-lg ml-2 border-black p-4 flex justify-end lg:justify-between items-center relative">
+      {/* Search bar */}
+      <div className="relative w-1/4 hidden lg:flex">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <input
+          id="search"
+          type="search"
+          placeholder="Search anything ...."
+          className="w-full pl-10 pr-4 py-1 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
+        />
       </div>
-      <div className="flex items-center space-x-3 mr-8 hover:bg-[#D1D5DB] rounded-md">       
 
-        {/* Avatar */}
+      {/* Avatar + name */}
+      <div className="flex items-center space-x-3 mr-8 hover:bg-[#D1D5DB] rounded-md">
+        {/* Avatar circle */}
         <div
           ref={avatarRef}
-          className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer ml-1 relative"
+          className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer ml-1 relative overflow-hidden"
           onClick={handleAvatarClick}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          title="Click"
+          title="Profile"
         >
-          <img
-              src={avatar || "/images/Profile_pic.png"} // show uploaded image if present, otherwise default
-              alt="Avatar"
+          {avatar ? (
+            <img
+              src={avatar}
+              alt="Profile"
               className="w-full h-full rounded-full object-cover object-top"
+              onError={(e) => {
+                // Fallback to initials if image fails to load
+                e.currentTarget.style.display = "none";
+              }}
             />
+          ) : (
             <span className="text-white font-bold text-lg">
-              {currentUser?.name ? currentUser.name.charAt(0) : "U"}
+              {userName ? userName.charAt(0).toUpperCase() : "U"}
             </span>
-        
-        </div>        
-           
-        <div onDrop={handleDrop} onClick={handleAvatarClick} className="flex gap-4">
-          <span  className="text-lg  text-gray-800">Senior engineer</span>
+          )}
+        </div>
+
+        {/* Name + role + chevron */}
+        <div onClick={handleAvatarClick} className="flex gap-4 cursor-pointer">
+          <div className="flex flex-col leading-tight">
+            {userName && (
+              <span className="text-sm font-semibold text-gray-800">{userName}</span>
+            )}
+            <span className="text-sm text-gray-500">{userRole || "Senior Engineer"}</span>
+          </div>
           {menuOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-        </div>   
+        </div>
 
         {/* Dropdown Menu */}
         {menuOpen && (
           <div
             ref={menuRef}
-            className="absolute top-16 right-14 w-52 bg-white shadow-lg  px-4  z-50 border border-gray-100"
+            className="absolute top-16 right-14 w-52 bg-white shadow-lg px-4 z-50 border border-gray-100"
           >
-              {/* Profile Options */}
             <div className="mt-3 space-y-2 text-gray-700">
               <button
-                onClick={() => {setMenuOpen(false); navigate("/admin/profile_setting")}}
-                
-                className="flex font-bold items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-[#D1D5DB]  transition-colors"
+                onClick={() => { setMenuOpen(false); navigate("/admin/profile_setting"); }}
+                className="flex font-bold items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-[#D1D5DB] transition-colors"
               >
-                 Profile Setting
+                Profile Setting
               </button>
             </div>
           </div>
