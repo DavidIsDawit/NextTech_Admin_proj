@@ -11,6 +11,7 @@ import {
     SelectValue,
 } from '@/ui/select';
 import { Upload } from 'lucide-react';
+import { buildImageUrl } from '@/api/api';
 
 /**
  * MediaForm - Form component for Media/Gallery entity

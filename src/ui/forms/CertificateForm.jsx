@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
-import { BASE_URL, buildImageUrl } from '@/api/api';
+import { buildImageUrl } from '@/api/api';
 import { toast } from 'sonner';
 import { Upload } from 'lucide-react';
 

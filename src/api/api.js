@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 
 // Use Vite env var with fallback to local IP
-export const BASE_URL = import.meta.env.VITE_PUBLIC_URL;
+// export const BASE_URL = import.meta.env.VITE_PUBLIC_URL;
 
 const api = axios.create({
   baseURL: "/api",

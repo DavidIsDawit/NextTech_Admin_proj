@@ -1,7 +1,7 @@
 // src/components/ViewProfile.jsx  (or wherever it lives)
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api, { BASE_URL, buildImageUrl } from "../../api/api";
+import api, { buildImageUrl } from "../../api/api";
 import { updatePassword, getMe, uploadPhoto, cleanupAuth } from "../../api/userApi";
 // static profile picture lives in public/images; reference via root URL
 const defaultAvatar = "/images/Profile_pic.png";
