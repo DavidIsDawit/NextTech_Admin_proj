@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { Textarea } from '@/ui/textarea';
@@ -12,6 +12,7 @@ import {
     SelectValue,
 } from '@/ui/select';
 import { Upload } from 'lucide-react';
+import { buildImageUrl } from '@/api/api';
 
 /**
  * NewsForm - Form component for News/Article entity
@@ -21,21 +22,33 @@ import { Upload } from 'lucide-react';
  * @param {object} errors - Validation errors object
  */
 export function NewsForm({ formData = {}, onChange, errors = {} }) {
-    const [thumbnailPreview, setThumbnailPreview] = useState(null);
-    const [galleryPreviews, setGalleryPreviews] = useState([]);
+    const [imageCoverPreview, setImageCoverPreview] = useState(null);
+    const [imagesPreview, setImagesPreview] = useState([]);
 
     // Initialize previews from existing data
     React.useEffect(() => {
-        if (formData.thumbnail && typeof formData.thumbnail === 'string') {
-            setThumbnailPreview(formData.thumbnail);
+        let objectUrl;
+        if (formData.imageCover instanceof File) {
+            objectUrl = URL.createObjectURL(formData.imageCover);
+            setImageCoverPreview(objectUrl);
+        } else if (formData.imageCover && typeof formData.imageCover === 'string') {
+            setImageCoverPreview(buildImageUrl(formData.imageCover));
+        } else {
+            setImageCoverPreview(null);
         }
-        if (formData.newsGallery && Array.isArray(formData.newsGallery)) {
-            const strings = formData.newsGallery.filter(item => typeof item === 'string');
+
+        // Gallery handling
+        if (formData.images && Array.isArray(formData.images)) {
+            const strings = formData.images.filter(item => typeof item === 'string');
             if (strings.length > 0) {
-                setGalleryPreviews(strings);
+                setImagesPreview(strings.map(s => buildImageUrl(s)));
             }
         }
-    }, [formData.thumbnail, formData.newsGallery]);
+
+        return () => {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
+    }, [formData.imageCover, formData.images]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -46,22 +59,22 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
         onChange?.({ ...formData, [name]: value });
     };
 
-    const handleThumbnailChange = (e) => {
+    const handleImageCoverChange = (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            onChange?.({ ...formData, thumbnail: file });
+            onChange?.({ ...formData, imageCover: file });
             const reader = new FileReader();
             reader.onloadend = () => {
-                setThumbnailPreview(reader.result);
+                setImageCoverPreview(reader.result);
             };
             reader.readAsDataURL(file);
         }
     };
 
-    const handleGalleryChange = (e) => {
+    const handleImagesChange = (e) => {
         const files = Array.from(e.target.files || []);
         if (files.length > 0) {
-            onChange?.({ ...formData, newsGallery: files });
+            onChange?.({ ...formData, images: files });
 
             // Create previews
             const previews = [];
@@ -70,7 +83,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                 reader.onloadend = () => {
                     previews.push(reader.result);
                     if (previews.length === files.length) {
-                        setGalleryPreviews(previews);
+                        setImagesPreview(previews);
                     }
                 };
                 reader.readAsDataURL(file);
@@ -84,27 +97,31 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
     return (
         <div className="space-y-4">
-            {/* Thumbnail Upload */}
+            {/* Image Cover Upload */}
             <div className="space-y-2">
-                <Label>Thumbnail</Label>
+                <Label>Cover Image</Label>
                 <div
                     className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
-                    onClick={() => document.getElementById('news-thumbnail').click()}
+                    onClick={() => document.getElementById('news-imageCover').click()}
                 >
                     <div className="flex flex-col items-center">
-                        {formData.thumbnail instanceof File && thumbnailPreview && (
+                        {imageCoverPreview && (
                             <div className="flex flex-col items-center mb-6">
                                 <img
-                                    src={thumbnailPreview}
-                                    alt="Thumbnail preview"
+                                    src={imageCoverPreview}
+                                    alt="Cover preview"
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                                 />
+                                {!(formData.imageCover instanceof File) && (
+                                    <span className="text-xs text-gray-400 mt-2 italic text-center">Current Cover</span>
+                                )}
                             </div>
                         )}
                         <div className="flex flex-col items-center justify-center">
                             <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
                             <p className="text-sm text-gray-600">
-                                Drag your news thumbnail to start uploading
+                                Drag your news cover image to start uploading
                             </p>
                             <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
                             <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
@@ -114,35 +131,35 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     </div>
                 </div>
                 <Input
-                    id="news-thumbnail"
-                    name="thumbnail"
+                    id="news-imageCover"
+                    name="imageCover"
                     type="file"
                     accept="image/*"
-                    onChange={handleThumbnailChange}
+                    onChange={handleImageCoverChange}
                     className="hidden"
                 />
-                {errors.thumbnail && (
-                    <p className="text-sm text-red-500">{errors.thumbnail}</p>
+                {errors.imageCover && (
+                    <p className="text-sm text-red-500">{errors.imageCover}</p>
                 )}
             </div>
 
-            {/* News Gallery Upload */}
+            {/* News Images Upload */}
             <div className="space-y-2">
-                <Label>News Gallery</Label>
+                <Label>News Images (Gallery)</Label>
                 <div
                     className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
-                    onClick={() => document.getElementById('news-gallery').click()}
+                    onClick={() => document.getElementById('news-images').click()}
                 >
                     <div className="flex flex-col items-center">
-                        {galleryPreviews.length > 0 && Array.isArray(formData.newsGallery) && formData.newsGallery.some(item => item instanceof File) && (
+                        {imagesPreview.length > 0 && (
                             <div className="space-y-4 w-full mb-6 text-center">
                                 <div className="grid grid-cols-3 gap-2">
-                                    {galleryPreviews.map((preview, idx) => (
+                                    {imagesPreview.map((preview, idx) => (
                                         <img key={idx} src={preview} alt={`Gallery ${idx + 1}`} className="h-20 w-full object-cover rounded border border-gray-200" />
                                     ))}
                                 </div>
                                 <p className="text-sm text-gray-600 italic">
-                                    {formData.newsGallery?.length} images selected
+                                    {imagesPreview.length} images selected
                                 </p>
                             </div>
                         )}
@@ -159,40 +176,40 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     </div>
                 </div>
                 <Input
-                    id="news-gallery"
-                    name="newsGallery"
+                    id="news-images"
+                    name="images"
                     type="file"
                     accept="image/*"
                     multiple
-                    onChange={handleGalleryChange}
+                    onChange={handleImagesChange}
                     className="hidden"
                 />
-                {errors.newsGallery && (
-                    <p className="text-sm text-red-500">{errors.newsGallery}</p>
+                {errors.images && (
+                    <p className="text-sm text-red-500">{errors.images}</p>
                 )}
             </div>
 
             {/* Article Title */}
             <div className="space-y-2">
-                <Label htmlFor="articleTitle">Article Title</Label>
+                <Label htmlFor="title">Article Title</Label>
                 <Input
-                    id="articleTitle"
-                    name="articleTitle"
+                    id="title"
+                    name="title"
                     placeholder="Enter article title..."
-                    value={formData.articleTitle || ''}
+                    value={formData.title || ''}
                     onChange={handleChange}
                 />
-                {errors.articleTitle && (
-                    <p className="text-sm text-red-500">{errors.articleTitle}</p>
+                {errors.title && (
+                    <p className="text-sm text-red-500">{errors.title}</p>
                 )}
             </div>
 
             {/* Category */}
             <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="catagory">Category</Label>
                 <Select
-                    value={formData.category || ''}
-                    onValueChange={(value) => handleSelectChange('category', value)}
+                    value={formData.catagory || ''}
+                    onValueChange={(value) => handleSelectChange('catagory', value)}
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Company News" />
@@ -205,55 +222,55 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                         <SelectItem value="announcement">Announcement</SelectItem>
                     </SelectContent>
                 </Select>
-                {errors.category && (
-                    <p className="text-sm text-red-500">{errors.category}</p>
+                {errors.catagory && (
+                    <p className="text-sm text-red-500">{errors.catagory}</p>
                 )}
             </div>
 
             {/* Author Name */}
             <div className="space-y-2">
-                <Label htmlFor="authorName">Author Name</Label>
+                <Label htmlFor="author">Author Name</Label>
                 <Input
-                    id="authorName"
-                    name="authorName"
+                    id="author"
+                    name="author"
                     placeholder="Enter author name..."
-                    value={formData.authorName || ''}
+                    value={formData.author || ''}
                     onChange={handleChange}
                 />
-                {errors.authorName && (
-                    <p className="text-sm text-red-500">{errors.authorName}</p>
+                {errors.author && (
+                    <p className="text-sm text-red-500">{errors.author}</p>
                 )}
             </div>
 
-            {/* Article Excerpt */}
+            {/* Description One */}
             <div className="space-y-2">
-                <Label htmlFor="articleExcerpt">Article Excerpt</Label>
+                <Label htmlFor="descriptionOne">Article Description One</Label>
                 <Textarea
-                    id="articleExcerpt"
-                    name="articleExcerpt"
-                    placeholder="Write your article excerpt here..."
-                    value={formData.articleExcerpt || ''}
+                    id="descriptionOne"
+                    name="descriptionOne"
+                    placeholder="Write your article content here..."
+                    value={formData.descriptionOne || ''}
                     onChange={handleChange}
                     rows={3}
                 />
-                {errors.articleExcerpt && (
-                    <p className="text-sm text-red-500">{errors.articleExcerpt}</p>
+                {errors.descriptionOne && (
+                    <p className="text-sm text-red-500">{errors.descriptionOne}</p>
                 )}
             </div>
 
-            {/* Sub Article Content */}
+            {/* Description Two */}
             <div className="space-y-2">
-                <Label htmlFor="subArticleContent">Sub Article Content</Label>
+                <Label htmlFor="descriptionTwo">Article Description Two</Label>
                 <Textarea
-                    id="subArticleContent"
-                    name="subArticleContent"
-                    placeholder="Write your article content here..."
-                    value={formData.subArticleContent || ''}
+                    id="descriptionTwo"
+                    name="descriptionTwo"
+                    placeholder="Write more content here..."
+                    value={formData.descriptionTwo || ''}
                     onChange={handleChange}
                     rows={4}
                 />
-                {errors.subArticleContent && (
-                    <p className="text-sm text-red-500">{errors.subArticleContent}</p>
+                {errors.descriptionTwo && (
+                    <p className="text-sm text-red-500">{errors.descriptionTwo}</p>
                 )}
             </div>
 
@@ -272,18 +289,18 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
-            {/* Publish Date */}
+            {/* Happened On Date */}
             <div className="space-y-2">
-                <Label htmlFor="publishDate">Publish Date</Label>
+                <Label htmlFor="happenedOn">Published Date</Label>
                 <Input
-                    id="publishDate"
-                    name="publishDate"
+                    id="happenedOn"
+                    name="happenedOn"
                     type="date"
-                    value={formData.publishDate || ''}
+                    value={formData.happenedOn || ''}
                     onChange={handleChange}
                 />
-                {errors.publishDate && (
-                    <p className="text-sm text-red-500">{errors.publishDate}</p>
+                {errors.happenedOn && (
+                    <p className="text-sm text-red-500">{errors.happenedOn}</p>
                 )}
             </div>
 

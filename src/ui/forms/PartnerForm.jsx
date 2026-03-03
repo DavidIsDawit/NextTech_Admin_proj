@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
 import { Upload } from 'lucide-react';
+import { buildImageUrl } from '@/api/api';
 
 /**
  * PartnerForm - Form component for Partner entity
@@ -17,11 +17,19 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
 
     // Initialize preview from existing data
     React.useEffect(() => {
-        if (formData.partnerImage && typeof formData.partnerImage === 'string') {
-            // If it's a URL, show the filename or a placeholder
-            const fileName = formData.partnerImage.split('/').pop();
-            setFilePreview(fileName);
+        let objectUrl;
+        if (formData.partnerImage instanceof File) {
+            objectUrl = URL.createObjectURL(formData.partnerImage);
+            setFilePreview(objectUrl);
+        } else if (formData.partnerImage && typeof formData.partnerImage === 'string') {
+            setFilePreview(buildImageUrl(formData.partnerImage));
+        } else {
+            setFilePreview(null);
         }
+
+        return () => {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
     }, [formData.partnerImage]);
 
     const handleChange = (e) => {
@@ -65,13 +73,17 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
                     onDragOver={handleDragOver}
                 >
                     <div className="flex flex-col items-center">
-                        {formData.partnerImage instanceof File && (
+                        {filePreview && (
                             <div className="flex flex-col items-center mb-6">
                                 <img
-                                    src={URL.createObjectURL(formData.partnerImage)}
+                                    src={filePreview}
                                     alt="Preview"
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                                 />
+                                {!(formData.partnerImage instanceof File) && (
+                                    <span className="text-xs text-gray-400 mt-2 italic text-center">Current Logo</span>
+                                )}
                             </div>
                         )}
                         <div className="flex flex-col items-center justify-center">

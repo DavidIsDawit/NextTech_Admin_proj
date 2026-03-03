@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -7,11 +7,11 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { ServicesData } from "../../data/ServicesData";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { ServiceForm } from "../forms/ServiceForm";
+import { getAllServices, createService, updateService, deleteService } from "../../api/serviceApi";
 
 function Services() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +19,11 @@ function Services() {
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
+
+    // Data State
+    const [services, setServices] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [totalItems, setTotalItems] = useState(0);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -29,24 +34,43 @@ function Services() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const categories = useMemo(() => ["All Categories", ...new Set(ServicesData.map(s => s.category))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(ServicesData.map(s => s.status))], []);
+    const fetchServices = async () => {
+        setIsLoading(true);
+        try {
+            const result = await getAllServices({ page: currentPage, limit: 100 }); // Fetch more for local filtering or adjust pagination
+            if (result.status === "success") {
+                setServices(result.data.services || []);
+                setTotalItems(result.total || result.data.services?.length || 0);
+            }
+        } catch (error) {
+            console.error("Failed to fetch services:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchServices();
+    }, []);
+
+    const categories = useMemo(() => ["All Categories", ...new Set(services.map(s => s.catagory || s.category))], [services]);
+    const statuses = useMemo(() => ["All Status", ...new Set(services.map(s => s.status))], [services]);
 
     // Filter Logic
     const filteredServices = useMemo(() => {
-        return ServicesData.filter((service) => {
+        return services.filter((service) => {
             const matchesSearch = service.title
                 ?.toLowerCase()
                 .includes(searchTerm.toLowerCase());
             const matchesCategory =
                 categoryFilter === "All Categories" ||
-                service.category === categoryFilter;
+                (service.catagory || service.category) === categoryFilter;
             const matchesStatus =
                 statusFilter === "All Status" || service.status === statusFilter;
 
             return matchesSearch && matchesCategory && matchesStatus;
         });
-    }, [searchTerm, categoryFilter, statusFilter]);
+    }, [searchTerm, categoryFilter, statusFilter, services]);
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
@@ -87,36 +111,55 @@ function Services() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log(`Service ${formType === 'add' ? 'added' : 'updated'}:`, formData);
-            setIsSubmitting(false);
+        try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (key === 'images' && Array.isArray(formData[key])) {
+                    formData[key].forEach(file => data.append('images', file));
+                } else if (formData[key] !== null && formData[key] !== undefined) {
+                    data.append(key, formData[key]);
+                }
+            });
+
+            if (formType === 'add') {
+                await createService(data);
+            } else {
+                await updateService(selectedItem._id || selectedItem.id, data);
+            }
+            await fetchServices();
             setIsFormModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to save service:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const handleDeleteConfirm = () => {
+    const handleDeleteConfirm = async () => {
         setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Service deleted:", selectedItem.id);
-            setIsDeleting(false);
+        try {
+            await deleteService(selectedItem._id || selectedItem.id);
+            await fetchServices();
             setIsDeleteModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to delete service:", error);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
 
     // Table Columns Configuration
     const columns = [
         {
-            key: "thumbnail",
+            key: "imageCover",
             label: "Image",
             render: (value, row) => (
                 <div className="flex-shrink-0 h-14 w-14">
                     <img
-                        src={value}
+                        src={value || row.thumbnail}
                         alt={row.title}
                         className="h-full w-full rounded object-cover"
                     />
@@ -131,18 +174,19 @@ function Services() {
             ),
         },
         {
-            key: "category",
+            key: "catagory",
             label: "Category",
-            render: (value) => {
+            render: (value, row) => {
+                const displayValue = value || row.category;
                 let colorClass = "bg-gray-100 text-gray-800";
-                if (value === "Construction") colorClass = "bg-blue-50 text-blue-600";
-                if (value === "Consulting") colorClass = "bg-green-50 text-green-600";
-                if (value === "Infrastructure") colorClass = "bg-gray-50 text-gray-600";
-                if (value === "Design") colorClass = "bg-purple-50 text-purple-600";
+                if (displayValue === "Construction") colorClass = "bg-blue-50 text-blue-600";
+                if (displayValue === "Consulting") colorClass = "bg-green-50 text-green-600";
+                if (displayValue === "Infrastructure") colorClass = "bg-gray-50 text-gray-600";
+                if (displayValue === "Design") colorClass = "bg-purple-50 text-purple-600";
 
                 return (
                     <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full ${colorClass}`}>
-                        {value}
+                        {displayValue}
                     </span>
                 );
             },
@@ -261,7 +305,13 @@ function Services() {
 
             {/* Table */}
             <div>
-                <DynamicTable columns={columns} rows={currentServices} />
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
+                    </div>
+                ) : (
+                    <DynamicTable columns={columns} rows={currentServices} />
+                )}
             </div>
 
             {/* Pagination */}

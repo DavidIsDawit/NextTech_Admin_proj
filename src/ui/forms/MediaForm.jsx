@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
@@ -20,20 +20,20 @@ import { Upload } from 'lucide-react';
  * @param {object} errors - Validation errors object
  */
 export function MediaForm({ formData = {}, onChange, errors = {} }) {
-    const [thumbnailPreview, setThumbnailPreview] = useState(null);
-    const [galleryPreviews, setGalleryPreviews] = useState([]);
+    const [coverImagePreview, setCoverImagePreview] = useState(null);
+    const [imagesPreview, setImagesPreview] = useState([]);
 
     React.useEffect(() => {
-        if (formData.thumbnail && typeof formData.thumbnail === 'string') {
-            setThumbnailPreview(formData.thumbnail);
+        if (formData.coverImage && typeof formData.coverImage === 'string') {
+            setCoverImagePreview(buildImageUrl(formData.coverImage));
         }
-        if (formData.gallery && Array.isArray(formData.gallery)) {
-            const strings = formData.gallery.filter(item => typeof item === 'string');
+        if (formData.images && Array.isArray(formData.images)) {
+            const strings = formData.images.filter(item => typeof item === 'string');
             if (strings.length > 0) {
-                setGalleryPreviews(strings);
+                setImagesPreview(strings.map(s => buildImageUrl(s)));
             }
         }
-    }, [formData.thumbnail, formData.gallery]);
+    }, [formData.coverImage, formData.images]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -44,22 +44,22 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
         onChange?.({ ...formData, [name]: value });
     };
 
-    const handleThumbnailChange = (e) => {
+    const handleCoverImageChange = (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            onChange?.({ ...formData, thumbnail: file });
+            onChange?.({ ...formData, coverImage: file });
             const reader = new FileReader();
             reader.onloadend = () => {
-                setThumbnailPreview(reader.result);
+                setCoverImagePreview(reader.result);
             };
             reader.readAsDataURL(file);
         }
     };
 
-    const handleGalleryChange = (e) => {
+    const handleImagesChange = (e) => {
         const files = Array.from(e.target.files || []);
         if (files.length > 0) {
-            onChange?.({ ...formData, gallery: files });
+            onChange?.({ ...formData, images: files });
 
             // Create previews
             const previews = [];
@@ -68,7 +68,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                 reader.onloadend = () => {
                     previews.push(reader.result);
                     if (previews.length === files.length) {
-                        setGalleryPreviews(previews);
+                        setImagesPreview(previews);
                     }
                 };
                 reader.readAsDataURL(file);
@@ -82,19 +82,19 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
 
     return (
         <div className="space-y-4">
-            {/* Thumbnail Upload */}
+            {/* Cover Image Upload */}
             <div className="space-y-2">
-                <Label>Thumbnail</Label>
+                <Label>Cover Image</Label>
                 <div
                     className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
-                    onClick={() => document.getElementById('media-thumbnail').click()}
+                    onClick={() => document.getElementById('media-coverImage').click()}
                 >
                     <div className="flex flex-col items-center">
-                        {formData.thumbnail instanceof File && thumbnailPreview && (
+                        {formData.coverImage instanceof File && coverImagePreview && (
                             <div className="flex flex-col items-center mb-6">
                                 <img
-                                    src={thumbnailPreview}
-                                    alt="Thumbnail preview"
+                                    src={coverImagePreview}
+                                    alt="Cover preview"
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
                                 />
                             </div>
@@ -102,7 +102,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                         <div className="flex flex-col items-center justify-center">
                             <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
                             <p className="text-sm text-gray-600">
-                                Drag your media thumbnail to start uploading
+                                Drag your cover image to start uploading
                             </p>
                             <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
                             <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
@@ -112,35 +112,35 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                     </div>
                 </div>
                 <Input
-                    id="media-thumbnail"
-                    name="thumbnail"
+                    id="media-coverImage"
+                    name="coverImage"
                     type="file"
                     accept="image/*,video/*"
-                    onChange={handleThumbnailChange}
+                    onChange={handleCoverImageChange}
                     className="hidden"
                 />
-                {errors.thumbnail && (
-                    <p className="text-sm text-red-500">{errors.thumbnail}</p>
+                {errors.coverImage && (
+                    <p className="text-sm text-red-500">{errors.coverImage}</p>
                 )}
             </div>
 
-            {/* Gallery Upload */}
+            {/* Images Gallery Upload */}
             <div className="space-y-2">
-                <Label>Gallery</Label>
+                <Label>Gallery Images</Label>
                 <div
                     className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
                     onClick={() => document.getElementById('media-gallery').click()}
                 >
                     <div className="flex flex-col items-center">
-                        {galleryPreviews.length > 0 && Array.isArray(formData.gallery) && formData.gallery.some(item => item instanceof File) && (
+                        {imagesPreview.length > 0 && Array.isArray(formData.images) && formData.images.some(item => item instanceof File) && (
                             <div className="space-y-4 w-full mb-6 text-center">
                                 <div className="grid grid-cols-3 gap-2">
-                                    {galleryPreviews.map((preview, idx) => (
+                                    {imagesPreview.map((preview, idx) => (
                                         <img key={idx} src={preview} alt={`Gallery ${idx + 1}`} className="h-20 w-full object-cover rounded border border-gray-200" />
                                     ))}
                                 </div>
                                 <p className="text-sm text-gray-600 italic">
-                                    {formData.gallery?.length} items selected
+                                    {formData.images?.length} items selected
                                 </p>
                             </div>
                         )}
@@ -158,39 +158,25 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                 </div>
                 <Input
                     id="media-gallery"
-                    name="gallery"
+                    name="images"
                     type="file"
                     accept="image/*,video/*"
                     multiple
-                    onChange={handleGalleryChange}
+                    onChange={handleImagesChange}
                     className="hidden"
                 />
-                {errors.gallery && (
-                    <p className="text-sm text-red-500">{errors.gallery}</p>
+                {errors.images && (
+                    <p className="text-sm text-red-500">{errors.images}</p>
                 )}
             </div>
 
-            {/* Media Title */}
-            <div className="space-y-2">
-                <Label htmlFor="mediaTitle">Media Title</Label>
-                <Input
-                    id="mediaTitle"
-                    name="mediaTitle"
-                    placeholder="e.g., Construction Site Phase 1"
-                    value={formData.mediaTitle || ''}
-                    onChange={handleChange}
-                />
-                {errors.mediaTitle && (
-                    <p className="text-sm text-red-500">{errors.mediaTitle}</p>
-                )}
-            </div>
 
             {/* Category */}
             <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="catagory">Category</Label>
                 <Select
-                    value={formData.category || ''}
-                    onValueChange={(value) => handleSelectChange('category', value)}
+                    value={formData.catagory || ''}
+                    onValueChange={(value) => handleSelectChange('catagory', value)}
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Select category" />
@@ -203,8 +189,8 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                         <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                 </Select>
-                {errors.category && (
-                    <p className="text-sm text-red-500">{errors.category}</p>
+                {errors.catagory && (
+                    <p className="text-sm text-red-500">{errors.catagory}</p>
                 )}
             </div>
 
@@ -229,40 +215,22 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
-            {/* Date */}
-            <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                    id="date"
-                    name="date"
-                    type="date"
-                    value={formData.date || ''}
-                    onChange={handleChange}
-                />
-                {errors.date && (
-                    <p className="text-sm text-red-500">{errors.date}</p>
-                )}
-            </div>
 
             {/* Status */}
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'published'}
+                    value={formData.status || 'Active'}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="published" id="media-published" />
-                        <Label htmlFor="media-published" className="font-normal cursor-pointer">Published</Label>
+                        <RadioGroupItem value="Active" id="media-active" />
+                        <Label htmlFor="media-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="draft" id="media-draft" />
-                        <Label htmlFor="media-draft" className="font-normal cursor-pointer">Draft</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="archived" id="media-archived" />
-                        <Label htmlFor="media-archived" className="font-normal cursor-pointer">Archived</Label>
+                        <RadioGroupItem value="Inactive" id="media-inactive" />
+                        <Label htmlFor="media-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                 </RadioGroup>
                 {errors.status && (

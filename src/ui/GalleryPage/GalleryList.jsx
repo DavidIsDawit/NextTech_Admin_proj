@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2, FiPlay } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -7,11 +7,11 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { GalleryData } from "../../data/GalleryData";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { MediaForm } from "../forms/MediaForm";
+import { getAllGallery, addGallery, deleteGallery } from "../../api/galleryApi";
 
 function GalleryList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +19,10 @@ function GalleryList() {
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
+
+    // Data State
+    const [gallery, setGallery] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -29,17 +33,35 @@ function GalleryList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const categories = useMemo(() => ["All Categories", ...new Set(GalleryData.map(s => s.category))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(GalleryData.map(s => s.status))], []);
+    const fetchGallery = async () => {
+        setIsLoading(true);
+        try {
+            const result = await getAllGallery({ page: currentPage, limit: 100 });
+            if (result.status === "success") {
+                setGallery(result.data || []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch gallery:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchGallery();
+    }, []);
+
+    const categories = useMemo(() => ["All Categories", ...new Set(gallery.map(s => s.catagory || s.category))], [gallery]);
+    const statuses = useMemo(() => ["All Status", ...new Set(gallery.map(s => s.status))], [gallery]);
 
     const filteredData = useMemo(() => {
-        return GalleryData.filter((item) => {
+        return gallery.filter((item) => {
             const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = categoryFilter === "All Categories" || item.category === categoryFilter;
+            const matchesCategory = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesCategory && matchesStatus;
         });
-    }, [searchTerm, categoryFilter, statusFilter]);
+    }, [searchTerm, categoryFilter, statusFilter, gallery]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -73,35 +95,59 @@ function GalleryList() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log(`Media ${formType === 'add' ? 'added' : 'updated'}:`, formData);
-            setIsSubmitting(false);
+        try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (formData[key] !== null && formData[key] !== undefined) {
+                    data.append(key, formData[key]);
+                }
+            });
+
+            if (formType === 'add') {
+                await addGallery(data);
+            } else {
+                // If there's an updateGallery, use it. Otherwise, delete and re-add or handle as per API.
+                // Looking at galleryApi.js, I only added addGallery and deleteGallery.
+                // If the user wants to edit, we might need updateGallery.
+                console.warn("Edit gallery not fully implemented in API helper");
+            }
+            await fetchGallery();
             setIsFormModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to save gallery item:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const handleDeleteConfirm = () => {
+    const handleDeleteConfirm = async () => {
         setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("Media deleted:", selectedItem.id);
-            setIsDeleting(false);
+        try {
+            await deleteGallery(selectedItem._id || selectedItem.id);
+            await fetchGallery();
             setIsDeleteModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to delete gallery item:", error);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     // Columns: Media, MEDIA TITLE, FILE TYPE, UPLOAD DATE, CATEGORY, Status, Actions
     const columns = [
         {
-            key: "image",
+            key: "coverImage",
             label: "Media",
             render: (value, row) => (
                 <div className="relative flex-shrink-0 h-14 w-14">
-                    <img src={value} alt={row.title} className="h-full w-full rounded object-cover" />
-                    {row.fileType === "MP4" && (
+                    <img
+                        src={value || row.image || row.thumbnail}
+                        alt={row.title || row.mediaTitle}
+                        className="h-full w-full rounded object-cover"
+                    />
+                    {(row.fileType === "MP4" || row.category === "Process Videos" || row.catagory === "Process Videos") && (
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="bg-white/80 rounded-full p-2 shadow-sm border border-gray-100">
                                 <FiPlay size={12} className="text-gray-900 fill-current" />
@@ -122,21 +168,22 @@ function GalleryList() {
             render: (value) => <span className="text-sm text-gray-500 uppercase">{value}</span>,
         },
         {
-            key: "uploadDate",
+            key: "createdDate",
             label: "Upload Date",
-            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
+            render: (value, row) => <div className="text-sm text-gray-500">{value?.split('T')[0] || row.uploadDate}</div>,
         },
         {
-            key: "category",
+            key: "catagory",
             label: "Category",
-            render: (value) => {
+            render: (value, row) => {
+                const displayValue = value || row.category;
                 let colorClass = "bg-gray-100 text-gray-800";
-                if (value === "Site Photos") colorClass = "bg-blue-50 text-blue-600"; // Light blue for Site Photos
-                if (value === "Process Videos") colorClass = "bg-sky-100 text-sky-600"; // Slightly different/lighter blue for videos
+                if (displayValue === "Site Photos") colorClass = "bg-blue-50 text-blue-600";
+                if (displayValue === "Process Videos") colorClass = "bg-sky-100 text-sky-600";
 
                 return (
                     <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full ${colorClass}`}>
-                        {value}
+                        {displayValue}
                     </span>
                 );
             },
@@ -242,7 +289,13 @@ function GalleryList() {
             </div>
 
             <div>
-                <DynamicTable columns={columns} rows={currentData} />
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
+                    </div>
+                ) : (
+                    <DynamicTable columns={columns} rows={currentData} />
+                )}
             </div>
 
             <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">

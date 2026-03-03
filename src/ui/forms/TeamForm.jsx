@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
 import { Upload } from 'lucide-react';
+import { buildImageUrl } from '@/api/api';
 
 /**
  * TeamForm - Form component for Team Member entity
@@ -17,9 +18,19 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
 
     // Initialize preview from existing data
     React.useEffect(() => {
-        if (formData.image && typeof formData.image === 'string') {
-            setImagePreview(formData.image);
+        let objectUrl;
+        if (formData.image instanceof File) {
+            objectUrl = URL.createObjectURL(formData.image);
+            setImagePreview(objectUrl);
+        } else if (formData.image && typeof formData.image === 'string') {
+            setImagePreview(buildImageUrl(formData.image));
+        } else {
+            setImagePreview(null);
         }
+
+        return () => {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
     }, [formData.image]);
 
     const handleChange = (e) => {
@@ -52,13 +63,17 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
                     onClick={() => document.getElementById('team-image').click()}
                 >
                     <div className="flex flex-col items-center">
-                        {formData.image instanceof File && imagePreview && (
+                        {imagePreview && (
                             <div className="flex flex-col items-center mb-6">
                                 <img
                                     src={imagePreview}
                                     alt="Team member preview"
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                                 />
+                                {!(formData.image instanceof File) && (
+                                    <span className="text-xs text-gray-400 mt-2 italic text-center">Current Photo</span>
+                                )}
                             </div>
                         )}
                         <div className="flex flex-col items-center justify-center">
@@ -112,40 +127,22 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
-            {/* Date */}
-            <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                    id="date"
-                    name="date"
-                    type="date"
-                    value={formData.date || ''}
-                    onChange={handleChange}
-                />
-                {errors.date && (
-                    <p className="text-sm text-red-500">{errors.date}</p>
-                )}
-            </div>
 
             {/* Status */}
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'published'}
+                    value={formData.status || 'Active'}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="published" id="team-published" />
-                        <Label htmlFor="team-published" className="font-normal cursor-pointer">Published</Label>
+                        <RadioGroupItem value="Active" id="team-active" />
+                        <Label htmlFor="team-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="draft" id="team-draft" />
-                        <Label htmlFor="team-draft" className="font-normal cursor-pointer">Draft</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="archived" id="team-archived" />
-                        <Label htmlFor="team-archived" className="font-normal cursor-pointer">Archived</Label>
+                        <RadioGroupItem value="Inactive" id="team-inactive" />
+                        <Label htmlFor="team-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                 </RadioGroup>
                 {errors.status && (

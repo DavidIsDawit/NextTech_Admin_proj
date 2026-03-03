@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -7,11 +7,11 @@ import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
-import { NewsData } from "../../data/NewsData";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { NewsForm } from "../forms/NewsForm";
+import { getAllNews, createNews, updateNews, deleteNews } from "../../api/newsApi";
 
 function NewsList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -19,6 +19,11 @@ function NewsList() {
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
+
+    // Data State
+    const [news, setNews] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [totalItems, setTotalItems] = useState(0);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -29,27 +34,50 @@ function NewsList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const categories = useMemo(() => ["All Categories", ...new Set(NewsData.map(s => s.category))], []);
-    const statuses = useMemo(() => ["All Status", ...new Set(NewsData.map(s => s.status))], []);
+    const fetchNews = async () => {
+        setIsLoading(true);
+        try {
+            const result = await getAllNews({ page: currentPage, limit: 100 });
+            if (result.status === "success") {
+                // Handle both nested and direct data array
+                const newsItems = result.data?.news || (Array.isArray(result.data) ? result.data : []);
+                setNews(newsItems);
+                setTotalItems(result.totalNews || result.count || newsItems.length || 0);
+            }
+        } catch (error) {
+            console.error("Failed to fetch news:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchNews();
+    }, []);
+
+    const categories = useMemo(() => ["All Categories", ...new Set(news.map(s => s.catagory || s.category))], [news]);
+    const statuses = useMemo(() => ["All Status", ...new Set(news.map(s => s.status))], [news]);
 
     const filteredData = useMemo(() => {
-        return NewsData.filter((item) => {
-            const matchesSearch = item.articleTitle?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = categoryFilter === "All Categories" || item.category === categoryFilter;
+        return news.filter((item) => {
+            const title = item.title || item.articleTitle;
+            const cat = item.catagory || item.category;
+            const matchesSearch = title?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesCategory = categoryFilter === "All Categories" || cat === categoryFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesCategory && matchesStatus;
         });
-    }, [searchTerm, categoryFilter, statusFilter]);
+    }, [searchTerm, categoryFilter, statusFilter, news]);
 
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const handleExportCSV = () => {
         exportToCSV(filteredData, "News", {
-            articleTitle: "Article Title",
-            category: "Category",
-            authorName: "Author",
-            publishDate: "Publish Date",
+            title: "Article Title",
+            catagory: "Category",
+            author: "Author",
+            happenedOn: "Publish Date",
             status: "Status"
         });
     };
@@ -73,60 +101,79 @@ function NewsList() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleFormSubmit = (e) => {
+    const handleFormSubmit = async (e) => {
         setIsSubmitting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log(`News ${formType === 'add' ? 'added' : 'updated'}:`, formData);
-            setIsSubmitting(false);
+        try {
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (key === 'images' && Array.isArray(formData[key])) {
+                    formData[key].forEach(file => data.append('images', file));
+                } else if (formData[key] !== null && formData[key] !== undefined) {
+                    data.append(key, formData[key]);
+                }
+            });
+
+            if (formType === 'add') {
+                await createNews(data);
+            } else {
+                await updateNews(selectedItem._id || selectedItem.id, data);
+            }
+            await fetchNews();
             setIsFormModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to save news:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const handleDeleteConfirm = () => {
+    const handleDeleteConfirm = async () => {
         setIsDeleting(true);
-        // Simulate API call
-        setTimeout(() => {
-            console.log("News deleted:", selectedItem.id);
-            setIsDeleting(false);
+        try {
+            await deleteNews(selectedItem._id || selectedItem.id);
+            await fetchNews();
             setIsDeleteModalOpen(false);
-        }, 1000);
+        } catch (error) {
+            console.error("Failed to delete news:", error);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     // Columns: Image , article title,  category, author, publish date, status, action
     const columns = [
         {
-            key: "thumbnail",
+            key: "imageCover",
             label: "Image",
             render: (value, row) => (
                 <div className="flex-shrink-0 h-14 w-14">
                     <img
-                        src={value}
-                        alt={row.articleTitle}
+                        src={value || row.image || row.thumbnail}
+                        alt={row.title || row.articleTitle}
                         className="h-full w-full rounded object-cover"
                     />
                 </div>
             ),
         },
         {
-            key: "articleTitle",
+            key: "title",
             label: "Article Title",
-            render: (value) => <div className="font-medium text-gray-900">{value}</div>,
+            render: (value, row) => <div className="font-medium text-gray-900">{value || row.articleTitle}</div>,
         },
         {
-            key: "category",
+            key: "catagory",
             label: "Category",
-            render: (value) => <span className="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-indigo-50 text-indigo-700">{value}</span>,
+            render: (value, row) => <span className="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-indigo-50 text-indigo-700">{value || row.category}</span>,
         },
         {
-            key: "authorName",
+            key: "author",
             label: "Author",
-            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
+            render: (value, row) => <div className="text-sm text-gray-500">{value || row.authorName}</div>,
         },
         {
-            key: "publishDate",
-            label: "Publish Date",
-            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
+            key: "happenedOn",
+            label: "Happened On",
+            render: (value, row) => <div className="text-sm text-gray-500">{value || row.publishDate}</div>,
         },
         {
             key: "status",
@@ -229,7 +276,13 @@ function NewsList() {
             </div>
 
             <div>
-                <DynamicTable columns={columns} rows={currentData} />
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
+                    </div>
+                ) : (
+                    <DynamicTable columns={columns} rows={currentData} />
+                )}
             </div>
 
             <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
