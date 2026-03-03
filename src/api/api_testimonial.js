@@ -69,7 +69,13 @@ export const createTestimonial = async (formData) => {
 export const updateTestimonial = async (id, formData) => {
   try {
     const response = await api.put(`/updateTestimonial/${id}`, formData);
-    return response.data;
+    const result = response.data;
+
+    if (result.status === "success" && result.data?.testimonial) {
+      result.data.testimonial = normalizeTestimonial(result.data.testimonial);
+    }
+
+    return result;
   } catch (error) {
     console.error(`Error updating testimonial ${id}:`, error);
     throw error;

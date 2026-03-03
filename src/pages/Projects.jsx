@@ -1,9 +1,9 @@
-import ProjectList from "../ui/ProjectPage/ProjectList";
+import PortfolioList from "../ui/PortfolioPage/PortfolioList";
 
 function Projects() {
     return (
         <div className="">
-            <ProjectList />
+            <PortfolioList />
         </div>
     );
 }

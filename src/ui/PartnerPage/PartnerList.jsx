@@ -12,6 +12,7 @@ import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { PartnerForm } from "../forms/PartnerForm";
 import { getAllPartners, createPartner, updatePartner, deletePartner } from "../../api/partnerApi";
+import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 import { toast } from "sonner";
 
 function PartnerList() {
@@ -31,6 +32,7 @@ function PartnerList() {
     const [formData, setFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const [selectedId, setSelectedId] = useState(null);
 
@@ -79,8 +81,16 @@ function PartnerList() {
 
     // Modal Handlers
     const handleAddNew = () => {
+        console.log("Opening Add Partner Modal...");
+        toast.info("Opening Add Partner Modal...");
         setFormType('add');
-        setFormData({ status: 'Active' });
+        setSelectedId(null);
+        setFormData({
+            partnerName: '',
+            status: 'Active',
+            partnerImage: null
+        });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
@@ -88,6 +98,7 @@ function PartnerList() {
         setFormType('edit');
         setSelectedItem(item);
         setSelectedId(item._id || item.id);
+        setErrors({});
 
         setFormData({
             ...item,
@@ -105,16 +116,21 @@ function PartnerList() {
     };
 
     const handleFormSubmit = async (e) => {
-        e?.preventDefault?.();
+        if (e && e.preventDefault) e.preventDefault();
+        setErrors({});
 
+        const localErrors = {};
         const partnerName = formData.partnerName || "";
         if (!partnerName.trim()) {
-            toast.error("Partner Name is required");
-            return;
+            localErrors.partnerName = "Partner Name is required";
         }
 
         if (formType === 'add' && !(formData.partnerImage instanceof File)) {
-            toast.error("Partner Image is required");
+            localErrors.partnerImage = "Partner Image is required";
+        }
+
+        if (Object.keys(localErrors).length > 0) {
+            setErrors(localErrors);
             return;
         }
 
@@ -132,6 +148,8 @@ function PartnerList() {
         data.append('status', formData.status || "Active");
 
         try {
+            console.log('Submitting partner...', { formType, name: partnerName });
+
             if (formType === 'add') {
                 const res = await createPartner(data);
                 if (res.status === "success") {
@@ -152,7 +170,17 @@ function PartnerList() {
                 }
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "An error occurred");
+            console.error("Partner submission error:", error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+
+            const backendErrors = mapBackendErrors(error);
+            console.log("Mapped field errors:", backendErrors);
+
+            if (Object.keys(backendErrors).length > 0) {
+                setErrors(backendErrors);
+            }
+            toast.error(extractErrorMessage(error, "Failed to save partner"));
         } finally {
             setIsSubmitting(false);
         }
@@ -345,6 +373,7 @@ function PartnerList() {
                 <PartnerForm
                     formData={formData}
                     onChange={setFormData}
+                    errors={errors}
                 />
             </FormModal>
 

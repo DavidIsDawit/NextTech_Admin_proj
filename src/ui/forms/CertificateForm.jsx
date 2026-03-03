@@ -141,6 +141,7 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                     placeholder="e.g., ISO 9001:2015 Quality Management"
                     value={formData.title || ''}
                     onChange={handleChange}
+                    className={errors.title ? 'border-red-500' : ''}
                 />
                 {errors.title && (
                     <p className="text-sm text-red-500">{errors.title}</p>
@@ -156,6 +157,7 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                     placeholder="Organization or issuer name"
                     value={formData.issuedBy || ''}
                     onChange={handleChange}
+                    className={errors.issuedBy ? 'border-red-500' : ''}
                 />
                 {errors.issuedBy && (
                     <p className="text-sm text-red-500">{errors.issuedBy}</p>
@@ -171,7 +173,11 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                     placeholder="Enter certificate description"
                     value={formData.description || ''}
                     onChange={handleChange}
+                    className={errors.description ? 'border-red-500' : ''}
                 />
+                {errors.description && (
+                    <p className="text-sm text-red-500">{errors.description}</p>
+                )}
             </div>
 
             {/* Issue Date */}
@@ -183,6 +189,7 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                     type="date"
                     value={formData.issueDate ? new Date(formData.issueDate).toISOString().split('T')[0] : ''}
                     onChange={handleChange}
+                    className={errors.issueDate ? 'border-red-500' : ''}
                 />
                 {errors.issueDate && (
                     <p className="text-sm text-red-500">{errors.issueDate}</p>

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { buildImageUrl } from "../../api/api";
 import { updatePassword, getMe, uploadPhoto, cleanupAuth } from "../../api/userApi";
+import { mapBackendErrors } from "../../utils/errorHelpers";
 // static profile picture lives in public/images; reference via root URL
 const defaultAvatar = "/images/Profile_pic.png";
 import { LuBuilding2 } from "react-icons/lu";
@@ -48,6 +49,7 @@ function ProfileSetting() {
     bio: "",
     photo: "",
   });
+  const [errors, setErrors] = useState({});
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -125,12 +127,15 @@ function ProfileSetting() {
 
 
   const handleUpdatePassword = async () => {
+    setErrors({});
     if (passwordData.new !== passwordData.confirm) {
       toast.error("Passwords do not match!");
+      setErrors({ confirm: "Passwords do not match" });
       return;
     }
     if (passwordData.new.length < 8) {
       toast.error("New password must be at least 8 characters.");
+      setErrors({ new: "Must be at least 8 characters" });
       return;
     }
 
@@ -139,7 +144,7 @@ function ProfileSetting() {
         newPassword: passwordData.new,
         confirmPassword: passwordData.confirm
       });
-      console.log("profile update-password response", response);
+      console.log("Profile update-password success:", response);
       if (response.status === "success" || response.status === 200) {
         toast.success("Password updated successfully!");
         localStorage.setItem("firstTimeLogin", "false");
@@ -147,7 +152,17 @@ function ProfileSetting() {
         setPasswordStrength(0);
       }
     } catch (error) {
-      console.error("profile update-password error", error);
+      console.error("Profile update-password error:", error);
+      const responseData = error?.response?.data;
+      console.log("Raw backend error data:", responseData);
+
+      const backendErrors = mapBackendErrors(error);
+      console.log("Mapped field errors:", backendErrors);
+
+      if (Object.keys(backendErrors).length > 0) {
+        setErrors(backendErrors);
+      }
+
       const msg = error.response?.data?.message || error.message || "Update failed";
       toast.error(msg);
     }
@@ -398,7 +413,11 @@ function ProfileSetting() {
                     placeholder="Enter current password"
                     showPassword={showPasswords.current}
                     onToggle={() => togglePasswordVisibility('current')}
+                    className={errors.currentPassword || errors.current ? 'border-red-500' : ''}
                   />
+                  {(errors.currentPassword || errors.current) && (
+                    <p className="text-xs text-red-500 mt-1">{errors.currentPassword || errors.current}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -412,7 +431,11 @@ function ProfileSetting() {
                     placeholder="Enter new password"
                     showPassword={showPasswords.new}
                     onToggle={() => togglePasswordVisibility('new')}
+                    className={errors.newPassword || errors.new ? 'border-red-500' : ''}
                   />
+                  {(errors.newPassword || errors.new) && (
+                    <p className="text-xs text-red-500 mt-1">{errors.newPassword || errors.new}</p>
+                  )}
                   {/* Strength Bar */}
                   <div className="flex gap-1 h-1.5 mt-3">
                     {[1, 2, 3, 4].map((i) => (
@@ -442,7 +465,11 @@ function ProfileSetting() {
                     placeholder="Confirm new password"
                     showPassword={showPasswords.confirm}
                     onToggle={() => togglePasswordVisibility('confirm')}
+                    className={errors.confirmPassword || errors.confirm ? 'border-red-500' : ''}
                   />
+                  {(errors.confirmPassword || errors.confirm) && (
+                    <p className="text-xs text-red-500 mt-1">{errors.confirmPassword || errors.confirm}</p>
+                  )}
                 </div>
 
                 <Button

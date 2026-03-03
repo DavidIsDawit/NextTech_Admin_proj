@@ -14,6 +14,7 @@ import { CertificateForm } from "../forms/CertificateForm";
 import { getAllCertificates, createCertificate, updateCertificate, deleteCertificate } from "../../api/certificateApi";
 import api, { buildImageUrl } from "../../api/api";
 import { toast } from "sonner";
+import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 
 function CertificateList() {
     const [certificates, setCertificates] = useState([]);
@@ -35,6 +36,7 @@ function CertificateList() {
     const [selectedId, setSelectedId] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const [totalCertificates, setTotalCertificates] = useState(0);
 
@@ -92,7 +94,16 @@ function CertificateList() {
     const handleAddNew = () => {
         // both admin and normal users can add
         setFormType('add');
-        setFormData({ status: 'Active', issuedBy: '' });
+        setFormData({
+            title: '',
+            issuedBy: '',
+            description: '',
+            issueDate: '',
+            status: 'Active',
+            certificate: null,
+            certificateImage: ''
+        });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
@@ -100,6 +111,7 @@ function CertificateList() {
         setFormType('edit');
         setSelectedItem(item);
         setSelectedId(item._id ?? item.id);
+        setErrors({});
 
         let formattedDate = '';
         if (item.issueDate || item.IssueDate) {
@@ -132,29 +144,27 @@ function CertificateList() {
     };
 
     const handleFormSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         setIsSubmitting(true);
+        setErrors({}); // Clear previous errors
 
         const data = new FormData();
 
-        // Append image only if user has chosen a new file.  The API accepts
-        // an uploaded file; sending the existing URL is unnecessary and may be
-        // rejected by strict multipart parsers.
+        // Append image only if user has chosen a new file.
         if (formData.certificate instanceof File) {
             data.append('certificateImage', formData.certificate);
         }
 
         // Map frontend fields to backend expected fields
         const payload = {
-            // include both naming schemes so API will accept either
-            certificateName: formData.title || formData.certificateName || "",
-            title: formData.title || formData.certificateName || "",
-            certificateType: formData.description || formData.certificateType || "",
-            description: formData.description || formData.certificateType || "",
-            certificateFrom: formData.issuedBy || formData.certificateFrom || "",
-            issuedBy: formData.issuedBy || formData.certificateFrom || "",
-            IssueDate: formData.issueDate || formData.IssueDate || "",
-            issueDate: formData.issueDate || formData.IssueDate || "",
+            certificateName: formData.title || "",
+            title: formData.title || "",
+            certificateType: formData.description || "",
+            description: formData.description || "",
+            certificateFrom: formData.issuedBy || "",
+            issuedBy: formData.issuedBy || "",
+            IssueDate: formData.issueDate || "",
+            issueDate: formData.issueDate || "",
             status: formData.status || "Active"
         };
 
@@ -164,35 +174,32 @@ function CertificateList() {
             }
         });
 
-        // debug: log formdata entries
-        for (let pair of data.entries()) {
-            console.log('form data', pair[0], pair[1]);
-        }
-
         try {
-            // no role check (all users allowed)
+            console.log('Submitting certificate form...', { formType, id: selectedItem?._id || selectedItem?.id });
 
-            console.log('submitting certificate form', { formType, id: selectedItem?._id || selectedItem?.id, payload, file: formData.certificate });
             if (formType === 'add') {
-                const res = await createCertificate(data);
-                console.log('createCertificate response', res);
+                await createCertificate(data);
                 toast.success("Certificate added successfully");
             } else {
-                const res = await updateCertificate(selectedId, data);
-                console.log('updateCertificate response', res);
+                await updateCertificate(selectedId, data);
                 toast.success("Certificate updated successfully");
             }
             setIsFormModalOpen(false);
             fetchCertificates();
         } catch (error) {
-            console.error('certificate submit error', error);
-            const msg = error.response?.data?.message || error.message || 'Request failed';
-            // display special message for 403
-            if (error.response?.status === 403) {
-                toast.error('Forbidden: you may not have sufficient rights');
-            } else {
-                toast.error(msg);
+            console.error('Certificate submission error:', error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+
+            const backendErrors = mapBackendErrors(error);
+            console.log("Mapped field errors:", backendErrors);
+
+            if (Object.keys(backendErrors).length > 0) {
+                setErrors(backendErrors);
             }
+
+            const msg = extractErrorMessage(error, 'Failed to save certificate');
+            toast.error(msg);
         } finally {
             setIsSubmitting(false);
         }
@@ -390,6 +397,7 @@ function CertificateList() {
                 <CertificateForm
                     formData={formData}
                     onChange={setFormData}
+                    errors={errors}
                 />
             </FormModal>
 
