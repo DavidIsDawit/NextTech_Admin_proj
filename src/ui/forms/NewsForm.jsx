@@ -101,7 +101,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Cover Image</Label>
                 <div
-                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.imageCover ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('news-imageCover').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -147,7 +147,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>News Images (Gallery)</Label>
                 <div
-                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('news-images').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -198,6 +198,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     placeholder="Enter article title..."
                     value={formData.title || ''}
                     onChange={handleChange}
+                    className={errors.title ? 'border-red-500' : ''}
                 />
                 {errors.title && (
                     <p className="text-sm text-red-500">{errors.title}</p>
@@ -211,7 +212,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     value={formData.catagory || ''}
                     onValueChange={(value) => handleSelectChange('catagory', value)}
                 >
-                    <SelectTrigger>
+                    <SelectTrigger className={errors.catagory ? 'border-red-500' : ''}>
                         <SelectValue placeholder="Company News" />
                     </SelectTrigger>
                     <SelectContent>
@@ -236,6 +237,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     placeholder="Enter author name..."
                     value={formData.author || ''}
                     onChange={handleChange}
+                    className={errors.author ? 'border-red-500' : ''}
                 />
                 {errors.author && (
                     <p className="text-sm text-red-500">{errors.author}</p>
@@ -252,6 +254,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     value={formData.descriptionOne || ''}
                     onChange={handleChange}
                     rows={3}
+                    className={errors.descriptionOne ? 'border-red-500' : ''}
                 />
                 {errors.descriptionOne && (
                     <p className="text-sm text-red-500">{errors.descriptionOne}</p>
@@ -268,6 +271,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     value={formData.descriptionTwo || ''}
                     onChange={handleChange}
                     rows={4}
+                    className={errors.descriptionTwo ? 'border-red-500' : ''}
                 />
                 {errors.descriptionTwo && (
                     <p className="text-sm text-red-500">{errors.descriptionTwo}</p>
@@ -283,6 +287,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     placeholder="Add tags separated by commas..."
                     value={formData.tags || ''}
                     onChange={handleChange}
+                    className={errors.tags ? 'border-red-500' : ''}
                 />
                 {errors.tags && (
                     <p className="text-sm text-red-500">{errors.tags}</p>
@@ -298,6 +303,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     type="date"
                     value={formData.happenedOn || ''}
                     onChange={handleChange}
+                    className={errors.happenedOn ? 'border-red-500' : ''}
                 />
                 {errors.happenedOn && (
                     <p className="text-sm text-red-500">{errors.happenedOn}</p>
@@ -308,20 +314,20 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'published'}
+                    value={formData.status || 'Published'}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="published" id="news-published" />
+                        <RadioGroupItem value="Published" id="news-published" />
                         <Label htmlFor="news-published" className="font-normal cursor-pointer">Published</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="draft" id="news-draft" />
+                        <RadioGroupItem value="Draft" id="news-draft" />
                         <Label htmlFor="news-draft" className="font-normal cursor-pointer">Draft</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="scheduled" id="news-scheduled" />
+                        <RadioGroupItem value="Scheduled" id="news-scheduled" />
                         <Label htmlFor="news-scheduled" className="font-normal cursor-pointer">Scheduled</Label>
                     </div>
                 </RadioGroup>

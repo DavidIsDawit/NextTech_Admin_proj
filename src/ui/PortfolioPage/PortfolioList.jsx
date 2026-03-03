@@ -10,20 +10,25 @@ import Badge from "../Badge";
 import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
-import { ServiceForm } from "../forms/ServiceForm";
-import { getAllServices, createService, updateService, deleteService } from "../../api/serviceApi";
+import { PortfolioForm } from "../forms/PortfolioForm";
+import {
+    getAllPortfolios,
+    createPortfolio,
+    updatePortfolio,
+    deletePortfolio
+} from "../../api/portfolioApi";
 import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 import { toast } from "sonner";
 
-function Services() {
+function PortfolioList() {
     const [searchTerm, setSearchTerm] = useState("");
-    const [categoryFilter, setCategoryFilter] = useState("All Categories");
+    const [sectorFilter, setSectorFilter] = useState("All Sectors");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
     // Data State
-    const [services, setServices] = useState([]);
+    const [portfolios, setPortfolios] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [totalItems, setTotalItems] = useState(0);
 
@@ -37,61 +42,56 @@ function Services() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
 
-    const fetchServices = async () => {
+    const fetchPortfolios = async () => {
         setIsLoading(true);
         try {
-            const result = await getAllServices({ page: currentPage, limit: 100 }); // Fetch more for local filtering or adjust pagination
+            const result = await getAllPortfolios({
+                page: currentPage,
+                limit: itemsPerPage,
+                sort: "latest"
+            });
             if (result.status === "success") {
-                setServices(result.data.services || []);
-                setTotalItems(result.total || result.data.services?.length || 0);
+                // Backend might return result.portfolios or result.data.portfolios or result.data (as array)
+                const portfolios = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
+                const total = result.total || result.data?.total || result.totalPartners || portfolios.length;
+                setPortfolios(portfolios);
+                setTotalItems(total);
             }
         } catch (error) {
-            console.error("Failed to fetch services:", error);
+            console.error("Failed to fetch portfolios:", error);
+            const status = error.response?.status;
+            const msg = error.response?.data?.message || error.message;
+            toast.error(`Failed to load portfolios (${status || 'Network Error'}): ${msg}`);
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchServices();
-    }, []);
+        fetchPortfolios();
+    }, [currentPage]);
 
-    const categories = useMemo(() => ["All Categories", ...new Set(services.map(s => s.catagory || s.category))], [services]);
-    const statuses = useMemo(() => ["All Status", ...new Set(services.map(s => s.status))], [services]);
+    const sectors = useMemo(() => ["All Sectors", ...new Set(portfolios.map(s => s.sector).filter(Boolean))], [portfolios]);
+    const statuses = useMemo(() => ["All Status", ...new Set(portfolios.map(s => s.status).filter(Boolean))], [portfolios]);
 
-    // Filter Logic
-    const filteredServices = useMemo(() => {
-        return services.filter((service) => {
-            const matchesSearch = service.title
-                ?.toLowerCase()
-                .includes(searchTerm.toLowerCase());
-            const matchesCategory =
-                categoryFilter === "All Categories" ||
-                (service.catagory || service.category) === categoryFilter;
-            const matchesStatus =
-                statusFilter === "All Status" || service.status === statusFilter;
-
-            return matchesSearch && matchesCategory && matchesStatus;
+    const filteredData = useMemo(() => {
+        return portfolios.filter((item) => {
+            const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSector = sectorFilter === "All Sectors" || item.sector === sectorFilter;
+            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+            return matchesSearch && matchesSector && matchesStatus;
         });
-    }, [searchTerm, categoryFilter, statusFilter, services]);
+    }, [searchTerm, sectorFilter, statusFilter, portfolios]);
 
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
-    const currentServices = filteredServices.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
-    };
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
     const handleExportCSV = () => {
-        exportToCSV(filteredServices, "Services", {
-            title: "Service Title",
-            category: "Category",
+        exportToCSV(filteredData, "Portfolios", {
+            title: "Project Title",
+            client: "Client",
+            sector: "Sector",
             status: "Status",
-            shortDescription: "Description"
+            happingDate: "Date"
         });
     };
 
@@ -100,16 +100,23 @@ function Services() {
         setFormType('add');
         setFormData({
             title: '',
+            client: '',
+            sector: '',
             catagory: '',
-            description: '',
-            headLine: '',
+            subtitleOne: '',
+            descriptionOne: '',
+            subtitleTwo: '',
+            subDescriptionTwo: '',
+            subtitleThere: '',
+            subDescriptionThere: '',
+            resultOne: '',
+            resultTwo: '',
+            resultThere: '',
+            requirement: '',
             status: 'Active',
-            imageCover: null,
-            images: [],
-            subTitleOne: '',
-            subdescriptionOne: '',
-            subTitleTwo: '',
-            subdescriptionTwo: ''
+            happingDate: new Date().toISOString().split('T')[0],
+            thumbinal: null,
+            images: []
         });
         setErrors({});
         setIsFormModalOpen(true);
@@ -118,7 +125,14 @@ function Services() {
     const handleEdit = (item) => {
         setFormType('edit');
         setSelectedItem(item);
-        setFormData({ ...item });
+        // Normalize date for input[type="date"]
+        const dateVal = item.happingDate ? new Date(item.happingDate).toISOString().split('T')[0] : '';
+
+        setFormData({
+            ...item,
+            happingDate: dateVal,
+            images: Array.isArray(item.images) ? item.images : []
+        });
         setErrors({});
         setIsFormModalOpen(true);
     };
@@ -132,43 +146,71 @@ function Services() {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
         setIsSubmitting(true);
+
         try {
             const data = new FormData();
-            Object.keys(formData).forEach(key => {
-                if (key === 'images' && Array.isArray(formData[key])) {
-                    formData[key].forEach(file => {
-                        if (file instanceof File) data.append('images', file);
-                    });
-                } else if (key === 'imageCover' && formData[key] instanceof File) {
-                    data.append('imageCover', formData[key]);
-                } else if (key !== 'images' && key !== 'imageCover' && formData[key] !== null && formData[key] !== undefined) {
-                    data.append(key, formData[key]);
+
+            // All backend fields from the sample JSON
+            const textFields = [
+                'title', 'client', 'sector', 'catagory',
+                'subtitleOne', 'descriptionOne',
+                'subtitleTwo', 'subDescriptionTwo',
+                'subtitleThere', 'subDescriptionThere',
+                'resultOne', 'resultTwo', 'resultThere',
+                'status', 'happingDate'
+            ];
+
+            textFields.forEach(field => {
+                if (formData[field] !== undefined && formData[field] !== null) {
+                    data.append(field, formData[field]);
                 }
             });
 
-            console.log('Submitting service...', { formType, title: formData.title });
-
-            if (formType === 'add') {
-                await createService(data);
-                toast.success("Service created successfully!");
-            } else {
-                await updateService(selectedItem._id || selectedItem.id, data);
-                toast.success("Service updated successfully!");
+            // Handle requirement (string or array)
+            if (formData.requirement) {
+                data.append('requirement', formData.requirement);
             }
-            await fetchServices();
+
+            // Append thumbinal if it's a new file
+            if (formData.thumbinal instanceof File) {
+                data.append('thumbinal', formData.thumbinal);
+            }
+
+            // Append gallery images
+            if (Array.isArray(formData.images)) {
+                formData.images.forEach(img => {
+                    if (img instanceof File) {
+                        data.append('images', img);
+                    }
+                });
+            }
+
+            let result;
+            if (formType === 'add') {
+                result = await createPortfolio(data);
+                if (result.status === "success") {
+                    toast.success("Portfolio created successfully!");
+                }
+            } else {
+                result = await updatePortfolio(selectedItem._id || selectedItem.id, data);
+                if (result.status === "success") {
+                    toast.success("Portfolio updated successfully!");
+                }
+            }
+
+            fetchPortfolios();
             setIsFormModalOpen(false);
         } catch (error) {
-            console.error("Service submission error:", error);
-            const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
+            console.error("Portfolio submission error:", error);
+            const status = error.response?.status;
+            const msg = error.response?.data?.message || error.message;
+            console.log(`Portfolio submission failed (${status}):`, msg);
 
             const backendErrors = mapBackendErrors(error);
-            console.log("Mapped field errors:", backendErrors);
-
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             }
-            toast.error(extractErrorMessage(error, "Failed to save service"));
+            toast.error(extractErrorMessage(error, "Failed to save portfolio"));
         } finally {
             setIsSubmitting(false);
         }
@@ -177,63 +219,47 @@ function Services() {
     const handleDeleteConfirm = async () => {
         setIsDeleting(true);
         try {
-            await deleteService(selectedItem._id || selectedItem.id);
-            await fetchServices();
+            await deletePortfolio(selectedItem._id || selectedItem.id);
+            toast.success("Portfolio deleted successfully!");
+            fetchPortfolios();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            console.error("Failed to delete service:", error);
+            console.error("Failed to delete portfolio:", error);
+            toast.error(extractErrorMessage(error, "Failed to delete portfolio"));
         } finally {
             setIsDeleting(false);
         }
     };
 
-
-    // Table Columns Configuration
     const columns = [
         {
-            key: "imageCover",
-            label: "Image",
+            key: "thumbinal",
+            label: "Thumbnail",
             render: (value, row) => (
                 <div className="flex-shrink-0 h-14 w-14">
                     <img
-                        src={value || row.thumbnail}
+                        src={value || "/upload-placeholder.png"}
                         alt={row.title}
-                        className="h-full w-full rounded object-cover"
+                        className="h-full w-full rounded object-cover border border-gray-100"
+                        onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                     />
                 </div>
             ),
         },
         {
             key: "title",
-            label: "Service Title",
-            render: (value) => (
-                <div className="font-medium text-gray-900">{value}</div>
-            ),
+            label: "Project Title",
+            render: (value) => <div className="font-medium text-gray-900">{value}</div>,
         },
         {
-            key: "catagory",
-            label: "Category",
-            render: (value, row) => {
-                const displayValue = value || row.category;
-                let colorClass = "bg-gray-100 text-gray-800";
-                if (displayValue === "Construction") colorClass = "bg-blue-50 text-blue-600";
-                if (displayValue === "Consulting") colorClass = "bg-green-50 text-green-600";
-                if (displayValue === "Infrastructure") colorClass = "bg-gray-50 text-gray-600";
-                if (displayValue === "Design") colorClass = "bg-purple-50 text-purple-600";
-
-                return (
-                    <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full ${colorClass}`}>
-                        {displayValue}
-                    </span>
-                );
-            },
+            key: "client",
+            label: "Client",
+            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
         },
         {
-            key: "shortDescription",
-            label: "Description",
-            render: (value) => (
-                <div className="text-gray-500 truncate max-w-xs" title={value}>{value}</div>
-            ),
+            key: "sector",
+            label: "Sector",
+            render: (value) => <span className="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-blue-50 text-blue-700">{value}</span>,
         },
         {
             key: "status",
@@ -247,7 +273,7 @@ function Services() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row.id)}
+                        onClick={() => console.log("View", row._id || row.id)}
                         title="View"
                     >
                         <FiEye size={21} />
@@ -272,55 +298,51 @@ function Services() {
     ];
 
     return (
-        <div className="p-0 md:px-5  lg:px-2 2xl:px-5 space-y-1">
-            {/* Header Section */}
+        <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl md:text-4xl lg:text-3xl 2xl:text-4xl font-bold text-gray-900">
-                        Service Management Center
+                        Portfolio Management
                     </h1>
                     <p className="text-base text-gray-500 mt-3">
-                        Manage engineering services, technical offerings, and project capabilities
+                        Manage your project portfolios and showcases
                     </p>
                 </div>
                 <DynamicButton
-
                     icon={FiPlus}
-
                     onClick={handleAddNew}
                     className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
-                    Add New Service
+                    Add Portfolio
                 </DynamicButton>
             </div>
 
-            {/* Filters Bar */}
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-16 pb-8">
                 <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto flex-1">
-                    <div className="w-full sm:w-96 lg:w-80 2xl:w-96  ">
+                    <div className="w-full sm:w-96 lg:w-80 2xl:w-96">
                         <DynamicSearch
                             value={searchTerm}
                             onChange={(val) => {
                                 setSearchTerm(val);
                                 setCurrentPage(1);
                             }}
-                            placeholder="Search services..."
+                            placeholder="Search portfolios..."
                         />
                     </div>
                     <div className="w-full sm:w-40">
                         <DynamicDropdown
-                            options={categories.filter(c => c !== "All Categories")}
-                            value={categoryFilter}
+                            options={sectors.filter((s) => s !== "All Sectors")}
+                            value={sectorFilter}
                             onChange={(val) => {
-                                setCategoryFilter(val);
+                                setSectorFilter(val);
                                 setCurrentPage(1);
                             }}
-                            defaultOption="All Categories"
+                            defaultOption="All Sectors"
                         />
                     </div>
                     <div className="w-full sm:w-36">
                         <DynamicDropdown
-                            options={statuses.filter(s => s !== "All Status")}
+                            options={statuses.filter((s) => s !== "All Status")}
                             value={statusFilter}
                             onChange={(val) => {
                                 setStatusFilter(val);
@@ -330,7 +352,6 @@ function Services() {
                         />
                     </div>
                 </div>
-
                 <DynamicButton
                     variant="secondary"
                     onClick={handleExportCSV}
@@ -340,28 +361,33 @@ function Services() {
                 </DynamicButton>
             </div>
 
-            {/* Table */}
             <div>
                 {isLoading ? (
                     <div className="flex justify-center items-center h-64">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
                     </div>
                 ) : (
-                    <DynamicTable columns={columns} rows={currentServices} />
+                    <DynamicTable columns={columns} rows={filteredData} />
                 )}
             </div>
 
-            {/* Pagination */}
-            <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
+            <div className="flex flex-col bg-white py-3 rounded-b-lg shadow sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
-                    Showing <span className="font-medium text-gray-900">{filteredServices.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span>-
-                    <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filteredServices.length)}</span> of <span className="font-medium text-gray-900">{filteredServices.length}</span> services
+                    Showing{" "}
+                    <span className="font-medium text-gray-900">
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                    </span>
+                    -
+                    <span className="font-medium text-gray-900">
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                    </span>{" "}
+                    of <span className="font-medium text-gray-900">{totalItems}</span> portfolios
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
                         currentPage={currentPage}
                         totalPages={totalPages}
-                        onPageChange={handlePageChange}
+                        onPageChange={(p) => setCurrentPage(p)}
                     />
                 </div>
             </div>
@@ -370,13 +396,13 @@ function Services() {
             <FormModal
                 open={isFormModalOpen}
                 onOpenChange={setIsFormModalOpen}
-                title={formType === 'add' ? 'Add New Service' : 'Edit Service'}
+                title={formType === 'add' ? 'Add New Project' : 'Edit Project'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Service' : 'Save Changes'}
+                submitLabel={formType === 'add' ? 'Save Project' : 'Update Project'}
                 size="lg"
             >
-                <ServiceForm
+                <PortfolioForm
                     formData={formData}
                     onChange={setFormData}
                     errors={errors}
@@ -387,13 +413,13 @@ function Services() {
                 open={isDeleteModalOpen}
                 onOpenChange={setIsDeleteModalOpen}
                 onConfirm={handleDeleteConfirm}
-                entityName="Service"
+                entityName="Portfolio"
                 itemName={selectedItem?.title}
-                image={selectedItem?.image}
+                image={selectedItem?.thumbinal}
                 isDeleting={isDeleting}
             />
         </div>
     );
 }
 
-export default Services;
+export default PortfolioList;

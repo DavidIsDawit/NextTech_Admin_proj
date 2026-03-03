@@ -5,6 +5,7 @@ import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { toast } from "sonner";
 import { updatePassword } from "../api/userApi";
+import { mapBackendErrors } from "../utils/errorHelpers";
 
 export default function ChangePasswordForm() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function ChangePasswordForm() {
     confirm: "",
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,20 +31,31 @@ export default function ChangePasswordForm() {
       toast.error("Password must be at least 8 characters");
       return;
     }
+    setErrors({});
     setLoading(true);
     try {
       const res = await updatePassword({
         newPassword: passwordData.new,
         confirmPassword: passwordData.confirm,
       });
-      console.log("change-password response", res);
+      console.log("Change-password success:", res);
       if (res.status === "success") {
         toast.success("Password updated successfully");
         localStorage.setItem("firstTimeLogin", "false");
         navigate("/");
       }
     } catch (err) {
-      console.error("change-password error", err);
+      console.error("Change-password error:", err);
+      const responseData = err?.response?.data;
+      console.log("Raw backend error data:", responseData);
+
+      const backendErrors = mapBackendErrors(err);
+      console.log("Mapped field errors:", backendErrors);
+
+      if (Object.keys(backendErrors).length > 0) {
+        setErrors(backendErrors);
+      }
+
       const msg = err.response?.data?.message || err.message || "Update failed";
       toast.error(msg);
     } finally {
@@ -69,7 +82,11 @@ export default function ChangePasswordForm() {
             value={passwordData.new}
             onChange={handleChange}
             required
+            className={errors.newPassword || errors.new ? 'border-red-500' : ''}
           />
+          {(errors.newPassword || errors.new) && (
+            <p className="text-sm text-red-500 mt-1">{errors.newPassword || errors.new}</p>
+          )}
         </div>
         <div className="flex flex-col">
           <Label htmlFor="confirm" className="text-sm font-semibold">
@@ -82,7 +99,11 @@ export default function ChangePasswordForm() {
             value={passwordData.confirm}
             onChange={handleChange}
             required
+            className={errors.confirmPassword || errors.confirm ? 'border-red-500' : ''}
           />
+          {(errors.confirmPassword || errors.confirm) && (
+            <p className="text-sm text-red-500 mt-1">{errors.confirmPassword || errors.confirm}</p>
+          )}
         </div>
         <Button type="submit" disabled={loading} className="mt-4">
           {loading ? "Updating…" : "Update Password"}

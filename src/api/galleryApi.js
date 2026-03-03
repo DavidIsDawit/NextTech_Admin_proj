@@ -23,7 +23,7 @@ export const normalizeGallery = (item) => {
  */
 export const getAllGallery = async (params = {}) => {
     try {
-        const response = await api.get("/getAllgallery", { params });
+        const response = await api.get("/getAllGallery", { params });
         const result = response.data;
 
         if (result.status === "success" && Array.isArray(result.data)) {
@@ -62,9 +62,34 @@ export const getGallery = async (id) => {
 export const addGallery = async (formData) => {
     try {
         const response = await api.post("/addGallery", formData);
-        return response.data;
+        const result = response.data;
+
+        if (result.status === "success" && result.data) {
+            result.data = normalizeGallery(result.data);
+        }
+
+        return result;
     } catch (error) {
         console.error("Error adding gallery item:", error);
+        throw error;
+    }
+};
+
+/**
+ * Update an existing gallery item.
+ */
+export const updateGallery = async (id, formData) => {
+    try {
+        const response = await api.put(`/updateGallery/${id}`, formData);
+        const result = response.data;
+
+        if (result.status === "success" && result.data) {
+            result.data = normalizeGallery(result.data);
+        }
+
+        return result;
+    } catch (error) {
+        console.error(`Error updating gallery item ${id}:`, error);
         throw error;
     }
 };

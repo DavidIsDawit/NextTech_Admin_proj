@@ -12,6 +12,8 @@ import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { TestimonialForm } from "../forms/TestimonialForm";
 import { getAllTestimonials, createTestimonial, updateTestimonial, deleteTestimonial } from "../../api/api_testimonial";
+import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
+import { toast } from "sonner";
 
 function TestimonialList() {
     const [testimonials, setTestimonials] = useState([]);
@@ -30,6 +32,7 @@ function TestimonialList() {
     const [formData, setFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [errors, setErrors] = useState({});
     const [totalTestimonials, setTotalTestimonials] = useState(0);
 
     const fetchTestimonials = async () => {
@@ -86,7 +89,17 @@ function TestimonialList() {
     // Modal Handlers
     const handleAddNew = () => {
         setFormType('add');
-        setFormData({ status: 'active', rate: 5 });
+        setFormData({
+            name: '',
+            testimony: '',
+            speciality: '',
+            review: '',
+            date: '',
+            status: 'Active',
+            rate: 5,
+            file: null
+        });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
@@ -94,6 +107,7 @@ function TestimonialList() {
         setFormType('edit');
         setSelectedItem(item);
         setFormData({ ...item });
+        setErrors({});
         setIsFormModalOpen(true);
     };
 
@@ -103,11 +117,12 @@ function TestimonialList() {
     };
 
     const handleFormSubmit = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        setErrors({});
         setIsSubmitting(true);
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
-                // If it's the 'image' field and it's from the file input (instance of File)
                 if (key === 'file' && formData[key] instanceof File) {
                     data.append('image', formData[key]);
                 } else if (formData[key] !== null && formData[key] !== undefined) {
@@ -115,15 +130,29 @@ function TestimonialList() {
                 }
             });
 
+            console.log('Submitting testimonial...', { formType, name: formData.name });
+
             if (formType === 'add') {
                 await createTestimonial(data);
+                toast.success("Testimonial added successfully!");
             } else {
                 await updateTestimonial(selectedItem._id || selectedItem.id, data);
+                toast.success("Testimonial updated successfully!");
             }
             await fetchTestimonials();
             setIsFormModalOpen(false);
         } catch (error) {
-            console.error("Failed to save testimonial:", error);
+            console.error("Testimonial submission error:", error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+
+            const backendErrors = mapBackendErrors(error);
+            console.log("Mapped field errors:", backendErrors);
+
+            if (Object.keys(backendErrors).length > 0) {
+                setErrors(backendErrors);
+            }
+            toast.error(extractErrorMessage(error, "Failed to save testimonial"));
         } finally {
             setIsSubmitting(false);
         }
@@ -321,6 +350,7 @@ function TestimonialList() {
                 <TestimonialForm
                     formData={formData}
                     onChange={setFormData}
+                    errors={errors}
                 />
             </FormModal>
 

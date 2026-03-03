@@ -44,7 +44,7 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
             {/* Answer */}
             <div className="space-y-2">
                 <Label htmlFor="answer">Answer</Label>
-                <div className="rounded-md border border-input bg-transparent">
+                <div className={`rounded-md border bg-transparent ${errors.answer ? 'border-red-500' : 'border-input'}`}>
                     {/* Simple Toolbar Placeholder */}
                     <div className="flex items-center gap-2 border-b px-3 py-2 text-sm text-muted-foreground">
                         <button className="hover:text-foreground">Aa</button>

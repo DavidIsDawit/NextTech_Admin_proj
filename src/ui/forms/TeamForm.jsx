@@ -59,7 +59,7 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
             {/* Image Upload */}
             <div className="space-y-2">
                 <div
-                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.image ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('team-image').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -106,6 +106,7 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
                     placeholder="e.g., Abebe, Bontu,..."
                     value={formData.name || ''}
                     onChange={handleChange}
+                    className={errors.name ? 'border-red-500' : ''}
                 />
                 {errors.name && (
                     <p className="text-sm text-red-500">{errors.name}</p>
@@ -121,6 +122,7 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
                     placeholder="e.g., CEO,CTO,..."
                     value={formData.specialty || ''}
                     onChange={handleChange}
+                    className={errors.specialty ? 'border-red-500' : ''}
                 />
                 {errors.specialty && (
                     <p className="text-sm text-red-500">{errors.specialty}</p>
@@ -146,7 +148,7 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
                     </div>
                 </RadioGroup>
                 {errors.status && (
-                    <p className="text-sm text-red-500">{errors.status}</p>
+                    <p className="text-sm text-red-500 mt-1">{errors.status}</p>
                 )}
             </div>
         </div>
