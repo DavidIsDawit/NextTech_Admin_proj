@@ -56,6 +56,20 @@ export const getMe = async () => {
 };
 
 /* ------------------------------------------------------------------
+   READ – user by ID
+   GET /api/getUser/:id
+   Returns: { status, data: { user: {} } }
+------------------------------------------------------------------ */
+export const getUserById = async (id) => {
+    try {
+        const response = await api.get(`/getUser/${id}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/* ------------------------------------------------------------------
    UPDATE – user by ID  (Admin only)
    PUT /api/updateUser/:id
    Body: { name, email, phoneNumber, location, bio, employeId, department, role }
