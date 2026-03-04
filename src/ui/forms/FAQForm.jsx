@@ -116,6 +116,9 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
                         </Label>
                     </div>
                 </RadioGroup>
+                {errors.status && (
+                    <p className="text-sm text-red-500 mt-1">{errors.status}</p>
+                )}
             </div>
 
 

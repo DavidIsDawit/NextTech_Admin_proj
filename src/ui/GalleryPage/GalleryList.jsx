@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2, FiPlay } from "react-icons/fi";
-import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
@@ -119,20 +118,7 @@ function GalleryList() {
         setIsFormModalOpen(true);
     };
 
-    const handleEdit = (item) => {
-        setFormType('edit');
-        setSelectedItem(item);
-        setErrors({});
 
-        // Prepare data for the form
-        setFormData({
-            ...item,
-            coverImage: item.coverImage || item.image || '',
-            images: Array.isArray(item.images) ? item.images : []
-        });
-
-        setIsFormModalOpen(true);
-    };
 
     const handleDeleteClick = (item) => {
         setSelectedItem(item);
@@ -320,13 +306,7 @@ function GalleryList() {
                     >
                         <FiEye size={21} />
                     </button>
-                    <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => handleEdit(row)}
-                        title="Edit"
-                    >
-                        <BiEdit size={21} />
-                    </button>
+
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
                         onClick={() => handleDeleteClick(row)}
@@ -439,10 +419,10 @@ function GalleryList() {
             <FormModal
                 open={isFormModalOpen}
                 onOpenChange={setIsFormModalOpen}
-                title={formType === 'add' ? 'Add New Media' : 'Edit Media'}
+                title="Add New Media"
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Media' : 'Save Changes'}
+                submitLabel="Add Media"
                 size="lg"
             >
                 <MediaForm formData={formData} onChange={setFormData} errors={errors} />

@@ -104,6 +104,7 @@ function CertificateList() {
             certificateImage: ''
         });
         setErrors({});
+
         setIsFormModalOpen(true);
     };
 
@@ -145,9 +146,22 @@ function CertificateList() {
 
     const handleFormSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
-        setIsSubmitting(true);
-        setErrors({}); // Clear previous errors
+        setErrors({});
 
+        // Frontend Validation
+        const newErrors = {};
+        if (formType === 'add' && !formData.certificate) newErrors.certificate = "Certificate image is required";
+        if (!formData.title) newErrors.title = "Certificate title is required";
+        if (!formData.issuedBy) newErrors.issuedBy = "Issuer name is required";
+        if (!formData.issueDate) newErrors.issueDate = "Issue date is required";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            toast.error("Please fill in all required fields.");
+            return;
+        }
+
+        setIsSubmitting(true);
         const data = new FormData();
 
         // Append image only if user has chosen a new file.

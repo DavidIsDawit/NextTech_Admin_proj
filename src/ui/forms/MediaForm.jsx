@@ -10,7 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/ui/select';
-import { Upload } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import { buildImageUrl } from '@/api/api';
 
 /**
@@ -25,15 +25,36 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
     const [imagesPreview, setImagesPreview] = useState([]);
 
     React.useEffect(() => {
-        if (formData.coverImage && typeof formData.coverImage === 'string') {
+        let objectUrl;
+        if (formData.coverImage instanceof File) {
+            objectUrl = URL.createObjectURL(formData.coverImage);
+            setCoverImagePreview(objectUrl);
+        } else if (formData.coverImage && typeof formData.coverImage === 'string') {
             setCoverImagePreview(buildImageUrl(formData.coverImage));
+        } else {
+            setCoverImagePreview(null);
         }
+
+        const objectUrls = [];
+        if (objectUrl) objectUrls.push(objectUrl);
+
         if (formData.images && Array.isArray(formData.images)) {
-            const strings = formData.images.filter(item => typeof item === 'string');
-            if (strings.length > 0) {
-                setImagesPreview(strings.map(s => buildImageUrl(s)));
-            }
+            const previews = formData.images.map(img => {
+                if (img instanceof File) {
+                    const url = URL.createObjectURL(img);
+                    objectUrls.push(url);
+                    return url;
+                }
+                return buildImageUrl(img);
+            });
+            setImagesPreview(previews);
+        } else {
+            setImagesPreview([]);
         }
+
+        return () => {
+            objectUrls.forEach(url => URL.revokeObjectURL(url));
+        };
     }, [formData.coverImage, formData.images]);
 
     const handleChange = (e) => {
@@ -58,23 +79,20 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
     };
 
     const handleImagesChange = (e) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 0) {
-            onChange?.({ ...formData, images: files });
+        const newFiles = Array.from(e.target.files || []);
+        if (newFiles.length === 0) return;
 
-            // Create previews
-            const previews = [];
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    previews.push(reader.result);
-                    if (previews.length === files.length) {
-                        setImagesPreview(previews);
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+        // Accumulate with previously selected files (don't replace)
+        const updatedImages = [...(formData.images || []), ...newFiles];
+        onChange?.({ ...formData, images: updatedImages });
+
+        // Reset the input so the same file can be added again if needed
+        e.target.value = '';
+    };
+
+    const handleRemoveImage = (idx) => {
+        const updatedImages = (formData.images || []).filter((_, i) => i !== idx);
+        onChange?.({ ...formData, images: updatedImages });
     };
 
     const handleStatusChange = (value) => {
@@ -133,16 +151,34 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                     onClick={() => document.getElementById('media-gallery').click()}
                 >
                     <div className="flex flex-col items-center">
-                        {imagesPreview.length > 0 && Array.isArray(formData.images) && formData.images.some(item => item instanceof File) && (
-                            <div className="space-y-4 w-full mb-6 text-center">
-                                <div className="grid grid-cols-3 gap-2">
+                        {imagesPreview.length > 0 && (
+                            <div className="w-full mb-6">
+                                <p className="text-xs text-gray-500 font-medium mb-3">
+                                    {imagesPreview.length} image{imagesPreview.length > 1 ? 's' : ''} selected
+                                </p>
+                                <div className="grid grid-cols-4 gap-2">
                                     {imagesPreview.map((preview, idx) => (
-                                        <img key={idx} src={preview} alt={`Gallery ${idx + 1}`} className="h-20 w-full object-cover rounded border border-gray-200" />
+                                        <div key={idx} className="relative group aspect-square">
+                                            <img
+                                                src={preview}
+                                                alt={`Gallery ${idx + 1}`}
+                                                className="h-full w-full object-cover rounded-lg border border-gray-200 shadow-sm"
+                                                onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Don't trigger file picker
+                                                    handleRemoveImage(idx);
+                                                }}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                                                title="Remove image"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
                                     ))}
                                 </div>
-                                <p className="text-sm text-gray-600 italic">
-                                    {formData.images?.length} items selected
-                                </p>
                             </div>
                         )}
                         <div className="flex flex-col items-center justify-center">
@@ -237,16 +273,16 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'Active'}
+                    value={formData.status || 'active'}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Active" id="media-active" />
+                        <RadioGroupItem value="active" id="media-active" />
                         <Label htmlFor="media-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Inactive" id="media-inactive" />
+                        <RadioGroupItem value="inactive" id="media-inactive" />
                         <Label htmlFor="media-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                 </RadioGroup>

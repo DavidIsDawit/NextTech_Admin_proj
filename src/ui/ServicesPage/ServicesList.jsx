@@ -131,6 +131,21 @@ function Services() {
     const handleFormSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
+
+        // Frontend Validation
+        const newErrors = {};
+        if (formType === 'add' && !formData.imageCover) newErrors.imageCover = "Cover image is required";
+        if (!formData.title) newErrors.title = "Service title is required";
+        if (!formData.catagory) newErrors.catagory = "Category is required";
+        if (!formData.description) newErrors.description = "Service description is required";
+        if (!formData.headLine) newErrors.headLine = "Headline is required";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            toast.error("Please fill in all required fields.");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const data = new FormData();
