@@ -116,3 +116,33 @@ export const uploadPhoto = async (formData) => {
         throw error;
     }
 };
+
+/* ------------------------------------------------------------------
+   AUTH – Forgot Password
+   POST /api/forgot-password
+   Body: { email }
+   Returns: { status, message }
+------------------------------------------------------------------ */
+export const forgotPassword = async (email) => {
+    try {
+        const response = await api.post("/forgot-password", { email });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/* ------------------------------------------------------------------
+   AUTH – Reset Password
+   POST /api/reset-password/:token
+   Body: { newPassword, confirmPassword }
+   Returns: { status, message }
+------------------------------------------------------------------ */
+export const resetPassword = async (token, data) => {
+    try {
+        const response = await api.post(`/reset-password/${token}`, data);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};

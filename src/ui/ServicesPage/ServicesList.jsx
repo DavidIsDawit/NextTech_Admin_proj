@@ -149,22 +149,27 @@ function Services() {
             console.log('Submitting service...', { formType, title: formData.title });
 
             if (formType === 'add') {
-                await createService(data);
-                toast.success("Service created successfully!");
+                const res = await createService(data);
+                if (res.status === "success") {
+                    toast.success("Service created successfully!");
+                    await fetchServices();
+                    setIsFormModalOpen(false);
+                } else {
+                    toast.error(res.message || "Failed to create service");
+                }
             } else {
-                await updateService(selectedItem._id || selectedItem.id, data);
-                toast.success("Service updated successfully!");
+                const res = await updateService(selectedItem._id || selectedItem.id, data);
+                if (res.status === "success") {
+                    toast.success("Service updated successfully!");
+                    await fetchServices();
+                    setIsFormModalOpen(false);
+                } else {
+                    toast.error(res.message || "Failed to update service");
+                }
             }
-            await fetchServices();
-            setIsFormModalOpen(false);
         } catch (error) {
             console.error("Service submission error:", error);
-            const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
-
             const backendErrors = mapBackendErrors(error);
-            console.log("Mapped field errors:", backendErrors);
-
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             }
@@ -206,8 +211,9 @@ function Services() {
         {
             key: "title",
             label: "Service Title",
+            className: "max-w-[200px] truncate whitespace-nowrap",
             render: (value) => (
-                <div className="font-medium text-gray-900">{value}</div>
+                <div className="font-medium text-gray-900 truncate" title={value}>{value}</div>
             ),
         },
         {
@@ -231,8 +237,9 @@ function Services() {
         {
             key: "shortDescription",
             label: "Description",
+            className: "max-w-[250px] truncate whitespace-nowrap",
             render: (value) => (
-                <div className="text-gray-500 truncate max-w-xs" title={value}>{value}</div>
+                <div className="text-gray-500 truncate" title={value}>{value}</div>
             ),
         },
         {

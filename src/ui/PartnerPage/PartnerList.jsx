@@ -171,12 +171,7 @@ function PartnerList() {
             }
         } catch (error) {
             console.error("Partner submission error:", error);
-            const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
-
             const backendErrors = mapBackendErrors(error);
-            console.log("Mapped field errors:", backendErrors);
-
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             }
@@ -228,7 +223,8 @@ function PartnerList() {
         {
             key: "partnerName",
             label: "Partner Name",
-            render: (value, row) => <div className="font-medium text-gray-900">{value || row.company || row.name}</div>,
+            className: "max-w-[200px] truncate whitespace-nowrap",
+            render: (value, row) => <div className="font-medium text-gray-900 truncate" title={value || row.company || row.name}>{value || row.company || row.name}</div>,
         },
         {
             key: "createdDate",

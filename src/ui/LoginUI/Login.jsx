@@ -4,7 +4,7 @@ import { Mail, Lock, EyeOff, Eye } from 'lucide-react';
 import { Button } from '@/ui/button';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 const NextTech_logo = "/NextTech_logo.png";
 import { login } from "../../api/userApi";
@@ -15,7 +15,17 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
+
+  // Load remembered email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handlesubmit = async function (e) {
     e.preventDefault();
@@ -33,6 +43,12 @@ function Login() {
         if (firstFlag) {
           navigate("/admin/change-password");
         } else {
+          // Handle Remember Me
+          if (rememberMe) {
+            localStorage.setItem("rememberedEmail", email);
+          } else {
+            localStorage.removeItem("rememberedEmail");
+          }
           navigate("/");
         }
       } else {
@@ -146,10 +162,12 @@ function Login() {
               <input
                 type="checkbox"
                 id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-5 h-5 border-gray-300 rounded accent-[#00A8E8]"
               />
 
-              <Label htmlFor="remember" className="text-gray-600 text-sm">
+              <Label htmlFor="remember" className="text-gray-600 text-sm cursor-pointer">
                 Remember me for 30 days
               </Label>
             </div>
@@ -173,7 +191,7 @@ function Login() {
                 Forgot Password?
               </button> */}
             <NavLink
-              variant="ghost"
+              to="/forgot-password"
               className="text-[#00A8E8] hover:text-[#0092c9] font-medium hover:underline"
             >
               Forgot Password?

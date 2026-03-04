@@ -72,24 +72,36 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
     };
 
     const handleImagesChange = (e) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 0) {
-            onChange?.({ ...formData, images: files });
+        const newFiles = Array.from(e.target.files || []);
+        if (newFiles.length === 0) return;
 
-            // Create previews
-            const previews = [];
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    previews.push(reader.result);
-                    if (previews.length === files.length) {
-                        setImagesPreview(previews);
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+        // Accumulate with previously selected files (don't replace)
+        const existingFiles = (formData.images || []).filter(f => f instanceof File);
+        const mergedFiles = [...existingFiles, ...newFiles];
+        onChange?.({ ...formData, images: mergedFiles });
+
+        // Generate previews for ALL files (existing + new)
+        Promise.all(
+            mergedFiles.map(
+                (file) =>
+                    new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsDataURL(file);
+                    })
+            )
+        ).then((results) => setImagesPreview(results));
+
+        // Reset the input so the same file can be added again if needed
+        e.target.value = '';
     };
+
+    const handleRemoveImage = (idx) => {
+        const updatedFiles = (formData.images || []).filter((_, i) => i !== idx);
+        onChange?.({ ...formData, images: updatedFiles });
+        setImagesPreview(prev => prev.filter((_, i) => i !== idx));
+    };
+
 
     const handleStatusChange = (value) => {
         onChange?.({ ...formData, status: value });
@@ -146,36 +158,24 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             {/* News Images Upload */}
             <div className="space-y-2">
                 <Label>News Images (Gallery)</Label>
+                {/* Upload zone — click to browse */}
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors lg:mx-24 md:mx-28 mx-16 ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('news-images').click()}
                 >
-                    <div className="flex flex-col items-center">
-                        {imagesPreview.length > 0 && (
-                            <div className="space-y-4 w-full mb-6 text-center">
-                                <div className="grid grid-cols-3 gap-2">
-                                    {imagesPreview.map((preview, idx) => (
-                                        <img key={idx} src={preview} alt={`Gallery ${idx + 1}`} className="h-20 w-full object-cover rounded border border-gray-200" />
-                                    ))}
-                                </div>
-                                <p className="text-sm text-gray-600 italic">
-                                    {imagesPreview.length} images selected
-                                </p>
-                            </div>
-                        )}
-                        <div className="flex flex-col items-center justify-center">
-                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
-                            <p className="text-sm text-gray-600">
-                                Drag news gallery images to start uploading
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
-                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
-                                Browse files
-                            </div>
+                    <div className="flex flex-col items-center justify-center">
+                        <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                        <p className="text-sm text-gray-600">
+                            Drag news gallery images to start uploading
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
+                        <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                            Browse files
                         </div>
                     </div>
                 </div>
-                <Input
+                {/* Native input — shadcn <Input> does not forward the `multiple` prop */}
+                <input
                     id="news-images"
                     name="images"
                     type="file"
@@ -184,10 +184,28 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     onChange={handleImagesChange}
                     className="hidden"
                 />
+                {/* Preview grid — shown outside upload zone so it's always visible */}
+                {imagesPreview.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                        <p className="text-xs text-gray-500 font-medium">{imagesPreview.length} image{imagesPreview.length > 1 ? 's' : ''} selected</p>
+                        <div className="grid grid-cols-3 gap-2">
+                            {imagesPreview.map((preview, idx) => (
+                                <img
+                                    key={idx}
+                                    src={preview}
+                                    alt={`Gallery ${idx + 1}`}
+                                    className="h-24 w-full object-cover rounded-lg border border-gray-200 shadow-sm"
+                                    onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
                 {errors.images && (
                     <p className="text-sm text-red-500">{errors.images}</p>
                 )}
             </div>
+
 
             {/* Article Title */}
             <div className="space-y-2">
@@ -314,20 +332,20 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'Published'}
+                    value={formData.status || 'published'}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Published" id="news-published" />
+                        <RadioGroupItem value="published" id="news-published" />
                         <Label htmlFor="news-published" className="font-normal cursor-pointer">Published</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Draft" id="news-draft" />
+                        <RadioGroupItem value="draft" id="news-draft" />
                         <Label htmlFor="news-draft" className="font-normal cursor-pointer">Draft</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Scheduled" id="news-scheduled" />
+                        <RadioGroupItem value="scheduled" id="news-scheduled" />
                         <Label htmlFor="news-scheduled" className="font-normal cursor-pointer">Scheduled</Label>
                     </div>
                 </RadioGroup>

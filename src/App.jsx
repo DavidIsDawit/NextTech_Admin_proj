@@ -7,6 +7,8 @@ import Teams from "./pages/Teams";
 import Projects from "./pages/Projects";
 import Login from "./pages/Login"
 import ChangePassword from "./pages/ChangePassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import Gallery from "./pages/Gallery";
 import Partner from "./pages/Partner";
@@ -43,8 +45,10 @@ function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
-        {/* always allow login and change-password pages */}
+        {/* always allow login and password reset pages */}
         <Route path="/admin/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/admin/login/Reset_password/:token" element={<ResetPassword />} />
         <Route
           path="/admin/change-password"
           element={

@@ -28,7 +28,8 @@ function DynamicTable({ columns, rows }) {
                             {columns.map((col) => (
                                 <td
                                     key={col.key}
-                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                    className={`px-6 py-4 text-sm text-gray-900 ${col.className || "whitespace-nowrap"}`}
+                                    style={col.style}
                                 >
                                     {col.render ? col.render(row[col.key], row) : row[col.key] ?? "-"}
                                 </td>
