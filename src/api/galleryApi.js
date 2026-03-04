@@ -6,7 +6,7 @@ export const normalizeGallery = (item) => {
         item.coverImage = buildImageUrl(item.coverImage);
     }
     if (item?.image) {
-        item.image = buildImageUrl(item.image);
+        item.image = buildImageUrl(item.images);
     }
     if (Array.isArray(item?.images)) {
         item.images = item.images.map(img => buildImageUrl(img));

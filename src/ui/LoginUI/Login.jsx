@@ -62,10 +62,10 @@ function Login() {
     }
   };
   return (
-    <div className="flex justify-between h-[90vh] ">
+    <div className="relative flex justify-between h-[90vh]">
 
-      <div className=" w-2/3 h-[100vh]  overflow-hidden">
-        <div className="absolute left-10 top-20   -translate-y-1/2 z-10  flex flex-col items-start justify-start text-white ">
+      <div className="max-md:absolute max-md:inset-0 max-md:w-full w-2/3 h-[100vh] overflow-hidden">
+        <div className="flex absolute left-10 top-20 -translate-y-1/2 z-10 flex-col items-start justify-start text-white">
           <img
             src={NextTech_logo}
             alt="NextTech_logo"
@@ -73,7 +73,7 @@ function Login() {
           />
         </div>
 
-        <div className="absolute left-1/3 top-1/2 -translate-x-2/4 -translate-y-1/2 z-10  flex flex-col items-center justify-center text-white ">
+        <div className="hidden md:flex absolute left-1/3 top-1/2 -translate-x-2/4 -translate-y-1/2 z-10 flex-col items-center justify-center text-white">
           <h1 className="text-5xl  mb-6 font-semibold">
             Welcome Back
           </h1>
@@ -92,7 +92,7 @@ function Login() {
           className="h-[100vh] w-full  object-cover   " />
       </div>
 
-      <div className="flex flex-col  justify-center w-1/3 h-[100vh]  px-3 bg-white  rounded-sm">
+      <div className="flex flex-col justify-center w-1/3 h-[100vh] px-3 bg-white rounded-sm max-md:absolute max-md:left-1/2 max-md:-translate-x-1/2 max-md:top-1/2 max-md:-translate-y-1/2 max-md:w-[90%] max-md:max-w-sm max-md:h-auto max-md:rounded-2xl max-md:shadow-2xl max-md:bg-white/95 max-md:backdrop-blur-md max-md:z-10 max-md:px-7 max-md:py-9">
         <div className="mx-4 lg:mx-20">
           {/* Header Section */}
           <div className="mb-8">

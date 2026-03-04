@@ -61,7 +61,7 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50/70 p-6 lg:p-8">
+        <div className="min-h-screen bg-gray-50/70 p-2 lg:p-8">
             <div className="w-full mx-auto space-y-8">
                 {/* Header */}
                 <div className="space-y-1">
