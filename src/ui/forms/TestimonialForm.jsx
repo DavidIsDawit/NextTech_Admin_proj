@@ -81,14 +81,16 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Name */}
             <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name" className={errors.name ? 'text-red-500' : ''}>
+                    Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="name"
                     name="name"
-                    value={formData.name}
+                    value={formData.name || ''}
                     onChange={handleChange}
                     placeholder="e.g., Abebe Kebede, Muzeying,...."
-                    className={errors.name ? 'border-red-500' : ''}
+                    className={errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
                 />
                 {errors.name && (
                     <p className="text-sm text-red-500">{errors.name}</p>
@@ -97,14 +99,16 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Speciality */}
             <div className="space-y-2">
-                <Label htmlFor="speciality">Speciality</Label>
+                <Label htmlFor="speciality" className={errors.speciality ? 'text-red-500' : ''}>
+                    Speciality <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="speciality"
                     name="speciality"
-                    value={formData.speciality || ''}
+                    value={formData.speciality || formData.specialty || ''}
                     onChange={handleChange}
                     placeholder="e.g., CEO, CTO,...."
-                    className={errors.speciality ? 'border-red-500' : ''}
+                    className={errors.speciality ? 'border-red-500 focus-visible:ring-red-500' : ''}
                 />
                 {errors.speciality && (
                     <p className="text-sm text-red-500">{errors.speciality}</p>
@@ -113,14 +117,16 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Testimony / Review */}
             <div className="space-y-2">
-                <Label htmlFor="testimony">Testimony</Label>
+                <Label htmlFor="testimony" className={errors.testimony || errors.review ? 'text-red-500' : ''}>
+                    Testimony <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                     id="testimony"
                     name="testimony"
                     value={formData.testimony || formData.review || ''}
                     onChange={handleChange}
                     placeholder="Describe the project, offerings, capabilities, and key features..."
-                    className={`min-h-[100px] ${errors.testimony || errors.review ? 'border-red-500' : ''}`}
+                    className={`min-h-[100px] ${errors.testimony || errors.review ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                 />
                 {(errors.testimony || errors.review) && (
                     <p className="text-sm text-red-500">{errors.testimony || errors.review}</p>
@@ -129,14 +135,16 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Date */}
             <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date" className={errors.date ? 'text-red-500' : ''}>
+                    Date <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="date"
                     name="date"
                     type="date"
                     value={formData.date || ''}
                     onChange={handleChange}
-                    className={errors.date ? 'border-red-500' : ''}
+                    className={errors.date ? 'border-red-500 focus-visible:ring-red-500' : ''}
                 />
                 {errors.date && (
                     <p className="text-sm text-red-500">{errors.date}</p>
@@ -145,7 +153,9 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Status */}
             <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className={errors.status ? 'text-red-500' : ''}>
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status || 'Active'}
                     onValueChange={(value) => handleSelectChange('status', value)}

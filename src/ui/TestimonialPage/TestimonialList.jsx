@@ -38,17 +38,13 @@ function TestimonialList() {
     const fetchTestimonials = async () => {
         setIsLoading(true);
         try {
-            // Backend handles pagination
-            const params = {
-                page: currentPage,
-                limit: itemsPerPage,
-                sort: 'recent'
-            };
-            const result = await getAllTestimonials(params);
+            // Fetch a larger batch to handle client-side filtering/pagination like NewsList
+            const result = await getAllTestimonials({ limit: 100, sort: 'recent' });
 
             if (result.status === "success") {
-                setTestimonials(result.data || []);
-                setTotalTestimonials(result.totalCount || result.total || result.data?.length || 0);
+                const data = result.data?.testimonials || (Array.isArray(result.data) ? result.data : []);
+                setTestimonials(data);
+                setTotalTestimonials(result.totalCount || result.total || data.length || 0);
             }
         } catch (error) {
             console.error("Failed to fetch testimonials:", error);
@@ -59,23 +55,24 @@ function TestimonialList() {
 
     useEffect(() => {
         fetchTestimonials();
-    }, [currentPage]);
+    }, []);
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specialty || s.testimony))], [testimonials]);
+    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specialty || s.speciality || s.testimony))], [testimonials]);
     const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], [testimonials]);
 
     const filteredData = useMemo(() => {
         return testimonials.filter((item) => {
             const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesSpecialty = specialtyFilter === "All Specialties" || (item.specialty || item.testimony) === specialtyFilter;
+            const role = item.specialty || item.speciality || item.testimony;
+            const matchesSpecialty = specialtyFilter === "All Specialties" || role === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesSpecialty && matchesStatus;
         });
     }, [searchTerm, specialtyFilter, statusFilter, testimonials]);
 
     // Pagination Logic
-    const totalPages = Math.ceil(totalTestimonials / itemsPerPage);
-    const currentData = testimonials; // API already paginates
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const handleExportCSV = () => {
         exportToCSV(filteredData, "Testimonials", {
@@ -116,9 +113,65 @@ function TestimonialList() {
         setIsDeleteModalOpen(true);
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+        if (!formData.name?.trim()) newErrors.name = "Name is required";
+        if (!formData.speciality?.trim()) newErrors.speciality = "Speciality/Role is required";
+
+        // Check for testimony or review (backend might use either)
+        const testimonyValue = formData.testimony || formData.review;
+        if (!testimonyValue?.trim()) newErrors.testimony = "Testimony is required";
+
+        if (!formData.date) newErrors.date = "Date is required";
+
+        // Image validation for new testimonials
+        if (formType === 'add' && !formData.file) {
+            newErrors.file = "Image is required";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleFormChange = (updatedData) => {
+        setFormData(updatedData);
+        // Clear error for any field that now has a value
+        const newErrors = { ...errors };
+        let errorsChanged = false;
+
+        Object.keys(updatedData).forEach(key => {
+            if (updatedData[key] && newErrors[key]) {
+                delete newErrors[key];
+                errorsChanged = true;
+            }
+            // Special case for testimony/review which are interchangeable
+            if ((key === 'testimony' || key === 'review') && updatedData[key]) {
+                delete newErrors.testimony;
+                delete newErrors.review;
+                errorsChanged = true;
+            }
+            // Special case for file/image
+            if ((key === 'file' || key === 'image') && updatedData[key]) {
+                delete newErrors.file;
+                delete newErrors.image;
+                errorsChanged = true;
+            }
+        });
+
+        if (errorsChanged) {
+            setErrors(newErrors);
+        }
+    };
+
     const handleFormSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
-        setErrors({});
+
+        // Client-side validation
+        if (!validateForm()) {
+            toast.error("Please fill in all required fields");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const data = new FormData();
@@ -197,22 +250,28 @@ function TestimonialList() {
         {
             key: "rate",
             label: "Review",
-            render: (value) => <div className="text-sm text-gray-500 truncate max-w-xs" title={value}>{value}</div>,
+            render: (value, row) => {
+                const reviewText = value || row.rate;
+                return <div className="text-sm text-gray-500 truncate max-w-xs" title={reviewText}>{reviewText || "—"}</div>;
+            },
         },
         {
-            key: "cratedDate",
+            key: "createdDate",
             label: "Date",
-            render: (value) => <div className="text-sm text-gray-500">{value}</div>,
+            render: (value, row) => <div className="text-sm text-gray-500">{value || row.cratedDate || "—"}</div>,
         },
         {
-            key: "testimony",
+            key: "specialty",
             label: "Role/Specialty",
             className: "max-w-[200px] truncate",
-            render: (value) => (
-                <div className="text-sm text-gray-700 truncate" title={value || ""}>
-                    {value || "—"}
-                </div>
-            ),
+            render: (value, row) => {
+                const role = value || row.speciality || row.testimony;
+                return (
+                    <div className="text-sm text-gray-700 truncate" title={role || ""}>
+                        {role || "—"}
+                    </div>
+                );
+            },
         },
         {
             key: "status",
@@ -354,7 +413,7 @@ function TestimonialList() {
             >
                 <TestimonialForm
                     formData={formData}
-                    onChange={setFormData}
+                    onChange={handleFormChange}
                     errors={errors}
                 />
             </FormModal>
