@@ -73,17 +73,17 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                 >
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center w-full">
                         {filePreview && (
-                            <div className="flex flex-col items-center mb-6">
+                            <div className="flex flex-col items-center mb-6 px-4">
                                 <img
                                     src={filePreview}
                                     alt="Preview"
-                                    className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    className="h-32 w-auto object-contain rounded-lg border border-gray-200 shadow-sm transition-transform hover:scale-105"
                                     onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                                 />
                                 {!(formData.partnerImage instanceof File) && (
-                                    <span className="text-xs text-gray-400 mt-2 italic text-center">Current Logo</span>
+                                    <span className="text-[10px] text-gray-400 mt-2 italic text-center">Current Logo</span>
                                 )}
                             </div>
                         )}
@@ -132,16 +132,16 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'Active'}
+                    value={formData.status || 'active'}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Active" id="partner-active" />
+                        <RadioGroupItem value="active" id="partner-active" />
                         <Label htmlFor="partner-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Inactive" id="partner-inactive" />
+                        <RadioGroupItem value="inactive" id="partner-inactive" />
                         <Label htmlFor="partner-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                 </RadioGroup>

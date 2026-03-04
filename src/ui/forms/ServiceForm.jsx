@@ -112,16 +112,18 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
                                 )}
                             </div>
                         )}
-                        <div className="flex flex-col items-center justify-center">
-                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
-                            <p className="text-sm text-gray-600">
-                                Drag your service cover image to start uploading
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
-                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
-                                Browse files
+                        {!imageCoverPreview && (
+                            <div className="flex flex-col items-center justify-center">
+                                <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                                <p className="text-sm text-gray-600">
+                                    Drag your service cover image to start uploading
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
+                                <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                                    Browse files
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
                 <Input
@@ -272,20 +274,20 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'Active'}
+                    value={formData.status || 'active'}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Active" id="service-active" />
+                        <RadioGroupItem value="active" id="service-active" />
                         <Label htmlFor="service-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Inactive" id="service-inactive" />
+                        <RadioGroupItem value="inactive" id="service-inactive" />
                         <Label htmlFor="service-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Draft" id="service-draft" />
+                        <RadioGroupItem value="draft" id="service-draft" />
                         <Label htmlFor="service-draft" className="font-normal cursor-pointer">Draft</Label>
                     </div>
                 </RadioGroup>

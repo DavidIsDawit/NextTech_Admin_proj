@@ -257,13 +257,6 @@ function PartnerList() {
                         <FiEye size={21} />
                     </button>
                     <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => handleEdit(row)}
-                        title="Edit"
-                    >
-                        <BiEdit size={21} />
-                    </button>
-                    <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
                         onClick={() => handleDeleteClick(row)}
                         title="Delete"

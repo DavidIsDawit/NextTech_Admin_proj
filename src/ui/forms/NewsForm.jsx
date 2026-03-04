@@ -155,7 +155,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
-            {/* News Images Upload */}
+            {/* News Images (Gallery) Upload */}
             <div className="space-y-2">
                 <Label>News Images (Gallery)</Label>
                 {/* Upload zone — click to browse */}
@@ -163,18 +163,52 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors lg:mx-24 md:mx-28 mx-16 ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('news-images').click()}
                 >
-                    <div className="flex flex-col items-center justify-center">
-                        <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
-                        <p className="text-sm text-gray-600">
-                            Drag news gallery images to start uploading
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
-                        <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
-                            Browse files
+                    <div className="flex flex-col items-center">
+                        {/* Preview grid — shown INSIDE upload zone */}
+                        {imagesPreview.length > 0 && (
+                            <div className="w-full mb-6">
+                                <p className="text-xs text-gray-500 font-medium mb-2">
+                                    {imagesPreview.length} image{imagesPreview.length > 1 ? 's' : ''} selected
+                                </p>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {imagesPreview.map((preview, idx) => (
+                                        <div key={idx} className="relative group">
+                                            <img
+                                                src={preview}
+                                                alt={`Gallery ${idx + 1}`}
+                                                className="h-20 w-full object-cover rounded-lg border border-gray-200 shadow-sm"
+                                                onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Don't trigger file picker
+                                                    handleRemoveImage(idx);
+                                                }}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                title="Remove image"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex flex-col items-center justify-center">
+                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                            <p className="text-sm text-gray-600">
+                                Drag news gallery images to start uploading
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
+                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                                Browse files
+                            </div>
                         </div>
                     </div>
                 </div>
-                {/* Native input — shadcn <Input> does not forward the `multiple` prop */}
+                {/* Native input for multi-select */}
                 <input
                     id="news-images"
                     name="images"
@@ -184,23 +218,6 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     onChange={handleImagesChange}
                     className="hidden"
                 />
-                {/* Preview grid — shown outside upload zone so it's always visible */}
-                {imagesPreview.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                        <p className="text-xs text-gray-500 font-medium">{imagesPreview.length} image{imagesPreview.length > 1 ? 's' : ''} selected</p>
-                        <div className="grid grid-cols-3 gap-2">
-                            {imagesPreview.map((preview, idx) => (
-                                <img
-                                    key={idx}
-                                    src={preview}
-                                    alt={`Gallery ${idx + 1}`}
-                                    className="h-24 w-full object-cover rounded-lg border border-gray-200 shadow-sm"
-                                    onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
                 {errors.images && (
                     <p className="text-sm text-red-500">{errors.images}</p>
                 )}
