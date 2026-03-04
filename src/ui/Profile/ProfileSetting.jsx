@@ -5,7 +5,6 @@ import api, { buildImageUrl } from "../../api/api";
 import { updatePassword, getMe, getUserById, uploadPhoto, cleanupAuth } from "../../api/userApi";
 import { mapBackendErrors } from "../../utils/errorHelpers";
 // static profile picture lives in public/images; reference via root URL
-const defaultAvatar = "/images/Profile_pic.png";
 import { LuBuilding2 } from "react-icons/lu";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -226,6 +225,9 @@ function ProfileSetting() {
         toast.success("Photo uploaded successfully!");
         // Update local state with new photo path
         setFormData((prev) => ({ ...prev, photo: response.data?.photo || response.photo }));
+
+        // Dispatch custom event to notify other components (like AdminHeader)
+        window.dispatchEvent(new CustomEvent('userProfileUpdated'));
       }
     } catch (error) {
       console.error("Photo upload error", error);
@@ -250,22 +252,21 @@ function ProfileSetting() {
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
                 {/* Avatar with camera overlay */}
                 <div className="relative">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl">
-                    <img
-                      src={
-                        formData.photo
-                          ? buildImageUrl(formData.photo)
-                          : defaultAvatar
-                      }
-                      alt={formData.name || "User"}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Prevent infinite loop if fallback also fails
-                        if (!e.target.src.endsWith(defaultAvatar)) {
-                          e.target.src = defaultAvatar;
-                        }
-                      }}
-                    />
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-blue-500 flex items-center justify-center">
+                    {formData.photo ? (
+                      <img
+                        src={buildImageUrl(formData.photo)}
+                        alt={formData.name || "User"}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <span className="text-white font-bold text-4xl">
+                        {formData.name ? formData.name.charAt(0).toUpperCase() : "U"}
+                      </span>
+                    )}
                   </div>
                   <input
                     type="file"

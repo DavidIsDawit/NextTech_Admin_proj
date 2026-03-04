@@ -61,6 +61,10 @@ export default function AdminHeader() {
     };
 
     fetchUser();
+
+    // Listen for profile updates from other components
+    window.addEventListener('userProfileUpdated', fetchUser);
+    return () => window.removeEventListener('userProfileUpdated', fetchUser);
   }, []);
 
   function handleAvatarClick() {

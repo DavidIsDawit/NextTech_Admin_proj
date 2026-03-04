@@ -30,7 +30,7 @@ const userItems = [
   },
   {
     id: "4",
-   image: "/Avatar.jpg",
+    image: "/Avatar.jpg",
     name: "Londyn Vargas",
     role: "Moderator",
     email: "example@gmail.com",
