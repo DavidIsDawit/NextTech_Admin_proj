@@ -86,7 +86,7 @@ function TeamList() {
         setFormData({
             name: '',
             specialty: '',
-            status: 'Active',
+            status: 'active',
             image: null,
             socialMedia: []
         });
@@ -110,6 +110,19 @@ function TeamList() {
     const handleFormSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
+
+        // Frontend Validation
+        const newErrors = {};
+        if (formType === 'add' && !formData.image) newErrors.image = "Team member image is required";
+        if (!formData.name) newErrors.name = "Name is required";
+        if (!formData.specialty) newErrors.specialty = "Specialty is required";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            toast.error("Please fill in all required fields.");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const data = new FormData();
@@ -246,7 +259,7 @@ function TeamList() {
                     onClick={handleAddNew}
                     className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                 >
-                    Add New Member
+                    Add Team Member
                 </DynamicButton>
             </div>
 

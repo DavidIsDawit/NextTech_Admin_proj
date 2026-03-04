@@ -146,8 +146,27 @@ function PortfolioList() {
     const handleFormSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
-        setIsSubmitting(true);
 
+        // Frontend Validation
+        const newErrors = {};
+        if (formType === 'add' && !formData.thumbinal) newErrors.thumbinal = "Thumbnail image is required";
+        if (!formData.title) newErrors.title = "Project name is required";
+        if (!formData.client) newErrors.client = "Client name is required";
+        if (!formData.sector) newErrors.sector = "Sector is required";
+        if (!formData.catagory) newErrors.catagory = "Category is required";
+        if (!formData.descriptionOne) newErrors.descriptionOne = "Project description is required";
+        if (!formData.resultOne) newErrors.resultOne = "Result description is required";
+        if (!formData.requirement) newErrors.requirement = "Project requirements are required";
+        if (!formData.happingDate) newErrors.happingDate = "Project date is required";
+        if (!formData.images || formData.images.length === 0) newErrors.images = "At least one gallery image is required";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            toast.error("Please fill in all required fields.");
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
             const data = new FormData();
 

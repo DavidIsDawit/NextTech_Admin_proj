@@ -94,6 +94,8 @@ function NewsList() {
             author: '',
             descriptionOne: '',
             descriptionTwo: '',
+            discriptionThree: '',
+            discriptionFour: '',
             tags: '',
             happenedOn: '',
             status: 'published',   // must be lowercase to match backend
@@ -137,7 +139,7 @@ function NewsList() {
             }
 
             // Only send fields the backend accepts (avoids 400 from _id, createdAt, etc.)
-            const allowedFields = ['title', 'catagory', 'author', 'descriptionOne', 'descriptionTwo', 'tags', 'happenedOn', 'status'];
+            const allowedFields = ['title', 'catagory', 'author', 'descriptionOne', 'descriptionTwo', 'discriptionThree', 'discriptionFour', 'tags', 'happenedOn', 'status'];
 
             // Always append allowed text fields
             allowedFields.forEach(key => {

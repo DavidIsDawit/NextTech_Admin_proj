@@ -11,7 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/ui/select';
-import { Upload } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import { buildImageUrl } from '@/api/api';
 
 /**
@@ -37,16 +37,25 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             setImageCoverPreview(null);
         }
 
-        // Gallery handling
+        const objectUrls = [];
+        if (objectUrl) objectUrls.push(objectUrl);
+
         if (formData.images && Array.isArray(formData.images)) {
-            const strings = formData.images.filter(item => typeof item === 'string');
-            if (strings.length > 0) {
-                setImagesPreview(strings.map(s => buildImageUrl(s)));
-            }
+            const previews = formData.images.map(img => {
+                if (img instanceof File) {
+                    const url = URL.createObjectURL(img);
+                    objectUrls.push(url);
+                    return url;
+                }
+                return buildImageUrl(img);
+            });
+            setImagesPreview(previews);
+        } else {
+            setImagesPreview([]);
         }
 
         return () => {
-            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            objectUrls.forEach(url => URL.revokeObjectURL(url));
         };
     }, [formData.imageCover, formData.images]);
 
@@ -76,30 +85,16 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
         if (newFiles.length === 0) return;
 
         // Accumulate with previously selected files (don't replace)
-        const existingFiles = (formData.images || []).filter(f => f instanceof File);
-        const mergedFiles = [...existingFiles, ...newFiles];
-        onChange?.({ ...formData, images: mergedFiles });
-
-        // Generate previews for ALL files (existing + new)
-        Promise.all(
-            mergedFiles.map(
-                (file) =>
-                    new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(file);
-                    })
-            )
-        ).then((results) => setImagesPreview(results));
+        const updatedImages = [...(formData.images || []), ...newFiles];
+        onChange?.({ ...formData, images: updatedImages });
 
         // Reset the input so the same file can be added again if needed
         e.target.value = '';
     };
 
     const handleRemoveImage = (idx) => {
-        const updatedFiles = (formData.images || []).filter((_, i) => i !== idx);
-        onChange?.({ ...formData, images: updatedFiles });
-        setImagesPreview(prev => prev.filter((_, i) => i !== idx));
+        const updatedImages = (formData.images || []).filter((_, i) => i !== idx);
+        onChange?.({ ...formData, images: updatedImages });
     };
 
 
@@ -167,16 +162,16 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                         {/* Preview grid — shown INSIDE upload zone */}
                         {imagesPreview.length > 0 && (
                             <div className="w-full mb-6">
-                                <p className="text-xs text-gray-500 font-medium mb-2">
+                                <p className="text-xs text-gray-500 font-medium mb-3">
                                     {imagesPreview.length} image{imagesPreview.length > 1 ? 's' : ''} selected
                                 </p>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-4 gap-2">
                                     {imagesPreview.map((preview, idx) => (
-                                        <div key={idx} className="relative group">
+                                        <div key={idx} className="relative group aspect-square">
                                             <img
                                                 src={preview}
                                                 alt={`Gallery ${idx + 1}`}
-                                                className="h-20 w-full object-cover rounded-lg border border-gray-200 shadow-sm"
+                                                className="h-full w-full object-cover rounded-lg border border-gray-200 shadow-sm"
                                                 onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                                             />
                                             <button
@@ -185,10 +180,10 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                                                     e.stopPropagation(); // Don't trigger file picker
                                                     handleRemoveImage(idx);
                                                 }}
-                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                                                 title="Remove image"
                                             >
-                                                ×
+                                                <X size={14} />
                                             </button>
                                         </div>
                                     ))}
@@ -310,6 +305,40 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                 />
                 {errors.descriptionTwo && (
                     <p className="text-sm text-red-500">{errors.descriptionTwo}</p>
+                )}
+            </div>
+
+            {/* Description Three */}
+            <div className="space-y-2">
+                <Label htmlFor="discriptionThree">Article Description Three</Label>
+                <Textarea
+                    id="discriptionThree"
+                    name="discriptionThree"
+                    placeholder="Write more content here..."
+                    value={formData.discriptionThree || ''}
+                    onChange={handleChange}
+                    rows={4}
+                    className={errors.discriptionThree ? 'border-red-500' : ''}
+                />
+                {errors.discriptionThree && (
+                    <p className="text-sm text-red-500">{errors.discriptionThree}</p>
+                )}
+            </div>
+
+            {/* Description Four */}
+            <div className="space-y-2">
+                <Label htmlFor="discriptionFour">Article Description Four</Label>
+                <Textarea
+                    id="discriptionFour"
+                    name="discriptionFour"
+                    placeholder="Write more content here..."
+                    value={formData.discriptionFour || ''}
+                    onChange={handleChange}
+                    rows={4}
+                    className={errors.discriptionFour ? 'border-red-500' : ''}
+                />
+                {errors.discriptionFour && (
+                    <p className="text-sm text-red-500">{errors.discriptionFour}</p>
                 )}
             </div>
 

@@ -122,16 +122,17 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
                                 <div className="grid grid-cols-4 gap-2">
                                     {galleryPreviews.map((p, i) => (
                                         <div key={i} className="relative aspect-square group">
-                                            <img src={p} alt="" className="w-full h-full object-cover rounded border border-gray-100 shadow-sm" />
+                                            <img src={p} alt="" className="w-full h-full object-cover rounded-lg border border-gray-200 shadow-sm" />
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     removeGalleryImage(i);
                                                 }}
-                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                                title="Remove image"
                                             >
-                                                <X size={12} />
+                                                <X size={14} />
                                             </button>
                                         </div>
                                     ))}
@@ -315,20 +316,20 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label className="text-gray-500 font-normal">Status</Label>
                 <RadioGroup
-                    value={formData.status || 'Active'}
+                    value={formData.status || 'active'}
                     onValueChange={(v) => onChange?.({ ...formData, status: v })}
                     className="flex gap-6 pt-1"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Active" id="status-active" />
+                        <RadioGroupItem value="active" id="status-active" />
                         <Label htmlFor="status-active" className="font-normal cursor-pointer text-gray-600">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Inactive" id="status-inactive" />
+                        <RadioGroupItem value="inactive" id="status-inactive" />
                         <Label htmlFor="status-inactive" className="font-normal cursor-pointer text-gray-600">Inactive</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Draft" id="status-draft" />
+                        <RadioGroupItem value="draft" id="status-draft" />
                         <Label htmlFor="status-draft" className="font-normal cursor-pointer text-gray-600">Draft</Label>
                     </div>
                 </RadioGroup>

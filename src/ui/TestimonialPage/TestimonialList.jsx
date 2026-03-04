@@ -95,7 +95,7 @@ function TestimonialList() {
             speciality: '',
             review: '',
             date: '',
-            status: 'Active',
+            status: 'active',
             rate: 5,
             file: null
         });

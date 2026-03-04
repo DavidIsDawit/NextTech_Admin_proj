@@ -63,9 +63,34 @@ export const mapBackendErrors = (error) => {
         // Handle common typos bidirectionally
         if (cleanField === 'catagory') mappedErrors['category'] = cleanMsg;
         if (cleanField === 'category') mappedErrors['catagory'] = cleanMsg;
-        if (cleanField === 'image') mappedErrors['certificateImage'] = cleanMsg;
-        if (cleanField === 'certificateImage') mappedErrors['image'] = cleanMsg;
-        if (cleanField === 'imageCover') mappedErrors['image'] = cleanMsg;
+        if (cleanField === 'image') {
+            mappedErrors['certificateImage'] = cleanMsg;
+            mappedErrors['certificate'] = cleanMsg;
+        }
+        if (cleanField === 'certificateImage') {
+            mappedErrors['image'] = cleanMsg;
+            mappedErrors['certificate'] = cleanMsg;
+        }
+        if (cleanField === 'certificate') {
+            mappedErrors['certificateImage'] = cleanMsg;
+            mappedErrors['image'] = cleanMsg;
+        }
+        if (cleanField === 'certificateName') {
+            mappedErrors['name'] = cleanMsg;
+            mappedErrors['title'] = cleanMsg;
+        }
+        if (cleanField === 'certificateFrom') mappedErrors['issuedBy'] = cleanMsg;
+        if (cleanField === 'IssueDate') mappedErrors['issueDate'] = cleanMsg;
+        if (cleanField === 'certificateType') mappedErrors['description'] = cleanMsg;
+        if (cleanField === 'imageCover') {
+            mappedErrors['image'] = cleanMsg;
+            mappedErrors['thumbinal'] = cleanMsg;
+        }
+        if (cleanField === 'description') {
+            mappedErrors['descriptionOne'] = cleanMsg;
+            mappedErrors['subdescriptionOne'] = cleanMsg; // for Services
+        }
+        if (cleanField === 'happenedOn') mappedErrors['happingDate'] = cleanMsg;
         if (cleanField === 'testimony') mappedErrors['review'] = cleanMsg;
         if (cleanField === 'review') mappedErrors['testimony'] = cleanMsg;
         if (cleanField === 'specialty') mappedErrors['speciality'] = cleanMsg;
@@ -92,40 +117,87 @@ export const mapBackendErrors = (error) => {
     if (strError) {
         const lowerMsg = strError.toLowerCase();
 
-        // Use global regex to find all "Path `fieldname`" occurrences in the message
-        // This is more reliable than splitting (splitting removes the delimiter)
-        const pathMatches = [...strError.matchAll(/Path\s+`([^`]+)`[^.]*\./g)];
+        // 3a. Try to parse Mongoose-style multi-field error strings
+        // Example: "News validation failed: title: Path `title` is required., happenedOn: Path `happenedOn` is required."
+        // We look for patterns like "fieldname: Path `fieldname` ..." or just "fieldname: message"
+        const segments = strError.split(/,\s+(?=[a-zA-Z0-9_]+:)/); // Split by comma-space if followed by "field:"
 
-        if (pathMatches.length > 0) {
-            // For each field mentioned, add the FULL raw backend message as the error
-            pathMatches.forEach(match => {
-                addError(match[1], strError);
-            });
-        } else if (lowerMsg.includes('invalid input data') || lowerMsg.includes('validation failed')) {
-            // Fallback: keyword-based field detection using the full raw message
-            if (lowerMsg.includes('title')) addError('title', strError);
-            if (lowerMsg.includes('question')) addError('question', strError);
-            if (lowerMsg.includes('answer')) addError('answer', strError);
-            if (lowerMsg.includes('categor')) addError('category', strError);
-            if (lowerMsg.includes('name')) addError('name', strError);
-            if (lowerMsg.includes('author')) addError('author', strError);
-            if (lowerMsg.includes('imagecover')) addError('imageCover', strError);
-            if (lowerMsg.includes('happenedon')) addError('happenedOn', strError);
-            if (lowerMsg.includes('testimony')) addError('testimony', strError);
-            if (lowerMsg.includes('review')) addError('review', strError);
-            if (lowerMsg.includes('specialty') || lowerMsg.includes('speciality')) addError('specialty', strError);
-        } else {
-            // General string matching fallback
-            if (lowerMsg.includes('question')) addError('question', strError);
-            if (lowerMsg.includes('answer')) addError('answer', strError);
-            if (lowerMsg.includes('categor')) addError('category', strError);
-            if (lowerMsg.includes('title')) addError('title', strError);
-            if (lowerMsg.includes('name')) addError('name', strError);
-            if (lowerMsg.includes('author')) addError('author', strError);
-            if (lowerMsg.includes('happenedon')) addError('happenedOn', strError);
-            if (lowerMsg.includes('testimony')) addError('testimony', strError);
-            if (lowerMsg.includes('review')) addError('review', strError);
-            if (lowerMsg.includes('specialty') || lowerMsg.includes('speciality')) addError('speciality', strError);
+        let foundSpecific = false;
+        segments.forEach(segment => {
+            // Clean the segment from "Validation failed: " prefix if it's the first one
+            const cleanSegment = segment.replace(/.*validation failed:\s*/i, '').trim();
+
+            // Match "field: message"
+            const match = cleanSegment.match(/^([^:]+):\s*(.*)$/);
+            if (match) {
+                const field = match[1].trim();
+                const msg = match[2].trim();
+                addError(field, msg);
+                foundSpecific = true;
+            }
+        });
+
+        if (!foundSpecific) {
+            // 3b. Fallback to existing keyword-based detection if splitting didn't yield results
+            const pathMatches = [...strError.matchAll(/Path\s+`([^`]+)`[^.]*\./g)];
+
+            if (pathMatches.length > 0) {
+                pathMatches.forEach(match => {
+                    addError(match[1], strError);
+                });
+            } else {
+                // General keyword matching for single-string error messages
+                const matchesAny = (words) => words.some(w => lowerMsg.includes(w));
+
+                if (matchesAny(['title', 'project name'])) addError('title', strError);
+                if (matchesAny(['question'])) addError('question', strError);
+                if (matchesAny(['answer'])) addError('answer', strError);
+                if (matchesAny(['categor'])) addError('category', strError);
+                if (matchesAny(['name', 'author'])) {
+                    addError('name', strError);
+                    addError('title', strError);
+                }
+                if (lowerMsg.includes('thumbinal')) {
+                    addError('thumbinal', strError);
+                } else if (lowerMsg.includes('gallery') || lowerMsg.includes('images')) {
+                    addError('images', strError);
+                } else if (lowerMsg.includes('cover')) {
+                    addError('imageCover', strError);
+                } else if (lowerMsg.includes('certificate')) {
+                    addError('certificate', strError);
+                    addError('certificateImage', strError);
+                    addError('image', strError);
+                } else if (matchesAny(['image', 'photo'])) {
+                    addError('image', strError);
+                    addError('thumbinal', strError);
+                    addError('imageCover', strError);
+                    addError('certificate', strError);
+                    addError('certificateImage', strError);
+                }
+                if (matchesAny(['date', 'happened'])) {
+                    addError('issueDate', strError);
+                    addError('happingDate', strError);
+                }
+                if (matchesAny(['testimony', 'review'])) {
+                    addError('testimony', strError);
+                    addError('review', strError);
+                }
+                if (matchesAny(['specialty', 'speciality', 'role', 'position'])) {
+                    addError('specialty', strError);
+                }
+                if (matchesAny(['issued by', 'issuedby', 'issuer', 'organization', 'from'])) {
+                    addError('issuedBy', strError);
+                }
+                if (matchesAny(['description', 'content', 'body', 'text'])) {
+                    addError('description', strError);
+                    addError('descriptionOne', strError);
+                    addError('subdescriptionOne', strError);
+                }
+                if (matchesAny(['client', 'customer'])) addError('client', strError);
+                if (matchesAny(['sector'])) addError('sector', strError);
+                if (matchesAny(['result'])) addError('resultOne', strError);
+                if (matchesAny(['requirement'])) addError('requirement', strError);
+            }
         }
     }
 

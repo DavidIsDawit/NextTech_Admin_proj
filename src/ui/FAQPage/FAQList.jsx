@@ -113,9 +113,21 @@ function FAQList() {
 
     const handleFormSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
-        setIsSubmitting(true);
-        setErrors({}); // Clear previous errors
+        setErrors({});
 
+        // Frontend Validation
+        const newErrors = {};
+        if (!formData.question) newErrors.question = "Question is required";
+        if (!formData.answer) newErrors.answer = "Answer is required";
+        if (!formData.category && !formData.catagory) newErrors.catagory = "Category is required";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            toast.error("Please fill in all required fields.");
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
             const payload = {
                 question: formData.question,

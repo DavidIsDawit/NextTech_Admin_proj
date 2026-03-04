@@ -152,19 +152,19 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
                     className="flex items-center gap-6"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Active" id="t-active" />
+                        <RadioGroupItem value="active" id="t-active" />
                         <Label htmlFor="t-active" className="font-normal text-slate-600">
                             Active
                         </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Inactive" id="t-inactive" />
+                        <RadioGroupItem value="inactive" id="t-inactive" />
                         <Label htmlFor="t-inactive" className="font-normal text-slate-600">
                             Inactive
                         </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Draft" id="t-draft" />
+                        <RadioGroupItem value="draft" id="t-draft" />
                         <Label htmlFor="t-draft" className="font-normal text-slate-600">
                             Draft
                         </Label>
