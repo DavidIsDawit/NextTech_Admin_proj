@@ -207,7 +207,12 @@ function TestimonialList() {
         {
             key: "testimony",
             label: "Role/Specialty",
-            render: (value) => <div className="text-sm text-gray-700">{value}</div>,
+            className: "max-w-[200px] truncate",
+            render: (value) => (
+                <div className="text-sm text-gray-700 truncate" title={value || ""}>
+                    {value || "—"}
+                </div>
+            ),
         },
         {
             key: "status",

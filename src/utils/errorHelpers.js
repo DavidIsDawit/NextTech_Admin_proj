@@ -92,38 +92,30 @@ export const mapBackendErrors = (error) => {
     if (strError) {
         const lowerMsg = strError.toLowerCase();
 
-        // Handle "Invalid input data: Path `field` is required.. Path `field2` is required."
-        // Or "Validation failed: field: msg, field2: msg"
-        if (lowerMsg.includes('invalid input data') || lowerMsg.includes('validation failed')) {
-            // Split by common delimiters: ".." or "," or ". Path"
-            const parts = strError.split(/\.\.|\. Path|,/).filter(p => p.trim());
-            parts.forEach(part => {
-                // Try to extract field name between backticks: Path `imageCover` is required
-                const backtickMatch = part.match(/Path `([^`]+)`/);
-                const spaceMatch = part.match(/Path (\S+) is/);
-                const colonMatch = part.match(/([^:]+):/);
+        // Use global regex to find all "Path `fieldname`" occurrences in the message
+        // This is more reliable than splitting (splitting removes the delimiter)
+        const pathMatches = [...strError.matchAll(/Path\s+`([^`]+)`[^.]*\./g)];
 
-                const fieldName = backtickMatch?.[1] || spaceMatch?.[1] || colonMatch?.[1];
-                if (fieldName) {
-                    addError(fieldName.trim(), part.trim());
-                } else {
-                    // Fallback keyword matching
-                    if (part.toLowerCase().includes('question')) addError('question', part.trim());
-                    else if (part.toLowerCase().includes('answer')) addError('answer', part.trim());
-                    else if (part.toLowerCase().includes('categor')) addError('category', part.trim());
-                    else if (part.toLowerCase().includes('title')) addError('title', part.trim());
-                    else if (part.toLowerCase().includes('name')) addError('name', part.trim());
-                    else if (part.toLowerCase().includes('specialty')) addError('specialty', part.trim());
-                    else if (part.toLowerCase().includes('imagecover')) addError('imageCover', part.trim());
-                    else if (part.toLowerCase().includes('author')) addError('author', part.trim());
-                    else if (part.toLowerCase().includes('happenedon')) addError('happenedOn', part.trim());
-                    else if (part.toLowerCase().includes('testimony')) addError('testimony', part.trim());
-                    else if (part.toLowerCase().includes('review')) addError('review', part.trim());
-                    else if (part.toLowerCase().includes('specialty') || part.toLowerCase().includes('speciality')) addError('specialty', part.trim());
-                }
+        if (pathMatches.length > 0) {
+            // For each field mentioned, add the FULL raw backend message as the error
+            pathMatches.forEach(match => {
+                addError(match[1], strError);
             });
+        } else if (lowerMsg.includes('invalid input data') || lowerMsg.includes('validation failed')) {
+            // Fallback: keyword-based field detection using the full raw message
+            if (lowerMsg.includes('title')) addError('title', strError);
+            if (lowerMsg.includes('question')) addError('question', strError);
+            if (lowerMsg.includes('answer')) addError('answer', strError);
+            if (lowerMsg.includes('categor')) addError('category', strError);
+            if (lowerMsg.includes('name')) addError('name', strError);
+            if (lowerMsg.includes('author')) addError('author', strError);
+            if (lowerMsg.includes('imagecover')) addError('imageCover', strError);
+            if (lowerMsg.includes('happenedon')) addError('happenedOn', strError);
+            if (lowerMsg.includes('testimony')) addError('testimony', strError);
+            if (lowerMsg.includes('review')) addError('review', strError);
+            if (lowerMsg.includes('specialty') || lowerMsg.includes('speciality')) addError('specialty', strError);
         } else {
-            // General string matching fallback for non-preformatted strings
+            // General string matching fallback
             if (lowerMsg.includes('question')) addError('question', strError);
             if (lowerMsg.includes('answer')) addError('answer', strError);
             if (lowerMsg.includes('categor')) addError('category', strError);

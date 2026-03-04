@@ -50,10 +50,11 @@ function PortfolioList() {
                 limit: itemsPerPage,
                 sort: "latest"
             });
-            if (result.status === "success") {
-                // Backend might return result.portfolios or result.data.portfolios or result.data (as array)
-                const portfolios = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
-                const total = result.total || result.data?.total || result.totalPartners || portfolios.length;
+            const portfolios = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
+
+            // Backend in some cases might not return status: success for list
+            if (result.status === "success" || portfolios.length >= 0) {
+                const total = result.total || result.totalPortfolios || result.data?.total || portfolios.length;
                 setPortfolios(portfolios);
                 setTotalItems(total);
             }
@@ -187,25 +188,26 @@ function PortfolioList() {
 
             let result;
             if (formType === 'add') {
-                result = await createPortfolio(data);
-                if (result.status === "success") {
+                const res = await createPortfolio(data);
+                if (res.status === "success") {
                     toast.success("Portfolio created successfully!");
+                    await fetchPortfolios();
+                    setIsFormModalOpen(false);
+                } else {
+                    toast.error(res.message || "Failed to create portfolio");
                 }
             } else {
-                result = await updatePortfolio(selectedItem._id || selectedItem.id, data);
-                if (result.status === "success") {
+                const res = await updatePortfolio(selectedItem._id || selectedItem.id, data);
+                if (res.status === "success") {
                     toast.success("Portfolio updated successfully!");
+                    await fetchPortfolios();
+                    setIsFormModalOpen(false);
+                } else {
+                    toast.error(res.message || "Failed to update portfolio");
                 }
             }
-
-            fetchPortfolios();
-            setIsFormModalOpen(false);
         } catch (error) {
             console.error("Portfolio submission error:", error);
-            const status = error.response?.status;
-            const msg = error.response?.data?.message || error.message;
-            console.log(`Portfolio submission failed (${status}):`, msg);
-
             const backendErrors = mapBackendErrors(error);
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
@@ -249,7 +251,8 @@ function PortfolioList() {
         {
             key: "title",
             label: "Project Title",
-            render: (value) => <div className="font-medium text-gray-900">{value}</div>,
+            className: "max-w-[200px] truncate whitespace-nowrap",
+            render: (value) => <div className="font-medium text-gray-900 truncate" title={value}>{value}</div>,
         },
         {
             key: "client",

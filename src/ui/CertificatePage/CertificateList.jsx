@@ -254,7 +254,15 @@ function CertificateList() {
         {
             key: "title",
             label: "Certificate Title",
-            render: (value, row) => <div className="font-medium text-gray-900">{value || row.certificateName}</div>,
+            className: "max-w-[250px] truncate",
+            render: (value, row) => {
+                const title = value || row.certificateName || "—";
+                return (
+                    <div className="font-medium text-gray-900 truncate" title={title}>
+                        {title}
+                    </div>
+                );
+            },
         },
         {
             key: "issueDate",

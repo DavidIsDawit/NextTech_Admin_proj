@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { buildImageUrl } from "../../api/api";
-import { updatePassword, getMe, uploadPhoto, cleanupAuth } from "../../api/userApi";
+import { updatePassword, getMe, getUserById, uploadPhoto, cleanupAuth } from "../../api/userApi";
 import { mapBackendErrors } from "../../utils/errorHelpers";
 // static profile picture lives in public/images; reference via root URL
 const defaultAvatar = "/images/Profile_pic.png";
@@ -56,27 +56,65 @@ function ProfileSetting() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await getMe();
-        if (response.status === "success") {
-          const user = response.user || response.data?.user;
-          if (user) {
-            setFormData({
-              name: user.name || user.fullName || "",
-              role: user.role || "",
-              email: user.email || "",
-              phoneNumber: user.phoneNumber || "",
-              employeId: user.employeId || "",
-              joinDate: user.createdDate ? new Date(user.createdDate).toLocaleDateString() : "",
-              department: user.department || "",
-              location: user.location || "",
-              bio: user.bio || "",
-              photo: user.photo || "",
-              userId: user._id || user.id || "",
-            });
-          }
+        // Step 1: Get the current user's ID
+        const meResponse = await getMe();
+        console.log("Profile getMe response:", meResponse);
+
+        const meUser = meResponse.user || meResponse.data?.user || null;
+        const userId = meUser?.id || meUser?._id;
+
+        if (!userId) {
+          console.error("Profile: Could not find user ID in getMe response");
+          setIsLoading(false);
+          return;
+        }
+
+        // Step 2: Get full user details using the ID
+        const fullResponse = await getUserById(userId);
+        console.log("Profile full response:", fullResponse);
+
+        // Best-candidate search helper
+        const findUser = (obj) => {
+          if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
+          let bestMatch = null, bestScore = 0;
+          const score = (o) => {
+            let s = 0;
+            if (o.email) s += 2;
+            if (o.name || o.fullName) s += 2;
+            if (o.role) s += 1;
+            if (o._id || o.id) s += 1;
+            return s;
+          };
+          const traverse = (o) => {
+            const s = score(o);
+            if (s > bestScore) { bestScore = s; bestMatch = o; }
+            for (const k in o) if (o[k] && typeof o[k] === 'object' && !Array.isArray(o[k])) traverse(o[k]);
+          };
+          traverse(obj);
+          return bestScore >= 3 ? bestMatch : null;
+        };
+
+        const user = findUser(fullResponse);
+        console.log("Profile final discovered user:", user);
+
+        if (user) {
+          setFormData({
+            name: user.name || user.fullName || "",
+            role: user.role || "",
+            email: user.email || "",
+            phoneNumber: user.phoneNumber || user.phone || "",
+            employeId: user.employeId || user.employeeId || "",
+            joinDate: user.createdDate || user.createdAt ? new Date(user.createdDate || user.createdAt).toLocaleDateString() : "",
+            department: user.department || "",
+            location: user.location || "",
+            bio: user.bio || "",
+            photo: user.photo || "",
+            userId: user._id || user.id || "",
+          });
+          console.log("Profile: State updated with full details");
         }
       } catch (error) {
-        // Error handled globally in api.js
+        console.error("Profile fetch error:", error);
       } finally {
         setIsLoading(false);
       }
@@ -356,6 +394,7 @@ function ProfileSetting() {
                         <SelectItem value="Administration">Administration</SelectItem>
                         <SelectItem value="Engineering">Engineering</SelectItem>
                         <SelectItem value="IT Support">IT Support</SelectItem>
+                        <SelectItem value="IT">IT</SelectItem>
                         <SelectItem value="HR">HR</SelectItem>
                       </SelectContent>
                     </Select>

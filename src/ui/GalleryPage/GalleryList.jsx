@@ -260,6 +260,16 @@ function GalleryList() {
             ),
         },
         {
+            key: "title",
+            label: "Media Title",
+            className: "max-w-[200px] truncate",
+            render: (value) => (
+                <div className="truncate" title={value || "—"}>
+                    {value || "—"}
+                </div>
+            ),
+        },
+        {
             key: "fileType",
             label: "File Type",
             render: (value) => (

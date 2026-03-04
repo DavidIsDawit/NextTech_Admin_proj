@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, ChevronUp, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getMe } from "../api/userApi";
+import { getMe, getUserById } from "../api/userApi";
 import { buildImageUrl } from "../api/api";
 
 export default function AdminHeader() {
@@ -19,18 +19,44 @@ export default function AdminHeader() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await getMe();
-        // API returns: { status, user: { name, role, photo, ... } }
-        const user = res?.user || res?.data?.user || res?.data || null;
-        if (user) {
-          setUserName(user.name || "");
-          setUserRole(user.role || "");
-          if (user.photo) {
-            setAvatar(buildImageUrl(user.photo));
+        // Step 1: Get user ID from getMe
+        const meRes = await getMe();
+        const meUser = meRes.user || meRes.data?.user || null;
+        const userId = meUser?.id || meUser?._id;
+
+        if (userId) {
+          // Step 2: Get full user details (including name)
+          const fullRes = await getUserById(userId);
+          console.log("AdminHeader full response:", fullRes);
+
+          const findUser = (obj) => {
+            if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
+            let bestMatch = null, bestScore = 0;
+            const score = (o) => {
+              let s = 0;
+              if (o.email) s += 2;
+              if (o.name || o.fullName) s += 2;
+              if (o.role) s += 1;
+              return s;
+            };
+            const traverse = (o) => {
+              const s = score(o);
+              if (s > bestScore) { bestScore = s; bestMatch = o; }
+              for (const k in o) if (o[k] && typeof o[k] === 'object' && !Array.isArray(o[k])) traverse(o[k]);
+            };
+            traverse(obj);
+            return bestScore >= 3 ? bestMatch : null;
+          };
+
+          const user = findUser(fullRes);
+          if (user) {
+            setUserName(user.name || user.fullName || "");
+            setUserRole(user.role || "");
+            if (user.photo) setAvatar(buildImageUrl(user.photo));
           }
         }
-      } catch {
-        // Silent fail — header should still render even if /getme fails
+      } catch (err) {
+        console.error("AdminHeader fetch error:", err);
       }
     };
 
@@ -101,7 +127,7 @@ export default function AdminHeader() {
         <div onClick={handleAvatarClick} className="flex gap-4 cursor-pointer">
           <div className="flex flex-col leading-tight">
             {userName && (
-              <span className="text-sm font-semibold text-gray-800">{userName}</span>
+              <span className="text-base font-semibold text-gray-800">{userName}</span>
             )}
             <span className="text-sm text-gray-500">{userRole || "Senior Engineer"}</span>
           </div>

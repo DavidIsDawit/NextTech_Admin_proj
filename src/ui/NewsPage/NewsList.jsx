@@ -123,41 +123,67 @@ function NewsList() {
         setIsSubmitting(true);
         try {
             const data = new FormData();
-            Object.keys(formData).forEach(key => {
-                if (key === 'images' && Array.isArray(formData[key])) {
-                    formData[key].forEach(file => {
-                        if (file instanceof File) data.append('images', file);
-                    });
-                } else if (key === 'imageCover' && formData[key] instanceof File) {
-                    data.append('imageCover', formData[key]);
-                } else if (key !== 'images' && key !== 'imageCover' && formData[key] !== null && formData[key] !== undefined) {
+
+            // Client side validation
+            const clientErrors = {};
+            if (formType === 'add' && !formData.imageCover) {
+                clientErrors.imageCover = "Cover Image is required";
+            }
+            if (Object.keys(clientErrors).length > 0) {
+                setErrors(clientErrors);
+                setIsSubmitting(false);
+                toast.error("Please fix the errors in the form");
+                return;
+            }
+
+            // Only send fields the backend accepts (avoids 400 from _id, createdAt, etc.)
+            const allowedFields = ['title', 'catagory', 'author', 'descriptionOne', 'descriptionTwo', 'tags', 'happenedOn', 'status'];
+
+            // Always append allowed text fields
+            allowedFields.forEach(key => {
+                if (formData[key] !== null && formData[key] !== undefined) {
                     data.append(key, formData[key]);
                 }
             });
+            // Only append imageCover if a new file was selected
+            if (formData.imageCover instanceof File) {
+                data.append('imageCover', formData.imageCover);
+            }
+            // Only append gallery images if new files were selected
+            if (Array.isArray(formData.images)) {
+                formData.images.forEach(file => {
+                    if (file instanceof File) data.append('images', file);
+                });
+            }
 
             console.log('Submitting news article...', { formType, title: formData.title });
 
             if (formType === 'add') {
-                await createNews(data);
-                toast.success("News article created successfully!");
+                const res = await createNews(data);
+                if (res.status === "success") {
+                    toast.success("News article created successfully!");
+                    await fetchNews();
+                    setIsFormModalOpen(false);
+                } else {
+                    toast.error(res.message || "Failed to create news");
+                }
             } else {
-                await updateNews(selectedItem._id || selectedItem.id, data);
-                toast.success("News article updated successfully!");
+                const res = await updateNews(selectedItem._id || selectedItem.id, data);
+                if (res.status === "success") {
+                    toast.success("News article updated successfully!");
+                    await fetchNews();
+                    setIsFormModalOpen(false);
+                } else {
+                    toast.error(res.message || "Failed to update news");
+                }
             }
-            await fetchNews();
-            setIsFormModalOpen(false);
         } catch (error) {
             console.error("News submission error:", error);
-            const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
-
             const backendErrors = mapBackendErrors(error);
-            console.log("Mapped field errors:", backendErrors);
-
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             }
-            toast.error(extractErrorMessage(error, "Failed to save news"));
+            toast.error(extractErrorMessage(error, "Failed to save news article"));
         } finally {
             setIsSubmitting(false);
         }
@@ -194,7 +220,8 @@ function NewsList() {
         {
             key: "title",
             label: "Article Title",
-            render: (value, row) => <div className="font-medium text-gray-900">{value || row.articleTitle}</div>,
+            className: "max-w-[250px] truncate whitespace-nowrap",
+            render: (value, row) => <div className="font-medium text-gray-900 truncate" title={value || row.articleTitle}>{value || row.articleTitle}</div>,
         },
         {
             key: "catagory",

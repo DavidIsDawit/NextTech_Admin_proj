@@ -56,6 +56,20 @@ export const getMe = async () => {
 };
 
 /* ------------------------------------------------------------------
+   READ – user by ID
+   GET /api/getUser/:id
+   Returns: { status, data: { user: {} } }
+------------------------------------------------------------------ */
+export const getUserById = async (id) => {
+    try {
+        const response = await api.get(`/getUser/${id}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/* ------------------------------------------------------------------
    UPDATE – user by ID  (Admin only)
    PUT /api/updateUser/:id
    Body: { name, email, phoneNumber, location, bio, employeId, department, role }
@@ -97,6 +111,36 @@ export const uploadPhoto = async (formData) => {
         const response = await api.post("/upload-photo", formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/* ------------------------------------------------------------------
+   AUTH – Forgot Password
+   POST /api/forgot-password
+   Body: { email }
+   Returns: { status, message }
+------------------------------------------------------------------ */
+export const forgotPassword = async (email) => {
+    try {
+        const response = await api.post("/forgot-password", { email });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+/* ------------------------------------------------------------------
+   AUTH – Reset Password
+   POST /api/reset-password/:token
+   Body: { newPassword, confirmPassword }
+   Returns: { status, message }
+------------------------------------------------------------------ */
+export const resetPassword = async (token, data) => {
+    try {
+        const response = await api.post(`/reset-password/${token}`, data);
         return response.data;
     } catch (error) {
         throw error;
