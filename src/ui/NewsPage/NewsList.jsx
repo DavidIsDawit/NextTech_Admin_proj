@@ -96,7 +96,7 @@ function NewsList() {
             descriptionTwo: '',
             tags: '',
             happenedOn: '',
-            status: 'Published',
+            status: 'published',   // must be lowercase to match backend
             imageCover: null,
             images: []
         });
@@ -156,7 +156,11 @@ function NewsList() {
                 });
             }
 
-            console.log('Submitting news article...', { formType, title: formData.title });
+            console.log('--- FormData payload ---');
+            for (const [key, value] of data.entries()) {
+                console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size}b)` : value);
+            }
+            console.log('------------------------');
 
             if (formType === 'add') {
                 const res = await createNews(data);

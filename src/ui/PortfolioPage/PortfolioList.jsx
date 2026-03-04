@@ -114,7 +114,7 @@ function PortfolioList() {
             resultTwo: '',
             resultThere: '',
             requirement: '',
-            status: 'Active',
+            status: 'active',
             happingDate: new Date().toISOString().split('T')[0],
             thumbinal: null,
             images: []
@@ -179,12 +179,16 @@ function PortfolioList() {
 
             // Append gallery images
             if (Array.isArray(formData.images)) {
-                formData.images.forEach(img => {
-                    if (img instanceof File) {
-                        data.append('images', img);
-                    }
+                formData.images.forEach(file => {
+                    if (file instanceof File) data.append('images', file);
                 });
             }
+
+            console.log('--- Portfolio FormData payload ---');
+            for (const [key, value] of data.entries()) {
+                console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size}b)` : value);
+            }
+            console.log('------------------------');
 
             let result;
             if (formType === 'add') {

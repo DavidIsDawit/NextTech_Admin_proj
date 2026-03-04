@@ -103,7 +103,7 @@ function Services() {
             catagory: '',
             description: '',
             headLine: '',
-            status: 'Active',
+            status: 'published',
             imageCover: null,
             images: [],
             subTitleOne: '',
@@ -146,7 +146,12 @@ function Services() {
                 }
             });
 
-            console.log('Submitting service...', { formType, title: formData.title });
+            console.log('--- Service FormData payload ---');
+            for (const [key, value] of data.entries()) {
+                console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size}b)` : value);
+            }
+            console.log('------------------------');
+
 
             if (formType === 'add') {
                 const res = await createService(data);

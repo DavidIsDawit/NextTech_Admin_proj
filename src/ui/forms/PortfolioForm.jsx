@@ -16,19 +16,27 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
     // Initialize previews
     useEffect(() => {
-        let thumbUrl;
+        const objectUrls = [];
+
+        // Thumbnail Preview
         if (formData.thumbinal instanceof File) {
-            thumbUrl = URL.createObjectURL(formData.thumbinal);
-            setThumbinalPreview(thumbUrl);
+            const url = URL.createObjectURL(formData.thumbinal);
+            objectUrls.push(url);
+            setThumbinalPreview(url);
         } else if (formData.thumbinal && typeof formData.thumbinal === 'string') {
             setThumbinalPreview(buildImageUrl(formData.thumbinal));
         } else {
             setThumbinalPreview(null);
         }
 
+        // Gallery Previews
         if (formData.images && Array.isArray(formData.images)) {
             const previews = formData.images.map(img => {
-                if (img instanceof File) return URL.createObjectURL(img);
+                if (img instanceof File) {
+                    const url = URL.createObjectURL(img);
+                    objectUrls.push(url);
+                    return url;
+                }
                 return buildImageUrl(img);
             });
             setGalleryPreviews(previews);
@@ -37,7 +45,7 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
         }
 
         return () => {
-            if (thumbUrl) URL.revokeObjectURL(thumbUrl);
+            objectUrls.forEach(url => URL.revokeObjectURL(url));
         };
     }, [formData.thumbinal, formData.images]);
 
@@ -54,11 +62,15 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
     };
 
     const handleGalleryChange = (e) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 0) {
-            const existingImages = formData.images || [];
-            onChange?.({ ...formData, images: [...existingImages, ...files] });
-        }
+        const newFiles = Array.from(e.target.files || []);
+        if (newFiles.length === 0) return;
+
+        // Accumulate with previously selected files (don't replace)
+        const updatedImages = [...(formData.images || []), ...newFiles];
+        onChange?.({ ...formData, images: updatedImages });
+
+        // Reset input for repeat selections
+        e.target.value = '';
     };
 
     const removeGalleryImage = (index) => {
@@ -74,22 +86,23 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label className="text-gray-500 font-normal">Thumbnail</Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-sky-50 transition-colors relative h-32 flex flex-col items-center justify-center ${errors.thumbinal ? 'border-red-500 bg-red-50' : 'border-[#00adef] bg-[#f8fbff]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative min-h-32 flex flex-col items-center justify-center ${errors.thumbinal ? 'border-red-500 bg-red-50' : 'border-[#00adef] bg-[#f8fbff]'}`}
                     onClick={() => document.getElementById('port-thumb').click()}
                 >
-                    {thumbinalPreview ? (
-                        <div className="relative group w-full h-full flex items-center justify-center">
-                            <img src={thumbinalPreview} className="max-h-full max-w-full object-contain rounded" alt="Thumbnail" />
-                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded">
-                                <Upload className="h-6 w-6 text-white" />
+                    <div className="flex flex-col items-center w-full">
+                        {thumbinalPreview && (
+                            <div className="mb-4">
+                                <img src={thumbinalPreview} className="h-32 w-auto object-contain rounded shadow-sm border border-gray-100" alt="Thumbnail" />
+                                {!(formData.thumbinal instanceof File) && (
+                                    <p className="text-[10px] text-gray-400 mt-1 italic">Current Thumbnail</p>
+                                )}
                             </div>
-                        </div>
-                    ) : (
+                        )}
                         <div className="flex flex-col items-center justify-center text-[#00adef]">
                             <Upload className="h-10 w-10 mb-2" />
-                            <p className="text-xs text-gray-500 font-medium">Upload project icon or select from library</p>
+                            <p className="text-xs text-gray-500 font-medium text-center px-4">Upload project icon or click to change</p>
                         </div>
-                    )}
+                    </div>
                     <input id="port-thumb" type="file" className="hidden" accept="image/*" onChange={handleThumbinalChange} />
                 </div>
                 {errors.thumbinal && <p className="text-xs text-red-500">{errors.thumbinal}</p>}
@@ -99,32 +112,40 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label className="text-gray-500 font-normal">Project Gallery</Label>
                 <div
-                    className="border-2 border-dashed border-[#00adef] bg-[#f8fbff] rounded-lg p-8 text-center cursor-pointer hover:bg-sky-50 transition-colors h-32 flex flex-col items-center justify-center"
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors min-h-32 flex flex-col items-center justify-center ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#00adef] bg-[#f8fbff]'}`}
                     onClick={() => document.getElementById('port-gall').click()}
                 >
-                    <div className="flex flex-col items-center justify-center text-[#00adef]">
-                        <Upload className="h-10 w-10 mb-2" />
-                        <p className="text-xs text-gray-500 font-medium">Upload project icon or select from library</p>
+                    <div className="flex flex-col items-center w-full">
+                        {galleryPreviews.length > 0 && (
+                            <div className="w-full mb-6">
+                                <p className="text-xs text-gray-500 font-medium mb-3">{galleryPreviews.length} image{galleryPreviews.length > 1 ? 's' : ''} selected</p>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {galleryPreviews.map((p, i) => (
+                                        <div key={i} className="relative aspect-square group">
+                                            <img src={p} alt="" className="w-full h-full object-cover rounded border border-gray-100 shadow-sm" />
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeGalleryImage(i);
+                                                }}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        <div className="flex flex-col items-center justify-center text-[#00adef]">
+                            <Upload className="h-10 w-10 mb-2" />
+                            <p className="text-xs text-gray-500 font-medium text-center px-4">Drag gallery images or select from library</p>
+                        </div>
                     </div>
                     <input id="port-gall" type="file" multiple className="hidden" accept="image/*" onChange={handleGalleryChange} />
                 </div>
-
-                {galleryPreviews.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        {galleryPreviews.map((p, i) => (
-                            <div key={i} className="relative w-16 h-16 group">
-                                <img src={p} alt="" className="w-full h-full object-cover rounded border border-gray-100 shadow-sm" />
-                                <button
-                                    type="button"
-                                    onClick={() => removeGalleryImage(i)}
-                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <X size={10} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {errors.images && <p className="text-xs text-red-500">{errors.images}</p>}
             </div>
 
             {/* Project Name */}
