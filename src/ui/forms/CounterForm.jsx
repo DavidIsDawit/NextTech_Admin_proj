@@ -111,20 +111,20 @@ export function CounterForm({ formData = {}, setFormData, errors = {}, existingN
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'active'}
+                    value={formData.status || 'Active'}
                     onValueChange={(value) => handleSelectChange('status', value)}
                     className="flex flex-wrap gap-6"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="counter-active" />
+                        <RadioGroupItem value="Active" id="counter-active" />
                         <Label htmlFor="counter-active" className="font-normal cursor-pointer text-slate-600">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="counter-inactive" />
+                        <RadioGroupItem value="Inactive" id="counter-inactive" />
                         <Label htmlFor="counter-inactive" className="font-normal cursor-pointer text-slate-600">Inactive</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="draft" id="counter-draft" />
+                        <RadioGroupItem value="Draft" id="counter-draft" />
                         <Label htmlFor="counter-draft" className="font-normal cursor-pointer text-slate-600">Draft</Label>
                     </div>
                 </RadioGroup>

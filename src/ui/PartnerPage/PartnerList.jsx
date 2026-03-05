@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
-import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
@@ -149,6 +148,11 @@ function PartnerList() {
 
         try {
             console.log('Submitting partner...', { formType, name: partnerName });
+            const payload = {};
+            for (let [key, value] of data.entries()) {
+                payload[key] = value instanceof File ? `File: ${value.name}` : value;
+            }
+            console.log("Partner Payload:", payload);
 
             if (formType === 'add') {
                 const res = await createPartner(data);
@@ -171,6 +175,14 @@ function PartnerList() {
             }
         } catch (error) {
             console.error("Partner submission error:", error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+            console.group("Full Axios Error Details");
+            console.log("Status:", error?.response?.status);
+            console.log("Data:", responseData);
+            console.log("Headers:", error?.response?.headers);
+            console.groupEnd();
+
             const backendErrors = mapBackendErrors(error);
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);

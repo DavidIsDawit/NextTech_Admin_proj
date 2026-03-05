@@ -207,23 +207,6 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
-            {/* Title */}
-            <div className="space-y-2">
-                <Label htmlFor="title">Media Title</Label>
-                <Input
-                    id="title"
-                    name="title"
-                    placeholder="Enter media title"
-                    value={formData.title || ''}
-                    onChange={handleChange}
-                    className={errors.title ? 'border-red-500' : ''}
-                />
-                {errors.title && (
-                    <p className="text-sm text-red-500">{errors.title}</p>
-                )}
-            </div>
-
-
             {/* Category */}
             <div className="space-y-2">
                 <Label htmlFor="catagory">Category</Label>
@@ -273,16 +256,16 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'active'}
+                    value={formData.status}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="media-active" />
+                        <RadioGroupItem value="Active" id="media-active" />
                         <Label htmlFor="media-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="media-inactive" />
+                        <RadioGroupItem value="Inactive" id="media-inactive" />
                         <Label htmlFor="media-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                 </RadioGroup>

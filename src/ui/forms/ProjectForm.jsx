@@ -297,11 +297,11 @@ export function ProjectForm({ formData = {}, onChange, errors = {} }) {
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="active" />
+                        <RadioGroupItem value="Active" id="active" />
                         <Label htmlFor="active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="inactive" />
+                        <RadioGroupItem value="Inactive" id="inactive" />
                         <Label htmlFor="inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                     <div className="flex items-center space-x-2">

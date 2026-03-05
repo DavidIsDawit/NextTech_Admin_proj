@@ -47,9 +47,7 @@ export const getAllPartners = async ({ page = 1, limit = 10, sort = "recent" } =
 ------------------------------------------------------------------ */
 export const createPartner = async (formData) => {
     try {
-        const response = await api.post("/AddPartners", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        });
+        const response = await api.post("/AddPartners", formData);
         const result = response.data;
 
         if (result.status === "success" && result.data?.partner) {
@@ -71,9 +69,7 @@ export const createPartner = async (formData) => {
 ------------------------------------------------------------------ */
 export const updatePartner = async (id, formData) => {
     try {
-        const response = await api.put(`/UpdatePartners/${id}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        });
+        const response = await api.put(`/UpdatePartners/${id}`, formData);
         const result = response.data;
 
         if (result.status === "success" && result.data?.partner) {

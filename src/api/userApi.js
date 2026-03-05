@@ -108,9 +108,7 @@ export const updatePassword = async (data) => {
 ------------------------------------------------------------------ */
 export const uploadPhoto = async (formData) => {
     try {
-        const response = await api.post("/upload-photo", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        });
+        const response = await api.post("/upload-photo", formData);
         return response.data;
     } catch (error) {
         throw error;

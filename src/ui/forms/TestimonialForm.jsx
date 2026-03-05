@@ -157,18 +157,18 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
                     Status <span className="text-red-500">*</span>
                 </Label>
                 <RadioGroup
-                    value={formData.status || 'Active'}
+                    value={formData.status}
                     onValueChange={(value) => handleSelectChange('status', value)}
                     className="flex items-center gap-6"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="t-active" />
+                        <RadioGroupItem value="Active" id="t-active" />
                         <Label htmlFor="t-active" className="font-normal text-slate-600">
                             Active
                         </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="t-inactive" />
+                        <RadioGroupItem value="Inactive" id="t-inactive" />
                         <Label htmlFor="t-inactive" className="font-normal text-slate-600">
                             Inactive
                         </Label>
