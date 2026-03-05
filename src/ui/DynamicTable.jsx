@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 
 function DynamicTable({ columns, rows }) {
     return (
-        <div className="bg-white overflow-x-auto overflow-y-auto max-h-[70vh] no-scrollbar">
+        <div className="bg-white overflow-x-auto overflow-y-auto max-h-[70vh] no-scrollbar  shadow-xl">
             <table className="min-w-full divide-y divide-gray-200 box-border">
                 {/* Sticky Header - NEVER scrolls */}
-                <thead className="bg-gray-50 sticky top-0 z-10">
+                <thead className="bg-[#F7FAFC] sticky top-0 z-10">
                     <tr>
                         {columns.map((col) => (
                             <th

@@ -42,7 +42,7 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
         <div className="space-y-6">
             {/* File Upload Area */}
             <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.image || errors.file ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative ${errors.image || errors.file ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                 onClick={() => document.getElementById('testimonial-file').click()}
             >
                 <div className="flex flex-col items-center">
