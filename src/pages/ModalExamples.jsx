@@ -4,7 +4,6 @@ import { FormModal } from '@/ui/modals/FormModal';
 import {
     TeamForm,
     ServiceForm,
-    ProjectForm,
     MediaForm,
     CertificateForm,
     CounterForm,
@@ -40,7 +39,6 @@ export default function ModalExamples() {
         category: 'web-development',
         description: 'Professional web development services',
     });
-    const [projectFormData, setProjectFormData] = useState({});
     const [mediaFormData, setMediaFormData] = useState({});
     const [certificateFormData, setCertificateFormData] = useState({});
     const [counterFormData, setCounterFormData] = useState({});
