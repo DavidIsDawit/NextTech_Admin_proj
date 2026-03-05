@@ -103,7 +103,7 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Cover Image</Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.imageCover ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative  ${errors.imageCover ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('service-imageCover').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -151,7 +151,7 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Service Images (Gallery)</Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('service-images').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -300,16 +300,16 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'active'}
+                    value={formData.status}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="service-active" />
+                        <RadioGroupItem value="Active" id="service-active" />
                         <Label htmlFor="service-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="service-inactive" />
+                        <RadioGroupItem value="Inactive" id="service-inactive" />
                         <Label htmlFor="service-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                     <div className="flex items-center space-x-2">

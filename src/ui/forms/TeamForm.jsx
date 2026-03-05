@@ -134,16 +134,16 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'Active'}
+                    value={formData.status}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="team-active" />
+                        <RadioGroupItem value="Active" id="team-active" />
                         <Label htmlFor="team-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="team-inactive" />
+                        <RadioGroupItem value="Inactive" id="team-inactive" />
                         <Label htmlFor="team-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                 </RadioGroup>

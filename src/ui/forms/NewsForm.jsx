@@ -155,7 +155,7 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                 <Label>News Images (Gallery)</Label>
                 {/* Upload zone — click to browse */}
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors lg:mx-24 md:mx-28 mx-16 ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors  ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('news-images').click()}
                 >
                     <div className="flex flex-col items-center">

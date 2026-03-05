@@ -107,7 +107,6 @@ function GalleryList() {
     const handleAddNew = () => {
         setFormType('add');
         setFormData({
-            title: '',
             catagory: '',
             fileType: '',
             status: 'Active',
@@ -130,10 +129,18 @@ function GalleryList() {
         setErrors({});
         setIsSubmitting(true);
         try {
-            // Simple Client-side validation: coverImage is only strictly required on add if not already present
+            // Stricter Client-side validation
+            const newErrors = {};
             if (formType === 'add' && (!formData.coverImage || !(formData.coverImage instanceof File))) {
-                setErrors({ coverImage: "Cover image is required" });
+                newErrors.coverImage = "Cover image is required";
+            }
+            if (!formData.catagory) newErrors.catagory = "Category is required";
+            if (!formData.fileType) newErrors.fileType = "File type is required";
+
+            if (Object.keys(newErrors).length > 0) {
+                setErrors(newErrors);
                 setIsSubmitting(false);
+                toast.error("Please fill in all required fields.");
                 return;
             }
 
@@ -151,15 +158,21 @@ function GalleryList() {
                 });
             }
 
-            // Append text fields
-            const textFields = ["title", "catagory", "fileType", "status"];
+            // Append text fields — backend only accepts: catagory, fileType, status (no title)
+            const textFields = ["catagory", "fileType", "status"];
             textFields.forEach((key) => {
                 if (formData[key] !== undefined && formData[key] !== null) {
                     data.append(key, formData[key]);
                 }
             });
 
-            console.log(`Submitting gallery item (${formType})...`, { title: formData.title });
+            console.log(`Submitting gallery item (${formType})...`);
+            // Debug: Log complete payload
+            const payload = {};
+            for (let [key, value] of data.entries()) {
+                payload[key] = value instanceof File ? `File: ${value.name}` : value;
+            }
+            console.log("Gallery Payload:", payload);
 
             let result;
             if (formType === 'add') {
@@ -178,9 +191,14 @@ function GalleryList() {
                 toast.error(result.message || `Failed to ${formType} gallery item`);
             }
         } catch (error) {
-            console.error("Gallery add error:", error);
+            console.error("Gallery submission error:", error);
             const responseData = error?.response?.data;
             console.log("Raw backend error data:", responseData);
+            console.group("Full Axios Error Details");
+            console.log("Status:", error?.response?.status);
+            console.log("Data:", responseData);
+            console.log("Headers:", error?.response?.headers);
+            console.groupEnd();
 
             const backendErrors = mapBackendErrors(error);
             console.log("Mapped field errors:", backendErrors);

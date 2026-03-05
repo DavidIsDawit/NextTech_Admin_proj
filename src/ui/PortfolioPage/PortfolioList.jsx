@@ -204,9 +204,11 @@ function PortfolioList() {
             }
 
             console.log('--- Portfolio FormData payload ---');
+            const payload = {};
             for (const [key, value] of data.entries()) {
-                console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size}b)` : value);
+                payload[key] = value instanceof File ? `File(${value.name}, ${value.size}b)` : value;
             }
+            console.log("Portfolio Payload:", payload);
             console.log('------------------------');
 
             let result;
@@ -231,6 +233,14 @@ function PortfolioList() {
             }
         } catch (error) {
             console.error("Portfolio submission error:", error);
+            const responseData = error?.response?.data;
+            console.log("Raw backend error data:", responseData);
+            console.group("Full Axios Error Details");
+            console.log("Status:", error?.response?.status);
+            console.log("Data:", responseData);
+            console.log("Headers:", error?.response?.headers);
+            console.groupEnd();
+
             const backendErrors = mapBackendErrors(error);
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);

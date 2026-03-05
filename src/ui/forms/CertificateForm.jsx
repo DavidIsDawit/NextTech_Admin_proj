@@ -81,7 +81,7 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
             {/* Certificate Upload */}
             <div className="space-y-2">
                 <div
-                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16"
+                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative"
                     onClick={() => document.getElementById('certificate-file').click()}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}

@@ -42,7 +42,7 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
         <div className="space-y-6">
             {/* File Upload Area */}
             <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.image || errors.file ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative ${errors.image || errors.file ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                 onClick={() => document.getElementById('testimonial-file').click()}
             >
                 <div className="flex flex-col items-center">
@@ -157,18 +157,18 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
                     Status <span className="text-red-500">*</span>
                 </Label>
                 <RadioGroup
-                    value={formData.status || 'Active'}
+                    value={formData.status}
                     onValueChange={(value) => handleSelectChange('status', value)}
                     className="flex items-center gap-6"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="t-active" />
+                        <RadioGroupItem value="Active" id="t-active" />
                         <Label htmlFor="t-active" className="font-normal text-slate-600">
                             Active
                         </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="t-inactive" />
+                        <RadioGroupItem value="Inactive" id="t-inactive" />
                         <Label htmlFor="t-inactive" className="font-normal text-slate-600">
                             Inactive
                         </Label>

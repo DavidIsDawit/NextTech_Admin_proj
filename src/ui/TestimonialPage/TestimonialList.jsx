@@ -116,17 +116,18 @@ function TestimonialList() {
     const validateForm = () => {
         const newErrors = {};
         if (!formData.name?.trim()) newErrors.name = "Name is required";
-        if (!formData.speciality?.trim()) newErrors.speciality = "Speciality/Role is required";
 
-        // Check for testimony or review (backend might use either)
-        const testimonyValue = formData.testimony || formData.review;
-        if (!testimonyValue?.trim()) newErrors.testimony = "Testimony is required";
+        const testimonyValue = formData.testimony || formData.review || formData.message;
+        if (!testimonyValue?.trim()) {
+            newErrors.testimony = "Testimony is required";
+        }
 
-        if (!formData.date) newErrors.date = "Date is required";
+        if (!formData.speciality?.trim() && !formData.specialty?.trim()) {
+            newErrors.speciality = "Speciality is required";
+        }
 
-        // Image validation for new testimonials
-        if (formType === 'add' && !formData.file) {
-            newErrors.file = "Image is required";
+        if (!formData.date) {
+            newErrors.date = "Date is required";
         }
 
         setErrors(newErrors);
@@ -175,15 +176,33 @@ function TestimonialList() {
         setIsSubmitting(true);
         try {
             const data = new FormData();
-            Object.keys(formData).forEach(key => {
-                if (key === 'file' && formData[key] instanceof File) {
-                    data.append('image', formData[key]);
-                } else if (formData[key] !== null && formData[key] !== undefined) {
-                    data.append(key, formData[key]);
-                }
-            });
 
+            // Only send fields the backend accepts: name, testimony, rate, status, image
+            // Backend does NOT accept: speciality, date, review, file, _id, etc.
+            if (formData.name) data.append('name', formData.name);
+
+            // testimony and review are aliases — backend field is 'testimony'
+            const testimonyValue = formData.testimony || formData.review || '';
+            if (testimonyValue) data.append('testimony', testimonyValue);
+
+            if (formData.rate !== null && formData.rate !== undefined) data.append('rate', formData.rate);
+            if (formData.status) data.append('status', formData.status);
+
+            // Image: form uses 'file' key, backend expects 'image'
+            if (formData.file instanceof File) {
+                data.append('image', formData.file);
+            } else if (formData.image instanceof File) {
+                data.append('image', formData.image);
+            }
+
+            // Note: speciality and date are in the UI but potentially not in backend schema.
+            // Logging them here for diagnostics.
             console.log('Submitting testimonial...', { formType, name: formData.name });
+            const payload = {};
+            for (let [key, value] of data.entries()) {
+                payload[key] = value instanceof File ? `File: ${value.name}` : value;
+            }
+            console.log("Testimonial Payload:", payload);
 
             if (formType === 'add') {
                 await createTestimonial(data);
@@ -198,6 +217,11 @@ function TestimonialList() {
             console.error("Testimonial submission error:", error);
             const responseData = error?.response?.data;
             console.log("Raw backend error data:", responseData);
+            console.group("Full Axios Error Details");
+            console.log("Status:", error?.response?.status);
+            console.log("Data:", responseData);
+            console.log("Headers:", error?.response?.headers);
+            console.groupEnd();
 
             const backendErrors = mapBackendErrors(error);
             console.log("Mapped field errors:", backendErrors);

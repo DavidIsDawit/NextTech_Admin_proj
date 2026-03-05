@@ -67,9 +67,7 @@ export const getCertificate = async (id) => {
 ------------------------------------------------------------------ */
 export const createCertificate = async (formData) => {
     try {
-        const response = await api.post("/createCertificates", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        });
+        const response = await api.post("/createCertificates", formData);
         const data = response.data;
 
         if (data.status === "success" && data.data?.certificate) {
@@ -90,9 +88,7 @@ export const createCertificate = async (formData) => {
 ------------------------------------------------------------------ */
 export const updateCertificate = async (id, formData) => {
     try {
-        const response = await api.put(`/updateCertificate/${id}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        });
+        const response = await api.put(`/updateCertificate/${id}`, formData);
         const data = response.data;
 
         if (data.status === "success" && data.certificate) {

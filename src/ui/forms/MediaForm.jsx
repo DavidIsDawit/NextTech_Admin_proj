@@ -105,7 +105,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Cover Image</Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.coverImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative  ${errors.coverImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('media-coverImage').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -147,7 +147,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Gallery Images</Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative  ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('media-gallery').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -207,23 +207,6 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
-            {/* Title */}
-            <div className="space-y-2">
-                <Label htmlFor="title">Media Title</Label>
-                <Input
-                    id="title"
-                    name="title"
-                    placeholder="Enter media title"
-                    value={formData.title || ''}
-                    onChange={handleChange}
-                    className={errors.title ? 'border-red-500' : ''}
-                />
-                {errors.title && (
-                    <p className="text-sm text-red-500">{errors.title}</p>
-                )}
-            </div>
-
-
             {/* Category */}
             <div className="space-y-2">
                 <Label htmlFor="catagory">Category</Label>
@@ -273,16 +256,16 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'active'}
+                    value={formData.status}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="media-active" />
+                        <RadioGroupItem value="Active" id="media-active" />
                         <Label htmlFor="media-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="media-inactive" />
+                        <RadioGroupItem value="Inactive" id="media-inactive" />
                         <Label htmlFor="media-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                 </RadioGroup>

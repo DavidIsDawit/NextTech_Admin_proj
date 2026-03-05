@@ -68,7 +68,7 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
             {/* Partner File Upload */}
             <div className="space-y-2">
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.partnerImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative  ${errors.partnerImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('partnerImage').click()}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
@@ -132,16 +132,16 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status || 'active'}
+                    value={formData.status}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="partner-active" />
+                        <RadioGroupItem value="Active" id="partner-active" />
                         <Label htmlFor="partner-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="partner-inactive" />
+                        <RadioGroupItem value="Inactive" id="partner-inactive" />
                         <Label htmlFor="partner-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                 </RadioGroup>

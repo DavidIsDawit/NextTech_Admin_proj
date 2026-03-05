@@ -321,11 +321,11 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
                     className="flex gap-6 pt-1"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="status-active" />
+                        <RadioGroupItem value="Active" id="status-active" />
                         <Label htmlFor="status-active" className="font-normal cursor-pointer text-gray-600">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="status-inactive" />
+                        <RadioGroupItem value="Inactive" id="status-inactive" />
                         <Label htmlFor="status-inactive" className="font-normal cursor-pointer text-gray-600">Inactive</Label>
                     </div>
                     <div className="flex items-center space-x-2">
