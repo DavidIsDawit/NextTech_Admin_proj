@@ -49,6 +49,7 @@ function ProfileSetting() {
     photo: "",
   });
   const [errors, setErrors] = useState({});
+
   const [isLoading, setIsLoading] = useState(true);
   const [tempPhotoFile, setTempPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -250,6 +251,8 @@ function ProfileSetting() {
         toast.success("Photo updated successfully!");
         setFormData((prev) => ({ ...prev, photo: response.data?.photo || response.photo }));
         handleCancelPhoto(); // Clear temp state
+        // Dispatch custom event to notify other components (like AdminHeader)
+        window.dispatchEvent(new CustomEvent('userProfileUpdated'));
       }
     } catch (error) {
       console.error("Photo upload error", error);
@@ -274,23 +277,29 @@ function ProfileSetting() {
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
                 {/* Avatar with camera overlay */}
                 <div className="relative hover:bg-gray-50 rounded-full">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl">
-                    <img
-                      src={
-                        photoPreview
-                          ? photoPreview
-                          : formData.photo
-                            ? buildImageUrl(formData.photo)
-                            : defaultAvatar
-                      }
-                      alt={formData.name || "User"}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        if (!e.target.src.endsWith(defaultAvatar)) {
-                          e.target.src = defaultAvatar;
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-blue-500 flex items-center justify-center">
+                    {(photoPreview || formData.photo) ? (
+                      <img
+                        src={
+                          photoPreview
+                            ? photoPreview
+                            : formData.photo
+                              ? buildImageUrl(formData.photo)
+                              : defaultAvatar
                         }
-                      }}
-                    />
+                        alt={formData.name || "User"}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          if (!e.target.src.endsWith(defaultAvatar)) {
+                            e.target.src = defaultAvatar;
+                          }
+                        }}
+                      />
+                    ) : (
+                      <span className="text-white font-bold text-4xl">
+                        {formData.name ? formData.name.charAt(0).toUpperCase() : "U"}
+                      </span>
+                    )}
                   </div>
                   <input
                     type="file"
@@ -324,7 +333,7 @@ function ProfileSetting() {
               </div>
 
               {/* Action Buttons for Photo Change */}
-              {(tempPhotoFile) && (
+              {tempPhotoFile && (
                 <div className="flex gap-3 mt-4 sm:mt-0">
                   <Button
                     onClick={handleUploadPhoto}
