@@ -105,7 +105,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Cover Image</Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative  ${errors.coverImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.coverImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('media-coverImage').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -124,7 +124,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                                 Drag your cover image to start uploading
                             </p>
                             <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
-                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer bg-blue-50 transition">
                                 Browse files
                             </div>
                         </div>
@@ -147,7 +147,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Gallery Images</Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative  ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('media-gallery').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -187,7 +187,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                                 Drag media gallery images to start uploading
                             </p>
                             <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
-                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer bg-blue-50 transition">
                                 Browse files
                             </div>
                         </div>

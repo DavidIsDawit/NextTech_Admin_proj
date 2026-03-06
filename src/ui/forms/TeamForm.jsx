@@ -59,7 +59,7 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
             {/* Image Upload */}
             <div className="space-y-2">
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative lg:mx-24 md:mx-28 mx-16 ${errors.image ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.image ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('team-image').click()}
                 >
                     <div className="flex flex-col items-center">
