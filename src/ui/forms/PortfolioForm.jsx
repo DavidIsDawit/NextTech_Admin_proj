@@ -86,7 +86,7 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label className="text-gray-500 font-normal">Thumbnail</Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative min-h-32 flex flex-col items-center justify-center ${errors.thumbinal ? 'border-red-500 bg-red-50' : 'border-[#00adef] bg-[#f8fbff]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative min-h-32 flex flex-col items-center justify-center ${errors.thumbinal ? 'border-red-500 bg-red-50' : 'border-[#00adef]'}`}
                     onClick={() => document.getElementById('port-thumb').click()}
                 >
                     <div className="flex flex-col items-center w-full">
@@ -112,7 +112,7 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label className="text-gray-500 font-normal">Project Gallery</Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors min-h-32 flex flex-col items-center justify-center ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#00adef] bg-[#f8fbff]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors min-h-32 flex flex-col items-center justify-center ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#00adef]'}`}
                     onClick={() => document.getElementById('port-gall').click()}
                 >
                     <div className="flex flex-col items-center w-full">

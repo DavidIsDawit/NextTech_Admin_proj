@@ -81,7 +81,7 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
             {/* Certificate Upload */}
             <div className="space-y-2">
                 <div
-                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer hover:bg-sky-50 transition-colors relative"
+                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative"
                     onClick={() => document.getElementById('certificate-file').click()}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
@@ -110,7 +110,7 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                                 Drag your certificate image to start uploading
                             </p>
                             <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
-                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer hover:bg-blue-50 transition">
+                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer bg-blue-50 transition">
                                 Browse files
                             </div>
                         </div>
