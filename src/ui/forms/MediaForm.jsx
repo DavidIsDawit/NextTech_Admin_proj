@@ -156,13 +156,13 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                                 <p className="text-xs text-gray-500 font-medium mb-3">
                                     {imagesPreview.length} image{imagesPreview.length > 1 ? 's' : ''} selected
                                 </p>
-                                <div className="grid grid-cols-4 gap-2">
+                                <div className={imagesPreview.length === 1 ? "flex justify-center mb-6" : "grid grid-cols-4 gap-2"}>
                                     {imagesPreview.map((preview, idx) => (
-                                        <div key={idx} className="relative group aspect-square">
+                                        <div key={idx} className={`relative group ${imagesPreview.length === 1 ? "w-48" : "aspect-square"}`}>
                                             <img
                                                 src={preview}
                                                 alt={`Gallery ${idx + 1}`}
-                                                className="h-full w-full object-cover rounded-lg border border-gray-200 shadow-sm"
+                                                className={`rounded-lg border border-gray-200 shadow-sm ${imagesPreview.length === 1 ? "w-full h-auto object-contain" : "h-full w-full object-cover"}`}
                                                 onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                                             />
                                             <button

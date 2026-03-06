@@ -268,16 +268,16 @@ function ProfileSetting() {
   };
 
   return (
-    <div className="min-h-screen py-4 px-4 sm:px-6 lg:px-10">
-      <div className="w-full mx-auto px-10 rounded-xl overflow-hidden">
-        <div className="p-6 lg:p-10">
+    <div className="min-h-screen py-4 px-0 sm:px-6 lg:px-10">
+      <div className="w-full mx-auto px-1 rounded-xl overflow-hidden">
+        <div className="py-6  lg:p-10">
           <div className="flex flex-col gap-10">
             {/* Profile Header Card */}
             <div className="flex py-10 flex-col sm:flex-row items-center shadow-md sm:items-center justify-between gap-6 p-6 bg-white rounded-xl border border-gray-100">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
                 {/* Avatar with camera overlay */}
-                <div className="relative hover:bg-gray-50 rounded-full">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-blue-500 flex items-center justify-center">
+                <div className="relative group">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-blue-500 flex items-center justify-center relative">
                     {(photoPreview || formData.photo) ? (
                       <img
                         src={
@@ -288,7 +288,7 @@ function ProfileSetting() {
                               : defaultAvatar
                         }
                         alt={formData.name || "User"}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-top"
                         onError={(e) => {
                           if (!e.target.src.endsWith(defaultAvatar)) {
                             e.target.src = defaultAvatar;
@@ -300,6 +300,15 @@ function ProfileSetting() {
                         {formData.name ? formData.name.charAt(0).toUpperCase() : "U"}
                       </span>
                     )}
+
+                    {/* Camera Overlay Strip */}
+                    <div
+                      onClick={() => document.getElementById("photo-upload").click()}
+                      className="absolute bottom-0 left-0 right-0 h-1/4 sm:h-1/3 bg-[#FFFFFF] opacity-50  backdrop-blur-[2px] flex items-center justify-center cursor-pointer text-black hover:bg-gray-300/80 transition-colors"
+                      title="Update Profile Photo"
+                    >
+                      <FiCamera className="w-5 h-5 sm:w-6 sm:h-6 mb-1 sm:mb-2" />
+                    </div>
                   </div>
                   <input
                     type="file"
@@ -308,12 +317,6 @@ function ProfileSetting() {
                     accept="image/*"
                     onChange={handlePhotoChange}
                   />
-                  <button
-                    onClick={() => document.getElementById("photo-upload").click()}
-                    className="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow-lg border border-gray-100 text-gray-600 hover:text-[#00A3E0] hover:bg-gray-100 transition-colors"
-                  >
-                    <FiCamera className="w-5 h-5" />
-                  </button>
                 </div>
 
                 {/* Text info */}
@@ -355,7 +358,7 @@ function ProfileSetting() {
             </div>
 
             {/* Form Sections */}
-            <div className="flex flex-col space-y-6 py-2 bg-white shadow-md">
+            <div className="flex flex-col space-y-2 py-2 bg-white shadow-md">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 m-10">
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold text-[#64748B]">Full Name</Label>
@@ -364,7 +367,7 @@ function ProfileSetting() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] border"
+                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
                     readOnly
                   />
                 </div>
@@ -376,7 +379,7 @@ function ProfileSetting() {
                     name="role"
                     value={formData.role}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] border"
+                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
                     readOnly
                   />
                 </div>
@@ -389,7 +392,7 @@ function ProfileSetting() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] border"
+                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
                     readOnly
                   />
                 </div>
@@ -401,7 +404,7 @@ function ProfileSetting() {
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] border"
+                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
                     readOnly
                   />
                 </div>
@@ -413,7 +416,7 @@ function ProfileSetting() {
                     name="employeId"
                     value={formData.employeId}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] border"
+                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
                     readOnly
                   />
                 </div>
@@ -425,16 +428,16 @@ function ProfileSetting() {
                     name="joinDate"
                     value={formData.joinDate}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] border"
+                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
                     disabled
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold text-[#64748B]">Department</Label>
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">
-                      <LuBuilding2 className="w-4 h-4" />
+                  <div className="relative bg-[#F9FAFB]">
+                    <div className="absolute  left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">
+                      <LuBuilding2 className="w-4 h-4  " />
                     </div>
                     <Select
                       value={formData.department}
@@ -462,7 +465,7 @@ function ProfileSetting() {
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] border"
+                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
                     readOnly
                   />
                 </div>
@@ -470,7 +473,7 @@ function ProfileSetting() {
 
               {/* Bio */}
 
-              <div className="space-y-2 m-10">
+              <div className="space-y-2 m-10 pb-10 ">
                 <Label className="text-sm font-semibold text-[#64748B]">Bio/About</Label>
                 <div className="relative">
                   <Textarea
@@ -478,7 +481,7 @@ function ProfileSetting() {
                     value={formData.bio}
                     onChange={handleInputChange}
                     rows={4}
-                    className="border-[#D1D5DB] border focus:ring-[#00A3E0] rounded-xl resize-none p-4 min-h-[120px]"
+                    className="border-[#D1D5DB] bg-[#F9FAFB] border focus:ring-[#00A3E0] rounded-xl resize-none p-4 min-h-[120px]"
                     readOnly
                   />
                   <div className="absolute bottom-2 right-4 text-[10px] text-gray-400 font-medium">

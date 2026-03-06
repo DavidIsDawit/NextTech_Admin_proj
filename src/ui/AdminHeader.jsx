@@ -102,7 +102,7 @@ export default function AdminHeader() {
       </div>
 
       {/* Avatar + name */}
-      <div className="flex items-center space-x-3 mr-8 hover:bg-[#D1D5DB] rounded-md">
+      <div className="flex items-center space-x-1 sm:space-x-3 mr-8 hover:bg-[#D1D5DB] rounded-md">
         {/* Avatar circle */}
         <div
           ref={avatarRef}
@@ -127,27 +127,33 @@ export default function AdminHeader() {
           )}
         </div>
 
-        {/* Name + role + chevron */}
-        <div onClick={handleAvatarClick} className="flex gap-4 cursor-pointer">
-          <div className="flex flex-col leading-tight">
+        {/* Name + role (Hidden on mobile) + chevron */}
+        <div onClick={handleAvatarClick} className="flex items-center gap-1 md:gap-4 cursor-pointer">
+          <div className="hidden md:flex flex-col leading-tight">
             {userName && (
               <span className="text-base font-semibold text-gray-800">{userName}</span>
             )}
             <span className="text-sm text-gray-500">{userRole || "Senior Engineer"}</span>
           </div>
-          {menuOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          {menuOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
         </div>
 
         {/* Dropdown Menu */}
         {menuOpen && (
           <div
             ref={menuRef}
-            className="absolute top-16 right-14 w-52 bg-white shadow-lg px-4 z-50 border border-gray-100"
+            className="absolute top-16 right-14 w-52 bg-white shadow-xl rounded-lg z-50 border border-gray-100 overflow-hidden"
           >
-            <div className="mt-3 space-y-2 text-gray-700">
+            {/* User Info Header (Visible on Mobile) */}
+            <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 md:hidden">
+              <p className="text-sm font-bold text-gray-800 truncate">{userName || "User"}</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider truncate">{userRole || "Senior Engineer"}</p>
+            </div>
+
+            <div className="py-2 text-gray-700">
               <button
                 onClick={() => { setMenuOpen(false); navigate("/admin/profile_setting"); }}
-                className="flex font-bold items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-[#D1D5DB] transition-colors"
+                className="flex font-semibold items-center gap-2 w-full px-4 py-2 hover:bg-gray-100 transition-colors text-sm"
               >
                 Profile Setting
               </button>

@@ -96,13 +96,13 @@ const AdminSidebar = () => {
           className="text-gray-700 focus:outline-none"
           disabled={isLoggingOut}
         >
-          <img src={NextTech_logo} alt="NextTech_logo" className="h-10 w-full" />
+          <img src={NextTech_logo} alt="NextTech_logo" className="h-10  w-full" />
         </Button>
 
         <Button
           variant="ghost"
           onClick={() => setMobileOpen(true)}
-          className="text-gray-700 md:px-10 px-3 focus:outline-none"
+          className="text-gray-700 md:px-10 px-1 focus:outline-none"
           disabled={isLoggingOut} >
 
           <Menu className="h-10 w-6" />
