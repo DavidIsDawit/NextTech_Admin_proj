@@ -6,6 +6,8 @@ import { updatePassword, getMe, getUserById, uploadPhoto, cleanupAuth } from "..
 import { mapBackendErrors } from "../../utils/errorHelpers";
 // static profile picture lives in public/images; reference via root URL
 import { LuBuilding2 } from "react-icons/lu";
+
+const defaultAvatar = "/upload-placeholder.png";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
