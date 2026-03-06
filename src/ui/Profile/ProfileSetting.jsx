@@ -50,8 +50,18 @@ function ProfileSetting() {
     photo: "",
   });
   const [errors, setErrors] = useState({});
-
   const [isLoading, setIsLoading] = useState(true);
+  const [tempPhotoFile, setTempPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+
+  // Cleanup object URLs to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (photoPreview && photoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    };
+  }, [photoPreview]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -206,26 +216,41 @@ function ProfileSetting() {
     }
   };
 
-  const handlePhotoChange = async (e) => {
+  const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Optional: client side size check
     if (file.size > 2 * 1024 * 1024) {
       toast.error("File size must be less than 2MB");
       return;
     }
 
+    setTempPhotoFile(file);
+    const objectUrl = URL.createObjectURL(file);
+    setPhotoPreview(objectUrl);
+  };
+
+  const handleCancelPhoto = () => {
+    setTempPhotoFile(null);
+    if (photoPreview && photoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(photoPreview);
+    }
+    setPhotoPreview(null);
+  };
+
+  const handleUploadPhoto = async () => {
+    if (!tempPhotoFile) return;
+
     const formDataUpload = new FormData();
-    formDataUpload.append("photo", file);
+    formDataUpload.append("photo", tempPhotoFile);
 
     setIsLoading(true);
     try {
       const response = await uploadPhoto(formDataUpload);
       if (response.status === "success") {
-        toast.success("Photo uploaded successfully!");
-        // Update local state with new photo path
+        toast.success("Photo updated successfully!");
         setFormData((prev) => ({ ...prev, photo: response.data?.photo || response.photo }));
+        handleCancelPhoto(); // Clear temp state
       }
     } catch (error) {
       console.error("Photo upload error", error);
@@ -249,18 +274,19 @@ function ProfileSetting() {
             <div className="flex py-10 flex-col sm:flex-row items-center shadow-md sm:items-center justify-between gap-6 p-6 bg-white rounded-xl border border-gray-100">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
                 {/* Avatar with camera overlay */}
-                <div className="relative">
+                <div className="relative hover:bg-gray-50 rounded-full">
                   <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl">
                     <img
                       src={
-                        formData.photo
-                          ? buildImageUrl(formData.photo)
-                          : defaultAvatar
+                        photoPreview
+                          ? photoPreview
+                          : formData.photo
+                            ? buildImageUrl(formData.photo)
+                            : defaultAvatar
                       }
                       alt={formData.name || "User"}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        // Prevent infinite loop if fallback also fails
                         if (!e.target.src.endsWith(defaultAvatar)) {
                           e.target.src = defaultAvatar;
                         }
@@ -276,7 +302,7 @@ function ProfileSetting() {
                   />
                   <button
                     onClick={() => document.getElementById("photo-upload").click()}
-                    className="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow-lg border border-gray-100 text-gray-600 hover:text-[#00A3E0] transition-colors"
+                    className="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow-lg border border-gray-100 text-gray-600 hover:text-[#00A3E0] hover:bg-gray-100 transition-colors"
                   >
                     <FiCamera className="w-5 h-5" />
                   </button>
@@ -298,6 +324,26 @@ function ProfileSetting() {
                 </div>
               </div>
 
+              {/* Action Buttons for Photo Change */}
+              {(tempPhotoFile) && (
+                <div className="flex gap-3 mt-4 sm:mt-0">
+                  <Button
+                    onClick={handleUploadPhoto}
+                    disabled={isLoading}
+                    className="bg-[#00A3E0] hover:bg-[#008cc2] text-white h-9 px-4 rounded-lg flex items-center gap-2 transition-all active:scale-95"
+                  >
+                    Save Photo
+                  </Button>
+                  <Button
+                    onClick={handleCancelPhoto}
+                    variant="outline"
+                    disabled={isLoading}
+                    className="h-9 px-4 rounded-lg border-gray-200 hover:bg-gray-50 transition-all active:scale-95"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Form Sections */}
