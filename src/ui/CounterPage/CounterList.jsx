@@ -308,8 +308,9 @@ function CounterList() {
                 title={formType === 'add' ? 'Add New Counter' : 'Edit Counter'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Counter' : 'Save Changes'}
-                size="lg"
+                submitLabel={formType === 'add' ? 'Add' : 'Save Changes'}
+                size="md"
+                errors={errors}
             >
                 <CounterForm
                     formData={formData}

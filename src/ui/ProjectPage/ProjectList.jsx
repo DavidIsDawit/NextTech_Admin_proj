@@ -12,6 +12,7 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { ProjectForm } from "../forms/ProjectForm";
+import { toast } from "sonner";
 
 function ProjectList() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -77,6 +78,7 @@ function ProjectList() {
         // Simulate API call
         setTimeout(() => {
             console.log(`Project ${formType === 'add' ? 'added' : 'updated'}:`, formData);
+            toast.success(`Project ${formType === 'add' ? 'added' : 'updated'} successfully!`);
             setIsSubmitting(false);
             setIsFormModalOpen(false);
         }, 1000);

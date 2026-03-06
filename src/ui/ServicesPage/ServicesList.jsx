@@ -399,7 +399,8 @@ function Services() {
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
                 submitLabel={formType === 'add' ? 'Add Service' : 'Save Changes'}
-                size="lg"
+                size="md"
+                errors={errors}
             >
                 <ServiceForm
                     formData={formData}
