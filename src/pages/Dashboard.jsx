@@ -3,4 +3,4 @@ function Dashboard() {
   return <div><Dashboard_ui/></div>;
 }
 
-export default Dashboard_ui;
+export default Dashboard;

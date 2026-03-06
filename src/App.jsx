@@ -23,7 +23,7 @@ import ProfileSetting from "./pages/ProfileSetting";
 
 // simple wrapper that redirects to login if there is no access token
 const RequireAuth = ({ children }) => {
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
   if (!token) {
     return <Navigate to="/admin/login" replace />;
   }
@@ -32,7 +32,7 @@ const RequireAuth = ({ children }) => {
 
 // guard that ensures first-time login flow is completed
 const RequireFirstTimeCompleted = ({ children }) => {
-  const firstTime = localStorage.getItem("firstTimeLogin") === "true";
+  const firstTime = (localStorage.getItem("firstTimeLogin") === "true") || (sessionStorage.getItem("firstTimeLogin") === "true");
   // if user is currently on change-password allow it
   const pathname = window.location.pathname;
   if (firstTime && pathname !== "/admin/change-password") {

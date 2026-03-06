@@ -28,7 +28,7 @@ const gamenuItems = [
 ];
 
 const getUserRole = () => {
-  return localStorage.getItem("userRole") || null;
+  return localStorage.getItem("userRole") || sessionStorage.getItem("userRole") || null;
 };
 import {
   Users,

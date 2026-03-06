@@ -36,7 +36,7 @@ function Login() {
 
     setLoading(true);
     try {
-      const res = await login(email, password);
+      const res = await login(email, password, rememberMe);
       if (res.status === "success") {
         toast.success("Login successful");
         const firstFlag = res.data?.firstTimeLogin || false;

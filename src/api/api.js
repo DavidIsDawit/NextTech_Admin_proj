@@ -18,7 +18,7 @@ api.interceptors.request.use((config) => {
     return config;
   }
 
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -100,7 +100,12 @@ api.interceptors.response.use(
 
         const newToken = authHeader.replace("Bearer ", "");
 
-        localStorage.setItem("accessToken", newToken);
+        // Save token to the appropriate storage
+        if (localStorage.getItem("accessToken")) {
+          localStorage.setItem("accessToken", newToken);
+        } else {
+          sessionStorage.setItem("accessToken", newToken);
+        }
         api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
 
         processQueue(null, newToken);
@@ -113,6 +118,8 @@ api.interceptors.response.use(
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("userRole");
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("userRole");
 
         if (window.location.pathname !== "/admin/login") {
           window.location.href = "/admin/login";
@@ -134,7 +141,7 @@ api.interceptors.response.use(
 let refreshTimer = null;
 
 const startProactiveRefresh = () => {
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
   if (!token) return;
 
   try {
@@ -173,6 +180,9 @@ export const cleanupAuth = () => {
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("userRole");
   localStorage.removeItem("firstTimeLogin");
+  sessionStorage.removeItem("accessToken");
+  sessionStorage.removeItem("userRole");
+  sessionStorage.removeItem("firstTimeLogin");
 };
 
 

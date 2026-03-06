@@ -13,21 +13,23 @@ import api from "./api";
    Returns: { status, data: { role, firstTimeLogin } }
    Side effects: saves accessToken, userRole, firstTimeLogin to localStorage
 ------------------------------------------------------------------ */
-export const login = async (email, password) => {
+export const login = async (email, password, rememberMe = false) => {
     try {
         const response = await api.post("/user/login", { email, password });
 
         // Access token is returned in the Authorization header
         const authHeader = response.headers.authorization;
+        const storage = rememberMe ? localStorage : sessionStorage;
+
         if (authHeader && authHeader.startsWith("Bearer ")) {
             const token = authHeader.replace("Bearer ", "");
-            localStorage.setItem("accessToken", token);
+            storage.setItem("accessToken", token);
         }
 
         if (response.data?.status === "success") {
             const { role, firstTimeLogin } = response.data.data;
-            localStorage.setItem("userRole", role);
-            localStorage.setItem("firstTimeLogin", firstTimeLogin ? "true" : "false");
+            storage.setItem("userRole", role);
+            storage.setItem("firstTimeLogin", firstTimeLogin ? "true" : "false");
         }
 
         return response.data;
