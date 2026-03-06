@@ -5,7 +5,6 @@ import api, { buildImageUrl } from "../../api/api";
 import { updatePassword, getMe, getUserById, uploadPhoto, cleanupAuth } from "../../api/userApi";
 import { mapBackendErrors } from "../../utils/errorHelpers";
 // static profile picture lives in public/images; reference via root URL
-const defaultAvatar = "/images/Profile_pic.png";
 import { LuBuilding2 } from "react-icons/lu";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
