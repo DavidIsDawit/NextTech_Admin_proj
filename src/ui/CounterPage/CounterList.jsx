@@ -214,55 +214,57 @@ function CounterList() {
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-4xl lg:text-3xl 2xl:text-4xl font-bold text-gray-900">
-                        Counter Management
-                    </h1>
-                    <p className="text-base text-gray-500 mt-3">
-                        Manage stats and counters
-                    </p>
-                </div>
-                <DynamicButton
-                    icon={FiPlus}
-                    onClick={handleAddNew}
-                    className="w-full sm:w-auto md:w-52 lg:w-44 xl:w-52 md:h-12 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
-                >
-                    Add New Counter
-                </DynamicButton>
+            <div className="mb-4 sm:mb-6 pt-2">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                    Counter Management
+                </h1>
+                <p className="text-sm sm:text-base text-gray-500 mt-2">
+                    Manage stats and counters
+                </p>
             </div>
 
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pt-16 pb-8">
-                <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto flex-1">
-                    <div className="w-full sm:w-96 lg:w-80 2xl:w-96">
-                        <DynamicSearch
-                            value={searchTerm}
-                            onChange={(val) => {
-                                setSearchTerm(val);
-                                setCurrentPage(1);
-                            }}
-                            placeholder="Search counters..."
-                        />
-                    </div>
-                    <div className="w-full sm:w-36">
-                        <DynamicDropdown
-                            options={statuses.filter((s) => s !== "All Status")}
-                            value={statusFilter}
-                            onChange={(val) => {
-                                setStatusFilter(val);
-                                setCurrentPage(1);
-                            }}
-                            defaultOption="All Status"
-                        />
-                    </div>
+            <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap items-center sm:justify-between gap-3 sm:gap-4 pb-6">
+                <div className="order-1 sm:order-1 col-span-1 sm:w-auto flex-1 md:max-w-md">
+                    <DynamicSearch
+                        value={searchTerm}
+                        onChange={(val) => {
+                            setSearchTerm(val);
+                            setCurrentPage(1);
+                        }}
+                        placeholder="Search counters..."
+                    />
                 </div>
-                <DynamicButton
-                    variant="secondary"
-                    onClick={handleExportCSV}
-                    className="w-full sm:w-auto justify-center sm:justify-end text-sm font-medium"
-                >
-                    Export CSV
-                </DynamicButton>
+                <div className="order-2 sm:order-4 col-span-1 sm:w-auto flex justify-end sm:ml-auto">
+                    <DynamicButton
+                        variant="secondary"
+                        onClick={handleExportCSV}
+                        className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
+                    >
+                        <span className="hidden sm:inline">Export CSV</span>
+                        <span className="sm:hidden">Export</span>
+                    </DynamicButton>
+                </div>
+                <div className="order-3 sm:order-2 col-span-1 sm:w-36 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none">
+                    <DynamicDropdown
+                        options={statuses.filter((s) => s !== "All Status")}
+                        value={statusFilter}
+                        onChange={(val) => {
+                            setStatusFilter(val);
+                            setCurrentPage(1);
+                        }}
+                        defaultOption="All Status"
+                    />
+                </div>
+                <div className="order-4 sm:order-3 col-span-1 sm:w-auto flex justify-end">
+                    <DynamicButton
+                        icon={FiPlus}
+                        onClick={handleAddNew}
+                        className="w-auto md:w-48 md:h-11 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                    >
+                        <span className="hidden sm:inline">Add Counter</span>
+                        <span className="sm:hidden">Add</span>
+                    </DynamicButton>
+                </div>
             </div>
 
             <div>
