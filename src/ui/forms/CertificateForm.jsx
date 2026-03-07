@@ -209,8 +209,8 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                         <Label htmlFor="cert-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Inactive" id="cert-inactive" />
-                        <Label htmlFor="cert-inactive" className="font-normal cursor-pointer">Inactive</Label>
+                        <RadioGroupItem value="Expired" id="cert-inactive" />
+                        <Label htmlFor="cert-inactive" className="font-normal cursor-pointer">Expired</Label>
                     </div>
                 </RadioGroup>
                 {errors.status && (

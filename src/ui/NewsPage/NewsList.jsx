@@ -58,8 +58,8 @@ function NewsList() {
         fetchNews();
     }, []);
 
-    const categories = useMemo(() => ["All Categories", ...new Set(news.map(s => s.catagory || s.category))], [news]);
-    const statuses = useMemo(() => ["All Status", ...new Set(news.map(s => s.status))], [news]);
+    const categories = useMemo(() => ["All Categories", ...new Set(news.map(s => s.catagory || s.category).filter(Boolean))], [news]);
+    const statuses = useMemo(() => ["All Status", ...new Set(news.map(s => s.status).filter(Boolean))], [news]);
 
     const filteredData = useMemo(() => {
         return news.filter((item) => {
@@ -302,28 +302,32 @@ function NewsList() {
                         placeholder="Search news..."
                     />
                 </div>
-                <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                    <DynamicDropdown
-                        options={categories.filter((s) => s !== "All Categories")}
-                        value={categoryFilter}
-                        onChange={(val) => {
-                            setCategoryFilter(val);
-                            setCurrentPage(1);
-                        }}
-                        defaultOption="All Categories"
-                    />
-                </div>
-                <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-36">
-                    <DynamicDropdown
-                        options={statuses.filter((s) => s !== "All Status")}
-                        value={statusFilter}
-                        onChange={(val) => {
-                            setStatusFilter(val);
-                            setCurrentPage(1);
-                        }}
-                        defaultOption="All Status"
-                    />
-                </div>
+                {categories.length > 1 && (
+                    <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
+                        <DynamicDropdown
+                            options={categories.filter((s) => s !== "All Categories")}
+                            value={categoryFilter}
+                            onChange={(val) => {
+                                setCategoryFilter(val);
+                                setCurrentPage(1);
+                            }}
+                            defaultOption="All Categories"
+                        />
+                    </div>
+                )}
+                {statuses.length > 1 && (
+                    <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-36">
+                        <DynamicDropdown
+                            options={statuses.filter((s) => s !== "All Status")}
+                            value={statusFilter}
+                            onChange={(val) => {
+                                setStatusFilter(val);
+                                setCurrentPage(1);
+                            }}
+                            defaultOption="All Status"
+                        />
+                    </div>
+                )}
                 <div className="col-span-1 sm:w-auto flex justify-start">
                     <DynamicButton
                         icon={FiPlus}
