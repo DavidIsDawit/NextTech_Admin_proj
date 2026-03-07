@@ -4,7 +4,6 @@ import { TrafficChart } from "../Dashboard/traffic-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "../card";
 import { stats } from "../../data/stats";
 import api from "../../api/api";
-import { trafficData } from "../../data/trafficData";
 
 export default function Dashboard() {
 
@@ -13,6 +12,7 @@ export default function Dashboard() {
     const [totalProject, setTotalProject] = useState(0);
     const [totalCertificate, setTotalCertificate] = useState(0);
     const [totalPortfolios, setTotalPortfolios] = useState(0);
+    const [trafficData, setTrafficData] = useState([]);
 
     useEffect(() => {
         const fetchDashboardTotalData = async () => {
@@ -22,24 +22,30 @@ export default function Dashboard() {
                     api.get("/AllNews"),             // index 0
                     api.get("/getAllCertificates"),   // index 1
                     api.get("/getAllFAQs"),           // index 2
-                    api.get("/getAllPortfolios"),           // index 3
+                    api.get("/getAllPortfolios"),     // index 3
+                    api.get("/visit"),                // index 4
                 ]);
 
                 // Safely extract each response (axios wraps data in .data)
-                const resNews         = results[0].status === "fulfilled" ? results[0].value.data : null;
+                const resNews = results[0].status === "fulfilled" ? results[0].value.data : null;
                 const resCertificates = results[1].status === "fulfilled" ? results[1].value.data : null;
-                const resFAQs         = results[2].status === "fulfilled" ? results[2].value.data : null;
-                const resPortfolios   = results[3].status === "fulfilled" ? results[3].value.data : null;
+                const resFAQs = results[2].status === "fulfilled" ? results[2].value.data : null;
+                const resPortfolios = results[3].status === "fulfilled" ? results[3].value.data : null;
+                const resVisit = results[4].status === "fulfilled" ? results[4].value.data : null;
 
                 // API shapes:
                 //   News:         { status, totalNews, data: { news: [] } }
                 //   Certificates: { status, totalCertificates, certificates: [] }
                 //   FAQs:         { status, results, data: [] }
+                //   Visit:        { success, chartData: [ { day, visitors, date } ] }
                 setTotalNews(Number(resNews?.totalNews) || 0);
                 setTotalCertificate(Number(resCertificates?.totalCertificates) || 0);
                 setTotalFAQ(Number(resFAQs?.results) || 0);
                 setTotalPortfolios(Number(resPortfolios?.totalPortfolios) || 0);
-               
+
+                if (resVisit && resVisit.success && resVisit.chartData) {
+                    setTrafficData(resVisit.chartData);
+                }
 
             } catch {
                 // Silent fail — individual API errors are already toasted by the interceptor
@@ -52,11 +58,11 @@ export default function Dashboard() {
     // Map each stat card label to the correct state value
     const getStatValue = (label) => {
         switch (label) {
-            case "Total Certificates":  return totalCertificate;
-            case "Total News":          return totalNews;
-            case "Total FAQ":           return totalFAQ;
-            case "Portfolio Projects":  return totalPortfolios;
-            default:                    return 0;
+            case "Total Certificates": return totalCertificate;
+            case "Total News": return totalNews;
+            case "Total FAQ": return totalFAQ;
+            case "Portfolio Projects": return totalPortfolios;
+            default: return 0;
         }
     };
 
