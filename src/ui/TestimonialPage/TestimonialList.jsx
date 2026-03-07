@@ -57,13 +57,13 @@ function TestimonialList() {
         fetchTestimonials();
     }, []);
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specialty || s.speciality || s.testimony).filter(Boolean))], [testimonials]);
-    const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status).filter(Boolean))], [testimonials]);
+    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specality || s.specialty || s.speciality || s.testimony))], [testimonials]);
+    const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], [testimonials]);
 
     const filteredData = useMemo(() => {
         return testimonials.filter((item) => {
             const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
-            const role = item.specialty || item.speciality || item.testimony;
+            const role = item.specality || item.specialty || item.speciality || item.testimony;
             const matchesSpecialty = specialtyFilter === "All Specialties" || role === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesSpecialty && matchesStatus;
@@ -77,6 +77,7 @@ function TestimonialList() {
     const handleExportCSV = () => {
         exportToCSV(filteredData, "Testimonials", {
             name: "Name",
+            specality: "Speciality",
             testimony: "Testimony",
             rate: "Rating",
             status: "Status"
@@ -89,7 +90,7 @@ function TestimonialList() {
         setFormData({
             name: '',
             testimony: '',
-            speciality: '',
+            specality: '',
             review: '',
             date: '',
             status: 'active',
@@ -122,12 +123,16 @@ function TestimonialList() {
             newErrors.testimony = "Testimony is required";
         }
 
-        if (!formData.speciality?.trim() && !formData.specialty?.trim()) {
-            newErrors.speciality = "Speciality is required";
+        if (!formData.speciality?.trim() && !formData.specialty?.trim() && !formData.specality?.trim()) {
+            newErrors.specality = "Speciality is required";
         }
 
         if (!formData.date) {
             newErrors.date = "Date is required";
+        }
+
+        if (!formData.rate || formData.rate < 1 || formData.rate > 5) {
+            newErrors.rate = "Rating must be an integer between 1 and 5";
         }
 
         setErrors(newErrors);
@@ -187,6 +192,10 @@ function TestimonialList() {
 
             if (formData.rate !== null && formData.rate !== undefined) data.append('rate', formData.rate);
             if (formData.status) data.append('status', formData.status);
+
+            // Add speciality and date if present
+            if (formData.speciality || formData.specialty || formData.specality) data.append('specality', formData.speciality || formData.specialty || formData.specality);
+            if (formData.date) data.append('date', formData.date);
 
             // Image: form uses 'file' key, backend expects 'image'
             if (formData.file instanceof File) {
@@ -289,7 +298,7 @@ function TestimonialList() {
             label: "Role/Specialty",
             className: "max-w-[200px] truncate",
             render: (value, row) => {
-                const role = value || row.speciality || row.testimony;
+                const role = value || row.specality || row.specialty || row.speciality || row.testimony;
                 return (
                     <div className="text-sm text-gray-700 truncate" title={role || ""}>
                         {role || "—"}
