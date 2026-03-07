@@ -38,7 +38,6 @@ function Login() {
     try {
       const res = await login(email, password, rememberMe);
       if (res.status === "success") {
-        toast.success("Login successful");
         const firstFlag = res.data?.firstTimeLogin || false;
         if (firstFlag) {
           navigate("/admin/change-password");
@@ -52,11 +51,15 @@ function Login() {
           navigate("/");
         }
       } else {
-        toast.error(res.message || "Login failed");
+        if (res.statusCode !== 401) {
+          toast.error(res.message || "Login failed");
+        }
       }
     } catch (error) {
-      const message = error.response?.data?.message || "Something went wrong";
-      toast.error(message);
+      if (error.response?.status !== 401) {
+        const message = error.response?.data?.message || "Something went wrong";
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }

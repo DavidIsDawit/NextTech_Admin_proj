@@ -73,7 +73,9 @@ api.interceptors.response.use(
 
     // Handle Backend Error Messages (4xx, 403, 400 etc)
     if (err.response?.data?.message) {
-      toast.error(err.response.data.message);
+      if (err.response.status !== 401) {
+        toast.error(err.response.data.message);
+      }
     } else if (err.response?.status >= 500) {
       toast.error("Internal Server Error", {
         description: "The server encountered a problem and couldn't process your request.",
