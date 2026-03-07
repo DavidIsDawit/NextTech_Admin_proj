@@ -22,10 +22,21 @@ const chartConfig = {
 };
 
 export function TrafficChart({ data }) {
-  const chartData = data.map((value, index) => ({
-    day: index + 1,
-    visitors: value,
-  }));
+  const chartData = (data || []).map((item, index) => {
+    if (typeof item === "object" && item !== null) {
+      // Backend structured format
+      return {
+        day: item.day || index + 1,
+        visitors: item.visitors || 0,
+        date: item.date,
+      };
+    }
+    // Legacy static numbers array fallback
+    return {
+      day: index + 1,
+      visitors: typeof item === "number" ? item : 0,
+    };
+  });
 
   return (
     <div className="h-[42vh] w-full">

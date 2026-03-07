@@ -65,6 +65,8 @@ function CertificateList() {
         fetchCertificates();
     }, [currentPage]);
 
+    const statuses = useMemo(() => ["All Status", ...new Set(certificates.map(s => s.status).filter(Boolean))], [certificates]);
+
     // Apply frontend search and filter only to currently fetched page,
     // or if the backend supports filter, it should be passed in params.
     // For now, based on Postman docs, backend only supports page and sort.
@@ -357,17 +359,19 @@ function CertificateList() {
                         <span className="sm:hidden">Export</span>
                     </DynamicButton>
                 </div>
-                <div className="order-3 sm:order-2 col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                    <DynamicDropdown
-                        options={["Active", "Inactive"]}
-                        value={statusFilter}
-                        onChange={(val) => {
-                            setStatusFilter(val);
-                            setCurrentPage(1);
-                        }}
-                        defaultOption="All Status"
-                    />
-                </div>
+                {statuses.length > 1 && (
+                    <div className="order-3 sm:order-2 col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
+                        <DynamicDropdown
+                            options={statuses.filter(s => s !== "All Status")}
+                            value={statusFilter}
+                            onChange={(val) => {
+                                setStatusFilter(val);
+                                setCurrentPage(1);
+                            }}
+                            defaultOption="All Status"
+                        />
+                    </div>
+                )}
                 <div className="order-4 sm:order-3 col-span-1 sm:w-auto flex justify-end">
                     <DynamicButton
                         icon={FiPlus}
