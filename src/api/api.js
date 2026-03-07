@@ -8,6 +8,7 @@ import { toast } from "sonner";
 const api = axios.create({
   baseURL: "/api",
   withCredentials: true,
+  timeout: 5000, // 5 seconds default timeout
 });
 
 /* =====================
@@ -51,12 +52,22 @@ api.interceptors.response.use(
   async (err) => {
     const originalRequest = err.config;
 
-    // Handle Network Errors (Server Down)
-    if (!err.response && (err.code === 'ERR_NETWORK' || err.message === 'Network Error')) {
+    // Handle Network Errors, Gateway Errors, or Timeouts (Server Down/Proxy Error)
+    const isNetworkError = !err.response && (err.code === 'ERR_NETWORK' || err.message === 'Network Error');
+    const isTimeout = err.code === 'ECONNABORTED' && err.message.includes('timeout');
+    const isGatewayError = [500, 502, 503, 504].includes(err.response?.status);
+
+    if (isNetworkError || isGatewayError || isTimeout) {
       toast.error("Network Error: Server appears to be offline", {
         description: "Please check if your backend service is running.",
         id: "network-error-toast",
       });
+
+      // Redirect to server error page if not already there
+      if (window.location.pathname !== "/server-error") {
+        window.location.href = "/server-error";
+      }
+
       return Promise.reject(err);
     }
 

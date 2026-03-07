@@ -20,6 +20,7 @@ import Testimonial from "./pages/Testimonial";
 import ModalExamples from "./pages/ModalExamples";
 import PageNotFound from "./pages/PageNotFound";
 import ProfileSetting from "./pages/ProfileSetting";
+import ServerError from "./pages/ServerError";
 
 // simple wrapper that redirects to login if there is no access token
 const RequireAuth = ({ children }) => {
@@ -41,7 +42,23 @@ const RequireFirstTimeCompleted = ({ children }) => {
   return children;
 };
 
+import { useEffect } from "react";
+import api from "./api/api";
+
 function App() {
+  // Proactively check server connectivity on boot.
+  // This ensures the user is redirected to the server error page 
+  // even on the login page if the server is down.
+  useEffect(() => {
+    // If we're already on the server-error page, don't ping again
+    // (the user will manually retry via the "Try Again" button)
+    if (window.location.pathname === "/server-error") return;
+
+    // The interceptor in api.js will handle the redirect if this fails.
+    // We use a shorter timeout (3s) for this initial check to make the redirect faster.
+    api.get("/AllNews", { timeout: 3000 }).catch(() => { });
+  }, []);
+
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
@@ -85,6 +102,7 @@ function App() {
           <Route path="/admin/profile_setting" element={<ProfileSetting />} />
         </Route>
 
+        <Route path="/server-error" element={<ServerError />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </BrowserRouter>
