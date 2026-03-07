@@ -22,6 +22,8 @@ import PageNotFound from "./pages/PageNotFound";
 import ProfileSetting from "./pages/ProfileSetting";
 import ServerError from "./pages/ServerError";
 
+import { Toaster } from "sonner";
+
 // simple wrapper that redirects to login if there is no access token
 const RequireAuth = ({ children }) => {
   const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
@@ -61,6 +63,7 @@ function App() {
 
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Toaster position="top-right" richColors />
       <Routes>
         {/* always allow login and password reset pages */}
         <Route path="/admin/login" element={<Login />} />

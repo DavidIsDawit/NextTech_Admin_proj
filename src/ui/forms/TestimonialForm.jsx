@@ -99,19 +99,19 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Speciality */}
             <div className="space-y-2">
-                <Label htmlFor="speciality" className={errors.speciality ? 'text-red-500' : ''}>
+                <Label htmlFor="specality" className={errors.specality ? 'text-red-500' : ''}>
                     Speciality <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                    id="speciality"
-                    name="speciality"
-                    value={formData.speciality || formData.specialty || ''}
+                    id="specality"
+                    name="specality"
+                    value={formData.specality || formData.specialty || formData.speciality || ''}
                     onChange={handleChange}
                     placeholder="e.g., CEO, CTO,...."
-                    className={errors.speciality ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                    className={errors.specality ? 'border-red-500 focus-visible:ring-red-500' : ''}
                 />
-                {errors.speciality && (
-                    <p className="text-sm text-red-500">{errors.speciality}</p>
+                {errors.specality && (
+                    <p className="text-sm text-red-500">{errors.specality}</p>
                 )}
             </div>
 
