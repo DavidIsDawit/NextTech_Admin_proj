@@ -439,11 +439,12 @@ function GalleryList() {
             <FormModal
                 open={isFormModalOpen}
                 onOpenChange={setIsFormModalOpen}
-                title="Add New Media"
+                title={formType === 'add' ? 'Add New Gallery Item' : 'Edit Gallery Item'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel="Add Media"
+                submitLabel={formType === 'add' ? 'Add Item' : 'Save Changes'}
                 size="lg"
+                errors={errors}
             >
                 <MediaForm formData={formData} onChange={setFormData} errors={errors} />
             </FormModal>

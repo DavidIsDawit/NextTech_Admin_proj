@@ -372,6 +372,7 @@ function PartnerList() {
                 isSubmitting={isSubmitting}
                 submitLabel={formType === 'add' ? 'Add Partner' : 'Save Changes'}
                 size="lg"
+                errors={errors}
             >
                 <PartnerForm
                     formData={formData}

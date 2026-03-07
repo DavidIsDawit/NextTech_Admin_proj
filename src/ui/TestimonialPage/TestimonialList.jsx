@@ -436,6 +436,7 @@ function TestimonialList() {
                 isSubmitting={isSubmitting}
                 submitLabel={formType === 'add' ? 'Add Testimonial' : 'Save Changes'}
                 size="lg"
+                errors={errors}
             >
                 <TestimonialForm
                     formData={formData}

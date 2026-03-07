@@ -331,6 +331,7 @@ function FAQList() {
                 isSubmitting={isSubmitting}
                 submitLabel={formType === 'add' ? 'Add FAQ' : 'Save Changes'}
                 size="lg"
+                errors={errors}
             >
                 <FAQForm
                     formData={formData}

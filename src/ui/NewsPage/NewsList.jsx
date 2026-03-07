@@ -389,6 +389,7 @@ function NewsList() {
                 isSubmitting={isSubmitting}
                 submitLabel={formType === 'add' ? 'Add Article' : 'Save Changes'}
                 size="xl"
+                errors={errors}
             >
                 <NewsForm
                     formData={formData}

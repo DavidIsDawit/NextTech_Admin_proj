@@ -351,7 +351,8 @@ function TeamList() {
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
                 submitLabel={formType === 'add' ? 'Add Member' : 'Save Changes'}
-                size="lg"
+                size="md"
+                errors={errors}
             >
                 <TeamForm
                     formData={formData}

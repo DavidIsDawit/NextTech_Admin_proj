@@ -22,6 +22,7 @@ import { Button } from '@/ui/button';
  * @param {boolean} isSubmitting - Loading state during submission
  * @param {string} submitLabel - Custom label for submit button (default: "Save")
  * @param {string} size - Modal size: "sm", "md", "lg", "xl" (default: "md")
+ * @param {object} errors - Validation errors object
  */
 export function FormModal({
     open,
@@ -33,6 +34,7 @@ export function FormModal({
     isSubmitting = false,
     submitLabel = 'Save',
     size = 'md',
+    errors = {},
 }) {
     const sizeClasses = {
         sm: 'sm:max-w-[425px]',
@@ -40,6 +42,23 @@ export function FormModal({
         lg: 'sm:max-w-[725px]',
         xl: 'sm:max-w-[825px]',
     };
+
+    React.useEffect(() => {
+        // Automatically scroll to the first error element when errors change
+        if (errors && Object.keys(errors).length > 0) {
+            setTimeout(() => {
+                // Find the first element indicating an error (border or text color)
+                const firstError = document.querySelector('.text-red-500, .border-red-500, .bg-red-50');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // If it's an input, focus it optionally
+                    if (firstError.tagName === 'INPUT' || firstError.tagName === 'TEXTAREA') {
+                        firstError.focus({ preventScroll: true });
+                    }
+                }
+            }, 100); // Slight delay to ensure DOM has updated with error state
+        }
+    }, [errors]);
 
     const handleSubmit = (e) => {
         e.preventDefault();

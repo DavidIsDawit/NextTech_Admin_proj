@@ -439,6 +439,7 @@ function PortfolioList() {
                 isSubmitting={isSubmitting}
                 submitLabel={formType === 'add' ? 'Save Project' : 'Update Project'}
                 size="lg"
+                errors={errors}
             >
                 <PortfolioForm
                     formData={formData}

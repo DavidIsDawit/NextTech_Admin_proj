@@ -417,6 +417,7 @@ function CertificateList() {
                 isSubmitting={isSubmitting}
                 submitLabel={formType === 'add' ? 'Add Certificate' : 'Save Changes'}
                 size="lg"
+                errors={errors}
             >
                 <CertificateForm
                     formData={formData}
