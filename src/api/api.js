@@ -55,9 +55,9 @@ api.interceptors.response.use(
     // Handle Network Errors, Gateway Errors, or Timeouts (Server Down/Proxy Error)
     const isNetworkError = !err.response && (err.code === 'ERR_NETWORK' || err.message === 'Network Error');
     const isTimeout = err.code === 'ECONNABORTED' && err.message.includes('timeout');
-    const isGatewayError = [500, 502, 503, 504].includes(err.response?.status);
+    const isInternalServerError = err.response?.status === 500;
 
-    if (isNetworkError || isGatewayError || isTimeout) {
+    if (isNetworkError || isInternalServerError || isTimeout) {
       toast.error("Network Error: Server appears to be offline", {
         description: "Please check if your backend service is running.",
         id: "network-error-toast",
