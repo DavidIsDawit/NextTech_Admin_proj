@@ -56,8 +56,8 @@ function TeamList() {
         fetchTeam();
     }, []);
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(team.map(s => s.specialty))], [team]);
-    const statuses = useMemo(() => ["All Status", ...new Set(team.map(s => s.status))], [team]);
+    const specialties = useMemo(() => ["All Specialties", ...new Set(team.map(s => s.specialty).filter(Boolean))], [team]);
+    const statuses = useMemo(() => ["All Status", ...new Set(team.map(s => s.status).filter(Boolean))], [team]);
 
     const filteredData = useMemo(() => {
         return team.filter((item) => {
@@ -265,28 +265,32 @@ function TeamList() {
                         placeholder="Search team..."
                     />
                 </div>
-                <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                    <DynamicDropdown
-                        options={specialties.filter((s) => s !== "All Specialties")}
-                        value={specialtyFilter}
-                        onChange={(val) => {
-                            setSpecialtyFilter(val);
-                            setCurrentPage(1);
-                        }}
-                        defaultOption="All Specialties"
-                    />
-                </div>
-                <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-36">
-                    <DynamicDropdown
-                        options={statuses.filter((s) => s !== "All Status")}
-                        value={statusFilter}
-                        onChange={(val) => {
-                            setStatusFilter(val);
-                            setCurrentPage(1);
-                        }}
-                        defaultOption="All Status"
-                    />
-                </div>
+                {specialties.length > 1 && (
+                    <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
+                        <DynamicDropdown
+                            options={specialties.filter((s) => s !== "All Specialties")}
+                            value={specialtyFilter}
+                            onChange={(val) => {
+                                setSpecialtyFilter(val);
+                                setCurrentPage(1);
+                            }}
+                            defaultOption="All Specialties"
+                        />
+                    </div>
+                )}
+                {statuses.length > 1 && (
+                    <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-36">
+                        <DynamicDropdown
+                            options={statuses.filter((s) => s !== "All Status")}
+                            value={statusFilter}
+                            onChange={(val) => {
+                                setStatusFilter(val);
+                                setCurrentPage(1);
+                            }}
+                            defaultOption="All Status"
+                        />
+                    </div>
+                )}
                 <div className="col-span-1 sm:w-auto flex justify-start">
                     <DynamicButton
                         icon={FiPlus}

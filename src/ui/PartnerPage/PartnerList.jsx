@@ -55,7 +55,7 @@ function PartnerList() {
         fetchPartners();
     }, [currentPage]);
 
-    const statuses = useMemo(() => ["All Status", "Active", "Inactive"], []);
+    const statuses = useMemo(() => ["All Status", ...new Set(partners.map(s => s.status).filter(Boolean))], [partners]);
 
     const filteredData = useMemo(() => {
         return partners.filter((item) => {
@@ -312,17 +312,19 @@ function PartnerList() {
                         <span className="sm:hidden">Export</span>
                     </DynamicButton>
                 </div>
-                <div className="order-3 sm:order-2 col-span-1 sm:w-36 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none">
-                    <DynamicDropdown
-                        options={statuses.filter((s) => s !== "All Status")}
-                        value={statusFilter}
-                        onChange={(val) => {
-                            setStatusFilter(val);
-                            setCurrentPage(1);
-                        }}
-                        defaultOption="All Status"
-                    />
-                </div>
+                {statuses.length > 1 && (
+                    <div className="order-3 sm:order-2 col-span-1 sm:w-36 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none">
+                        <DynamicDropdown
+                            options={statuses.filter((s) => s !== "All Status")}
+                            value={statusFilter}
+                            onChange={(val) => {
+                                setStatusFilter(val);
+                                setCurrentPage(1);
+                            }}
+                            defaultOption="All Status"
+                        />
+                    </div>
+                )}
                 <div className="order-4 sm:order-3 col-span-1 sm:w-auto flex justify-end">
                     <DynamicButton
                         icon={FiPlus}
