@@ -8,7 +8,7 @@ import { toast } from "sonner";
 const api = axios.create({
   baseURL: "/api",
   withCredentials: true,
-  timeout: 5000, // 5 seconds default timeout
+  timeout: 10000, // 10 seconds default timeout (increased from 5s for local network stability)
 });
 
 /* =====================
@@ -57,7 +57,18 @@ api.interceptors.response.use(
     const isTimeout = err.code === 'ECONNABORTED' && err.message.includes('timeout');
     const isServerError = err.response?.status >= 500;
 
-    if (isNetworkError || isTimeout || isServerError) {
+    if (isNetworkError || isInternalServerError || isTimeout) {
+      const errorTitle = isTimeout ? "Connection Timeout" : "Network Error";
+      const errorDesc = isTimeout
+        ? "The server took too long to respond. Please try again."
+        : "Server appears to be offline. Please check if your backend service is running.";
+
+      toast.error(errorTitle, {
+        description: errorDesc,
+        id: "network-error-toast",
+      });
+
+      // Redirect to server error page if not already there
       if (window.location.pathname !== "/server-error") {
         window.location.href = "/server-error";
       }
