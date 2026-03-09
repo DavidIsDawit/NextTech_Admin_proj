@@ -93,7 +93,7 @@ function TestimonialList() {
             specality: '',
             review: '',
             date: '',
-            status: 'active',
+            status: 'Active',
             rate: 5,
             file: null
         });

@@ -300,7 +300,7 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label>Status</Label>
                 <RadioGroup
-                    value={formData.status}
+                    value={formData.status || Active}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >

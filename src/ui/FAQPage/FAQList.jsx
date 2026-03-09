@@ -91,7 +91,7 @@ function FAQList() {
             question: '',
             answer: '',
             category: 'general',
-            status: 'published'
+            status: 'draft'
         });
         setErrors({});
         setIsFormModalOpen(true);

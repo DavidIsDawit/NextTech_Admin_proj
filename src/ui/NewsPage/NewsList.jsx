@@ -98,7 +98,7 @@ function NewsList() {
             discriptionFour: '',
             tags: '',
             happenedOn: '',
-            status: 'published',   // must be lowercase to match backend
+            status: 'draft',
             imageCover: null,
             images: []
         });

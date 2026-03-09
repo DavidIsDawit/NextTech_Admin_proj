@@ -114,7 +114,7 @@ function PortfolioList() {
             resultTwo: '',
             resultThere: '',
             requirement: '',
-            status: 'active',
+            status: 'Active',
             happingDate: new Date().toISOString().split('T')[0],
             thumbinal: null,
             images: []

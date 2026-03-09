@@ -316,7 +316,7 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
             <div className="space-y-2">
                 <Label className="text-gray-500 font-normal">Status</Label>
                 <RadioGroup
-                    value={formData.status || 'active'}
+                    value={formData.status || "Active"}
                     onValueChange={(v) => onChange?.({ ...formData, status: v })}
                     className="flex gap-6 pt-1"
                 >

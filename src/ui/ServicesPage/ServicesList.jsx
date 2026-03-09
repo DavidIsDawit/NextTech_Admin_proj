@@ -103,7 +103,7 @@ function Services() {
             catagory: '',
             description: '',
             headLine: '',
-            status: 'published',
+            status: 'Active',
             imageCover: null,
             images: [],
             subTitleOne: '',
@@ -255,7 +255,7 @@ function Services() {
             },
         },
         {
-            key: "shortDescription",
+            key: "description",
             label: "Description",
             className: "max-w-[250px] truncate whitespace-nowrap",
             render: (value) => (

@@ -86,7 +86,7 @@ function TeamList() {
         setFormData({
             name: '',
             specialty: '',
-            status: 'active',
+            status: 'Active',
             image: null,
             socialMedia: []
         });

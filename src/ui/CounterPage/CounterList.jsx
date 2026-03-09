@@ -92,7 +92,7 @@ function CounterList() {
         setFormData({
             name: '',      // Initialize explicitly
             value: 0,
-            status: 'active'
+            status: 'Active'
         });
         setErrors({});
         setIsFormModalOpen(true);
@@ -224,16 +224,18 @@ function CounterList() {
                         Manage stats and counters
                     </p>
                 </div>
-                {/* Desktop Add Button */}
-                <div className="hidden md:flex justify-end mt-2">
-                    <button
-                        onClick={handleAddNew}
-                        className="flex items-center gap-2 bg-[#00A3E0] hover:bg-blue-600 text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors cursor-pointer"
-                    >
-                        <FiPlus size={18} />
-                        Add Counter
-                    </button>
-                </div>
+                {/* Desktop Add Button — hidden when 4+ counters exist */}
+                {counters.length < 4 && (
+                    <div className="hidden md:flex justify-end mt-2">
+                        <button
+                            onClick={handleAddNew}
+                            className="flex items-center gap-2 bg-[#00A3E0] hover:bg-blue-600 text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors cursor-pointer"
+                        >
+                            <FiPlus size={18} />
+                            Add Counter
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap items-center sm:justify-between gap-3 sm:gap-4 pb-6">
@@ -280,16 +282,19 @@ function CounterList() {
                         />
                     </div>
                 )}
-                <div className="order-4 sm:order-3 col-span-1 sm:w-auto flex justify-end md:hidden">
-                    <DynamicButton
-                        icon={FiPlus}
-                        onClick={handleAddNew}
-                        className="w-auto md:w-48 md:h-11 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
-                    >
-                        <span className="hidden sm:inline">Add Counter</span>
-                        <span className="sm:hidden">Add</span>
-                    </DynamicButton>
-                </div>
+                {/* Mobile Add Button — hidden when 4+ counters exist */}
+                {counters.length < 4 && (
+                    <div className="order-4 sm:order-3 col-span-1 sm:w-auto flex justify-end md:hidden">
+                        <DynamicButton
+                            icon={FiPlus}
+                            onClick={handleAddNew}
+                            className="w-auto md:w-48 md:h-11 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                        >
+                            <span className="hidden sm:inline">Add Counter</span>
+                            <span className="sm:hidden">Add</span>
+                        </DynamicButton>
+                    </div>
+                )}
             </div>
 
             <div>
