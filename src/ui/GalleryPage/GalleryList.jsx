@@ -75,7 +75,7 @@ function GalleryList() {
         const term = searchTerm.toLowerCase();
         return gallery.filter((item) => {
             const matchesSearch =
-                !term ||
+                searchTerm.length < 3 ||
                 (item.catagory || item.category || "").toLowerCase().includes(term) ||
                 (item.fileType || "").toLowerCase().includes(term) ||
                 (item.status || "").toLowerCase().includes(term);
