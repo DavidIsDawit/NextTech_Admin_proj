@@ -57,8 +57,8 @@ function App() {
     if (window.location.pathname === "/server-error") return;
 
     // The interceptor in api.js will handle the redirect if this fails.
-    // We use a shorter timeout (3s) for this initial check to make the redirect faster.
-    api.get("/AllNews", { timeout: 3000 }).catch(() => { });
+    // We use a slightly longer timeout (8s) for this initial check to avoid false redirects on slow networks.
+    api.get("/AllNews", { timeout: 8000 }).catch(() => { });
   }, []);
 
   return (
