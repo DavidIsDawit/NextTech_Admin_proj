@@ -117,7 +117,25 @@ export const mapBackendErrors = (error) => {
     if (strError) {
         const lowerMsg = strError.toLowerCase();
 
-        // 3a. Try to parse Mongoose-style multi-field error strings
+        // 3a. Check for MongoDB Duplicate Key Error (E11000)
+        if (strError.includes('E11000') || lowerMsg.includes('duplicate key')) {
+            const dupKeyMatch = strError.match(/dup key:\s*{\s*"?([^:"]+)"?:/);
+            if (dupKeyMatch) {
+                let field = dupKeyMatch[1].trim();
+                // some times MongoDB escapes it or adds namespace, just clean it
+                field = field.replace(/^[^.]+\./, ''); // e.g. remove "users."
+                addError(field, `This ${field} already exists and must be unique.`);
+                return mappedErrors;
+            } else {
+                // Fallback if we can't parse the exact field from the string
+                if (lowerMsg.includes('email')) addError('email', 'This email already exists.');
+                else if (lowerMsg.includes('name')) addError('name', 'This name already exists.');
+                else if (lowerMsg.includes('title')) addError('title', 'This title already exists.');
+                return mappedErrors;
+            }
+        }
+
+        // 3b. Try to parse Mongoose-style multi-field error strings
         // Example: "News validation failed: title: Path `title` is required., happenedOn: Path `happenedOn` is required."
         // We look for patterns like "fieldname: Path `fieldname` ..." or just "fieldname: message"
         const segments = strError.split(/,\s+(?=[a-zA-Z0-9_]+:)/); // Split by comma-space if followed by "field:"

@@ -123,7 +123,6 @@ function FAQList() {
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
-            toast.error("Please fill in all required fields.");
             return;
         }
 
@@ -166,9 +165,10 @@ function FAQList() {
 
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
+            } else {
+                const msg = extractErrorMessage(error, "Failed to save FAQ");
+                toast.error(msg);
             }
-            const msg = extractErrorMessage(error, "Failed to save FAQ");
-            toast.error(msg);
         } finally {
             setIsSubmitting(false);
         }
@@ -224,13 +224,25 @@ function FAQList() {
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
-            <div className="mb-4 sm:mb-6 pt-2">
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-                    FAQ Management
-                </h1>
-                <p className="text-sm sm:text-base text-gray-500 mt-2">
-                    Manage frequently asked questions
-                </p>
+            <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 sm:mb-6 pt-2 gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                        FAQ Management
+                    </h1>
+                    <p className="text-sm sm:text-base text-gray-500 mt-2">
+                        Manage frequently asked questions
+                    </p>
+                </div>
+                {/* Desktop Add Button */}
+                <div className="hidden md:flex justify-end mt-2">
+                    <button
+                        onClick={handleAddNew}
+                        className="flex items-center gap-2 bg-[#00A3E0] hover:bg-blue-600 text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors cursor-pointer"
+                    >
+                        <FiPlus size={18} />
+                        Add FAQ
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap items-center sm:justify-between gap-3 sm:gap-4 pb-6">
@@ -270,7 +282,7 @@ function FAQList() {
                         />
                     </div>
                 )}
-                <div className="col-span-1 sm:w-auto flex justify-start">
+                <div className="col-span-1 sm:w-auto flex justify-start md:hidden">
                     <DynamicButton
                         icon={FiPlus}
                         onClick={handleAddNew}
@@ -280,15 +292,25 @@ function FAQList() {
                         <span className="sm:hidden">Add</span>
                     </DynamicButton>
                 </div>
-                <div className="col-span-1 sm:w-auto flex justify-end">
-                    <DynamicButton
-                        variant="secondary"
+                <div className="col-span-1 sm:w-auto flex justify-end md:ml-auto flex-col sm:flex-row items-end sm:items-center">
+                    {/* Mobile Export Button */}
+                    <div className="md:hidden">
+                        <DynamicButton
+                            variant="secondary"
+                            onClick={handleExportCSV}
+                            className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
+                        >
+                            <span className="hidden sm:inline">Export CSV</span>
+                            <span className="sm:hidden">Export</span>
+                        </DynamicButton>
+                    </div>
+                    {/* Desktop Export Link */}
+                    <button
                         onClick={handleExportCSV}
-                        className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
+                        className="hidden md:block text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
                     >
-                        <span className="hidden sm:inline">Export CSV</span>
-                        <span className="sm:hidden">Export</span>
-                    </DynamicButton>
+                        Export CSV
+                    </button>
                 </div>
             </div>
 
