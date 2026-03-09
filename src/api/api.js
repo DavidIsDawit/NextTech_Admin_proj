@@ -55,19 +55,12 @@ api.interceptors.response.use(
     // Handle Network Errors, Gateway Errors, or Timeouts (Server Down/Proxy Error)
     const isNetworkError = !err.response && (err.code === 'ERR_NETWORK' || err.message === 'Network Error');
     const isTimeout = err.code === 'ECONNABORTED' && err.message.includes('timeout');
-    const isInternalServerError = err.response?.status === 500;
+    const isServerError = err.response?.status >= 500;
 
-    if (isNetworkError || isInternalServerError || isTimeout) {
-      toast.error("Network Error: Server appears to be offline", {
-        description: "Please check if your backend service is running.",
-        id: "network-error-toast",
-      });
-
-      // Redirect to server error page if not already there
+    if (isNetworkError || isTimeout || isServerError) {
       if (window.location.pathname !== "/server-error") {
         window.location.href = "/server-error";
       }
-
       return Promise.reject(err);
     }
 
@@ -76,11 +69,6 @@ api.interceptors.response.use(
       if (err.response.status !== 401) {
         toast.error(err.response.data.message);
       }
-    } else if (err.response?.status >= 500) {
-      toast.error("Internal Server Error", {
-        description: "The server encountered a problem and couldn't process your request.",
-        id: "server-error-toast",
-      });
     }
 
     if (
