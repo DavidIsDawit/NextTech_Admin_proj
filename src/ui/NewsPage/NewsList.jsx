@@ -65,7 +65,7 @@ function NewsList() {
         return news.filter((item) => {
             const title = item.title || item.articleTitle;
             const cat = item.catagory || item.category;
-            const matchesSearch = title?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = searchTerm.length < 3 || title?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesCategory = categoryFilter === "All Categories" || cat === categoryFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesCategory && matchesStatus;

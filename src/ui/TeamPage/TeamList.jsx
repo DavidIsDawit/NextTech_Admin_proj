@@ -61,7 +61,7 @@ function TeamList() {
 
     const filteredData = useMemo(() => {
         return team.filter((item) => {
-            const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = searchTerm.length < 3 || item.name?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesSpecialty = specialtyFilter === "All Specialties" || item.specialty === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesSpecialty && matchesStatus;

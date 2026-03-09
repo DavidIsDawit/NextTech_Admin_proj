@@ -62,7 +62,7 @@ function Services() {
     // Filter Logic
     const filteredServices = useMemo(() => {
         return services.filter((service) => {
-            const matchesSearch = service.title
+            const matchesSearch = searchTerm.length < 3 || service.title
                 ?.toLowerCase()
                 .includes(searchTerm.toLowerCase());
             const matchesCategory =
