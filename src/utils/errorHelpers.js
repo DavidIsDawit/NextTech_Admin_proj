@@ -56,45 +56,62 @@ export const mapBackendErrors = (error) => {
     const addError = (field, msg) => {
         if (!field || !msg) return;
         // Clean field name from backticks if present: `title` -> title
-        const cleanField = field.replace(/`/g, '').trim();
-        const cleanMsg = typeof msg === 'string' ? msg : (msg.message || msg.msg || String(msg));
+        let cleanField = field.replace(/[`"]/g, '').trim().toLowerCase();
+        // Strip common index suffixes like _1, _text, etc.
+        cleanField = cleanField.replace(/(_1|_index|_unique|_text)$/, '');
 
+        const cleanMsg = typeof msg === 'string' ? msg : (msg.message || msg.msg || String(msg));
         mappedErrors[cleanField] = cleanMsg;
-        // Handle common typos bidirectionally
-        if (cleanField === 'catagory') mappedErrors['category'] = cleanMsg;
-        if (cleanField === 'category') mappedErrors['catagory'] = cleanMsg;
-        if (cleanField === 'image') {
-            mappedErrors['certificateImage'] = cleanMsg;
-            mappedErrors['certificate'] = cleanMsg;
+
+        // Group 1: Identity/Name fields (Interchangeable across many forms)
+        const identityFields = ['name', 'title', 'projectName', 'partnerName', 'certificateName', 'question', 'author', 'client'];
+        if (identityFields.includes(cleanField)) {
+            identityFields.forEach(f => {
+                mappedErrors[f] = cleanMsg;
+            });
         }
-        if (cleanField === 'certificateImage') {
-            mappedErrors['image'] = cleanMsg;
-            mappedErrors['certificate'] = cleanMsg;
+
+        // Group 2: Categorization
+        if (cleanField === 'catagory' || cleanField === 'category') {
+            mappedErrors['catagory'] = cleanMsg;
+            mappedErrors['category'] = cleanMsg;
         }
-        if (cleanField === 'certificate') {
-            mappedErrors['certificateImage'] = cleanMsg;
-            mappedErrors['image'] = cleanMsg;
+
+        // Group 3: Images & Media
+        const imageFields = ['image', 'imageCover', 'thumbnail', 'thumbinal', 'certificateImage', 'certificate', 'coverImage', 'images'];
+        if (imageFields.includes(cleanField)) {
+            imageFields.forEach(f => {
+                mappedErrors[f] = cleanMsg;
+            });
         }
-        if (cleanField === 'certificateName') {
-            mappedErrors['name'] = cleanMsg;
-            mappedErrors['title'] = cleanMsg;
+
+        // Group 4: Descriptions
+        const descFields = ['description', 'descriptionOne', 'subdescriptionOne', 'testimony', 'review', 'certificateType', 'answer'];
+        if (descFields.includes(cleanField)) {
+            descFields.forEach(f => {
+                mappedErrors[f] = cleanMsg;
+            });
         }
-        if (cleanField === 'certificateFrom') mappedErrors['issuedBy'] = cleanMsg;
-        if (cleanField === 'IssueDate') mappedErrors['issueDate'] = cleanMsg;
-        if (cleanField === 'certificateType') mappedErrors['description'] = cleanMsg;
-        if (cleanField === 'imageCover') {
-            mappedErrors['image'] = cleanMsg;
-            mappedErrors['thumbinal'] = cleanMsg;
+
+        // Group 5: Dates & metadata
+        if (cleanField === 'happenedOn' || cleanField === 'happingDate' || cleanField === 'date') {
+            mappedErrors['happenedOn'] = cleanMsg;
+            mappedErrors['happingDate'] = cleanMsg;
+            mappedErrors['date'] = cleanMsg;
         }
-        if (cleanField === 'description') {
-            mappedErrors['descriptionOne'] = cleanMsg;
-            mappedErrors['subdescriptionOne'] = cleanMsg; // for Services
+        if (cleanField === 'certificateFrom' || cleanField === 'issuedBy') {
+            mappedErrors['certificateFrom'] = cleanMsg;
+            mappedErrors['issuedBy'] = cleanMsg;
         }
-        if (cleanField === 'happenedOn') mappedErrors['happingDate'] = cleanMsg;
-        if (cleanField === 'testimony') mappedErrors['review'] = cleanMsg;
-        if (cleanField === 'review') mappedErrors['testimony'] = cleanMsg;
-        if (cleanField === 'specialty') mappedErrors['speciality'] = cleanMsg;
-        if (cleanField === 'speciality') mappedErrors['specialty'] = cleanMsg;
+        if (cleanField === 'IssueDate' || cleanField === 'issueDate') {
+            mappedErrors['IssueDate'] = cleanMsg;
+            mappedErrors['issueDate'] = cleanMsg;
+        }
+        if (cleanField === 'specialty' || cleanField === 'speciality' || cleanField === 'specality') {
+            mappedErrors['specialty'] = cleanMsg;
+            mappedErrors['speciality'] = cleanMsg;
+            mappedErrors['specality'] = cleanMsg;
+        }
     };
 
     // 1. Handle Object format: { field1: "msg", ... }
@@ -102,12 +119,18 @@ export const mapBackendErrors = (error) => {
         Object.entries(rawErrors).forEach(([field, msg]) => addError(field, msg));
     }
 
-    // 2. Handle Array format: [ { path: "field", msg: "msg" }, ... ]
+    // 2. Handle Array format
     if (Array.isArray(rawErrors)) {
         rawErrors.forEach(err => {
-            const field = err.path || err.param || err.field || err.name;
-            const msg = err.msg || err.message || String(err);
-            addError(field, msg);
+            if (typeof err === 'string') {
+                // Backend sends fields as array of strings like ['title']
+                // Use the main message as the error message for that field
+                addError(err, data.message || `${err} already exists.`);
+            } else {
+                const field = err.path || err.param || err.field || err.name;
+                const msg = err.msg || err.message || String(err);
+                addError(field, msg);
+            }
         });
     }
 
@@ -117,20 +140,33 @@ export const mapBackendErrors = (error) => {
     if (strError) {
         const lowerMsg = strError.toLowerCase();
 
-        // 3a. Check for MongoDB Duplicate Key Error (E11000)
+        // 3a. Parse 'Duplicate fields: fieldName' format (sent by this backend)
+        const dupFieldsMatch = strError.match(/duplicate fields?:\s*([^.]+)/i);
+        if (dupFieldsMatch) {
+            const fieldList = dupFieldsMatch[1].split(',').map(f => f.trim()).filter(Boolean);
+            fieldList.forEach(field => {
+                addError(field, `${field.charAt(0).toUpperCase() + field.slice(1)} already exists. Please use a unique value.`);
+            });
+            if (Object.keys(mappedErrors).length > 0) return mappedErrors;
+        }
+
+        // 3b. Check for MongoDB Duplicate Key Error (E11000)
         if (strError.includes('E11000') || lowerMsg.includes('duplicate key')) {
             const dupKeyMatch = strError.match(/dup key:\s*{\s*"?([^:"]+)"?:/);
             if (dupKeyMatch) {
                 let field = dupKeyMatch[1].trim();
-                // some times MongoDB escapes it or adds namespace, just clean it
                 field = field.replace(/^[^.]+\./, ''); // e.g. remove "users."
-                addError(field, `This ${field} already exists and must be unique.`);
+                addError(field, `${field.charAt(0).toUpperCase() + field.slice(1)} already exists and must be unique.`);
                 return mappedErrors;
             } else {
-                // Fallback if we can't parse the exact field from the string
+                // Fallback keywords
                 if (lowerMsg.includes('email')) addError('email', 'This email already exists.');
                 else if (lowerMsg.includes('name')) addError('name', 'This name already exists.');
                 else if (lowerMsg.includes('title')) addError('title', 'This title already exists.');
+                else if (lowerMsg.includes('question')) addError('question', 'This question already exists.');
+                else {
+                    addError('general', 'A record with this unique value already exists.');
+                }
                 return mappedErrors;
             }
         }

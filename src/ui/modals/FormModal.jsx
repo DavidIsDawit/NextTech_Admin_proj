@@ -80,6 +80,13 @@ export function FormModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Form Content & Actions */}
                     <div className="max-h-[85vh] overflow-y-auto px-1 space-y-6">
+                        {/* General Error Banner */}
+                        {errors.general && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative text-sm animate-in fade-in slide-in-from-top-2">
+                                <span className="block sm:inline">{errors.general}</span>
+                            </div>
+                        )}
+
                         <div>
                             {children}
                         </div>

@@ -45,7 +45,27 @@ api.interceptors.response.use(
   (response) => {
     // If response is successful but backend returns fail status (for 200 OK responses)
     if (response.data?.status === "fail" || response.data?.status === "error") {
-      toast.error(response.data.message || "An error occurred");
+      const msg = response.data.message || "";
+      const isValidationOrDuplicate =
+        msg.includes('E11000') ||
+        msg.toLowerCase().includes('duplicate') ||
+        msg.toLowerCase().includes('validation failed') ||
+        msg.toLowerCase().includes('already exists') ||
+        msg.toLowerCase().includes('is not unique') ||
+        response.data.errors ||
+        response.data.fields;
+
+      if (!isValidationOrDuplicate) {
+        toast.error(msg || "An error occurred");
+      }
+
+      // CRITICAL: Reject the promise so that components enter their catch blocks
+      // where field-level error mapping (mapBackendErrors) can take place.
+      return Promise.reject({
+        response,
+        message: msg,
+        isLogicError: true
+      });
     }
     return response;
   },
@@ -79,7 +99,19 @@ api.interceptors.response.use(
     // Handle Backend Error Messages (4xx, 403, 400 etc)
     if (err.response?.data?.message) {
       if (err.response.status !== 401) {
-        toast.error(err.response.data.message);
+        const msg = err.response.data.message || "";
+        const isValidationOrDuplicate =
+          msg.includes('E11000') ||
+          msg.toLowerCase().includes('duplicate') ||
+          msg.toLowerCase().includes('validation failed') ||
+          msg.toLowerCase().includes('already exists') ||
+          msg.toLowerCase().includes('is not unique') ||
+          err.response.data.errors ||
+          err.response.data.fields;
+
+        if (!isValidationOrDuplicate) {
+          toast.error(msg);
+        }
       }
     } else if (err.response?.status >= 500) {
       toast.error("Internal Server Error", {
