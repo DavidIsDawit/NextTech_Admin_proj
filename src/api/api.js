@@ -75,7 +75,7 @@ api.interceptors.response.use(
     // Handle Network Errors, Gateway Errors, or Timeouts (Server Down/Proxy Error)
     const isNetworkError = !err.response && (err.code === 'ERR_NETWORK' || err.message === 'Network Error');
     const isTimeout = err.code === 'ECONNABORTED' && err.message.includes('timeout');
-    const isInternalServerError = err.response?.status === 500;
+    const isServerError = err.response?.status >= 500;
 
     if (isNetworkError || isInternalServerError || isTimeout) {
       const errorTitle = isTimeout ? "Connection Timeout" : "Network Error";
@@ -92,7 +92,6 @@ api.interceptors.response.use(
       if (window.location.pathname !== "/server-error") {
         window.location.href = "/server-error";
       }
-
       return Promise.reject(err);
     }
 
@@ -113,11 +112,6 @@ api.interceptors.response.use(
           toast.error(msg);
         }
       }
-    } else if (err.response?.status >= 500) {
-      toast.error("Internal Server Error", {
-        description: "The server encountered a problem and couldn't process your request.",
-        id: "server-error-toast",
-      });
     }
 
     if (
