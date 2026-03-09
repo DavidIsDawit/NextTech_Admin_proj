@@ -55,59 +55,88 @@ export const mapBackendErrors = (error) => {
     // Helper to safely set error and handle common typos/aliases
     const addError = (field, msg) => {
         if (!field || !msg) return;
-        // Clean field name from backticks if present: `title` -> title
-        let cleanField = field.replace(/[`"]/g, '').trim().toLowerCase();
+        // Clean field name from backticks/quotes
+        const rawField = field.replace(/[`"]/g, '').trim();
         // Strip common index suffixes like _1, _text, etc.
-        cleanField = cleanField.replace(/(_1|_index|_unique|_text)$/, '');
+        const cleanField = rawField.replace(/(_1|_index|_unique|_text)$/i, '');
 
         const cleanMsg = typeof msg === 'string' ? msg : (msg.message || msg.msg || String(msg));
+
+        // Write the error under the original casing (as backend sent it)
         mappedErrors[cleanField] = cleanMsg;
 
-        // Group 1: Identity/Name fields (Interchangeable across many forms)
-        const identityFields = ['name', 'title', 'projectName', 'partnerName', 'certificateName', 'question', 'author', 'client'];
-        if (identityFields.includes(cleanField)) {
-            identityFields.forEach(f => {
-                mappedErrors[f] = cleanMsg;
-            });
+        // Targeted redirects: handle known backend field name → frontend field name mismatches.
+        // These are ONE-WAY mappings, not a fan-out, to avoid showing errors on unrelated fields.
+        const cleanFieldLower = cleanField.toLowerCase();
+
+        // Backend "certificateName" → CertificateForm uses "title"
+        if (cleanFieldLower === 'certificatename') {
+            mappedErrors['title'] = cleanMsg;
+            mappedErrors['certificateName'] = cleanMsg;
+        }
+        // Backend "projectName" → PortfolioForm uses "title"
+        if (cleanFieldLower === 'projectname') {
+            mappedErrors['title'] = cleanMsg;
+            mappedErrors['projectName'] = cleanMsg;
+        }
+        // Backend "partnerName" → PartnerForm uses "partnerName" (exact)
+        if (cleanFieldLower === 'partnername') {
+            mappedErrors['partnerName'] = cleanMsg;
+        }
+        // Frontend forms using "name" as the unique field (Team, Testimonial, Counter)
+        if (cleanFieldLower === 'name') {
+            mappedErrors['name'] = cleanMsg;
+        }
+        // Forms using "title" (Services, News, Portfolio)
+        if (cleanFieldLower === 'title') {
+            mappedErrors['title'] = cleanMsg;
+        }
+        // FAQ uses "question"
+        if (cleanFieldLower === 'question') {
+            mappedErrors['question'] = cleanMsg;
         }
 
-        // Group 2: Categorization
-        if (cleanField === 'catagory' || cleanField === 'category') {
+        // Group 2: Categorization (typo-safe)
+        if (cleanFieldLower === 'catagory' || cleanFieldLower === 'category') {
             mappedErrors['catagory'] = cleanMsg;
             mappedErrors['category'] = cleanMsg;
         }
 
-        // Group 3: Images & Media
-        const imageFields = ['image', 'imageCover', 'thumbnail', 'thumbinal', 'certificateImage', 'certificate', 'coverImage', 'images'];
-        if (imageFields.includes(cleanField)) {
-            imageFields.forEach(f => {
+        // Group 3: Images & Media — use original casing variants
+        const imageFieldsLower = ['image', 'imagecover', 'thumbnail', 'thumbinal', 'certificateimage', 'certificate', 'coverimage', 'images'];
+        const imageFieldsOrig = ['image', 'imageCover', 'thumbnail', 'thumbinal', 'certificateImage', 'certificate', 'coverImage', 'images'];
+        const imgIdx = imageFieldsLower.indexOf(cleanFieldLower);
+        if (imgIdx !== -1) {
+            imageFieldsOrig.forEach(f => {
                 mappedErrors[f] = cleanMsg;
             });
         }
 
         // Group 4: Descriptions
-        const descFields = ['description', 'descriptionOne', 'subdescriptionOne', 'testimony', 'review', 'certificateType', 'answer'];
-        if (descFields.includes(cleanField)) {
-            descFields.forEach(f => {
+        const descFieldsLower = ['description', 'descriptionone', 'subdescriptionone', 'testimony', 'review', 'certificatetype', 'answer'];
+        const descFieldsOrig = ['description', 'descriptionOne', 'subdescriptionOne', 'testimony', 'review', 'certificateType', 'answer'];
+        const descIdx = descFieldsLower.indexOf(cleanFieldLower);
+        if (descIdx !== -1) {
+            descFieldsOrig.forEach(f => {
                 mappedErrors[f] = cleanMsg;
             });
         }
 
-        // Group 5: Dates & metadata
-        if (cleanField === 'happenedOn' || cleanField === 'happingDate' || cleanField === 'date') {
+        // Group 5: Dates
+        if (['happendon', 'happingdate', 'date'].includes(cleanFieldLower)) {
             mappedErrors['happenedOn'] = cleanMsg;
             mappedErrors['happingDate'] = cleanMsg;
             mappedErrors['date'] = cleanMsg;
         }
-        if (cleanField === 'certificateFrom' || cleanField === 'issuedBy') {
+        if (['certificatefrom', 'issuedby'].includes(cleanFieldLower)) {
             mappedErrors['certificateFrom'] = cleanMsg;
             mappedErrors['issuedBy'] = cleanMsg;
         }
-        if (cleanField === 'IssueDate' || cleanField === 'issueDate') {
+        if (['issuedate'].includes(cleanFieldLower)) {
             mappedErrors['IssueDate'] = cleanMsg;
             mappedErrors['issueDate'] = cleanMsg;
         }
-        if (cleanField === 'specialty' || cleanField === 'speciality' || cleanField === 'specality') {
+        if (['specialty', 'speciality', 'specality'].includes(cleanFieldLower)) {
             mappedErrors['specialty'] = cleanMsg;
             mappedErrors['speciality'] = cleanMsg;
             mappedErrors['specality'] = cleanMsg;

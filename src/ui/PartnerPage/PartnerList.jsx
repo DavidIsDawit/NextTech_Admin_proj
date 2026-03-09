@@ -173,14 +173,6 @@ function PartnerList() {
             }
         } catch (error) {
             console.error("Partner submission error:", error);
-            const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
-            console.group("Full Axios Error Details");
-            console.log("Status:", error?.response?.status);
-            console.log("Data:", responseData);
-            console.log("Headers:", error?.response?.headers);
-            console.groupEnd();
-
             const backendErrors = mapBackendErrors(error);
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);

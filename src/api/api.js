@@ -77,7 +77,7 @@ api.interceptors.response.use(
     const isTimeout = err.code === 'ECONNABORTED' && err.message.includes('timeout');
     const isServerError = err.response?.status >= 500;
 
-    if (isNetworkError || isInternalServerError || isTimeout) {
+    if (isNetworkError || isServerError || isTimeout) {
       const errorTitle = isTimeout ? "Connection Timeout" : "Network Error";
       const errorDesc = isTimeout
         ? "The server took too long to respond. Please try again."
