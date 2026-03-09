@@ -60,7 +60,7 @@ function PartnerList() {
     const filteredData = useMemo(() => {
         return partners.filter((item) => {
             const name = item.partnerName || item.company || item.name || "";
-            const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = searchTerm.length < 3 || name.toLowerCase().includes(searchTerm.toLowerCase());
             const status = item.status || "Active";
             const matchesStatus = statusFilter === "All Status" || status.toLowerCase() === statusFilter.toLowerCase();
             return matchesSearch && matchesStatus;

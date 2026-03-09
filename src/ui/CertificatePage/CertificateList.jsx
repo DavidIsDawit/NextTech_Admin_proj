@@ -73,7 +73,7 @@ function CertificateList() {
     const filteredData = useMemo(() => {
         return certificates.filter((item) => {
             const name = item.title || item.certificateName || "";
-            const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = searchTerm.length < 3 || name.toLowerCase().includes(searchTerm.toLowerCase());
             const status = item.status || "Active";
             const matchesStatus = statusFilter === "All Status" || status === statusFilter;
             return matchesSearch && matchesStatus;

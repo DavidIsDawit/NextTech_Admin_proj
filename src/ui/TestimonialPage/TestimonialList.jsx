@@ -62,7 +62,7 @@ function TestimonialList() {
 
     const filteredData = useMemo(() => {
         return testimonials.filter((item) => {
-            const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = searchTerm.length < 3 || item.name?.toLowerCase().includes(searchTerm.toLowerCase());
             const role = item.specality || item.specialty || item.speciality || item.testimony;
             const matchesSpecialty = specialtyFilter === "All Specialties" || role === specialtyFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
