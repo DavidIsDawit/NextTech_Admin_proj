@@ -162,7 +162,6 @@ function PortfolioList() {
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
-            toast.error("Please fill in all required fields.");
             return;
         }
 
@@ -244,8 +243,9 @@ function PortfolioList() {
             const backendErrors = mapBackendErrors(error);
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
+            } else {
+                toast.error(extractErrorMessage(error, "Failed to save portfolio"));
             }
-            toast.error(extractErrorMessage(error, "Failed to save portfolio"));
         } finally {
             setIsSubmitting(false);
         }

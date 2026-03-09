@@ -204,7 +204,7 @@ function ProjectList() {
                         defaultOption="All Status"
                     />
                 </div>
-                <div className="col-span-1 sm:w-auto flex justify-start">
+                <div className="col-span-1 sm:w-auto flex justify-start md:hidden">
                     <DynamicButton
                         icon={FiPlus}
                         onClick={handleAddNew}
@@ -214,15 +214,25 @@ function ProjectList() {
                         <span className="sm:hidden">Add</span>
                     </DynamicButton>
                 </div>
-                <div className="col-span-1 sm:w-auto flex justify-end">
-                    <DynamicButton
-                        variant="secondary"
+                <div className="col-span-1 sm:w-auto flex justify-end md:ml-auto flex-col sm:flex-row items-end sm:items-center">
+                    {/* Mobile Export Button */}
+                    <div className="md:hidden">
+                        <DynamicButton
+                            variant="secondary"
+                            onClick={handleExportCSV}
+                            className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
+                        >
+                            <span className="hidden sm:inline">Export CSV</span>
+                            <span className="sm:hidden">Export</span>
+                        </DynamicButton>
+                    </div>
+                    {/* Desktop Export Link */}
+                    <button
                         onClick={handleExportCSV}
-                        className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
+                        className="hidden md:block text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
                     >
-                        <span className="hidden sm:inline">Export CSV</span>
-                        <span className="sm:hidden">Export</span>
-                    </DynamicButton>
+                        Export CSV
+                    </button>
                 </div>
             </div>
 

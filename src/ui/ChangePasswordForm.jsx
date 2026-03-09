@@ -54,10 +54,10 @@ export default function ChangePasswordForm() {
 
       if (Object.keys(backendErrors).length > 0) {
         setErrors(backendErrors);
+      } else {
+        const msg = err.response?.data?.message || err.message || "Update failed";
+        toast.error(msg);
       }
-
-      const msg = err.response?.data?.message || err.message || "Update failed";
-      toast.error(msg);
     } finally {
       setLoading(false);
     }

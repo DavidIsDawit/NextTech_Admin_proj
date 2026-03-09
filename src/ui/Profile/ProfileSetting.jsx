@@ -209,10 +209,10 @@ function ProfileSetting() {
 
       if (Object.keys(backendErrors).length > 0) {
         setErrors(backendErrors);
+      } else {
+        const msg = error.response?.data?.message || error.message || "Update failed";
+        toast.error(msg);
       }
-
-      const msg = error.response?.data?.message || error.message || "Update failed";
-      toast.error(msg);
     }
   };
 

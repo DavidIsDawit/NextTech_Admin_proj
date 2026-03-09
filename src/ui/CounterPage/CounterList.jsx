@@ -154,9 +154,10 @@ function CounterList() {
 
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
+            } else {
+                const msg = extractErrorMessage(error, "Failed to save counter");
+                toast.error(msg);
             }
-            const msg = extractErrorMessage(error, "Failed to save counter");
-            toast.error(msg);
         } finally {
             setIsSubmitting(false);
         }
@@ -214,13 +215,25 @@ function CounterList() {
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
-            <div className="mb-4 sm:mb-6 pt-2">
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-                    Counter Management
-                </h1>
-                <p className="text-sm sm:text-base text-gray-500 mt-2">
-                    Manage stats and counters
-                </p>
+            <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 sm:mb-6 pt-2 gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                        Counter Management
+                    </h1>
+                    <p className="text-sm sm:text-base text-gray-500 mt-2">
+                        Manage stats and counters
+                    </p>
+                </div>
+                {/* Desktop Add Button */}
+                <div className="hidden md:flex justify-end mt-2">
+                    <button
+                        onClick={handleAddNew}
+                        className="flex items-center gap-2 bg-[#00A3E0] hover:bg-blue-600 text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors cursor-pointer"
+                    >
+                        <FiPlus size={18} />
+                        Add Counter
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap items-center sm:justify-between gap-3 sm:gap-4 pb-6">
@@ -234,15 +247,25 @@ function CounterList() {
                         placeholder="Search counters..."
                     />
                 </div>
-                <div className="order-2 sm:order-4 col-span-1 sm:w-auto flex justify-end sm:ml-auto">
-                    <DynamicButton
-                        variant="secondary"
+                <div className="order-2 sm:order-4 col-span-1 sm:w-auto flex justify-end sm:ml-auto md:ml-0 flex-col sm:flex-row items-end sm:items-center">
+                    {/* Mobile Export Button */}
+                    <div className="md:hidden">
+                        <DynamicButton
+                            variant="secondary"
+                            onClick={handleExportCSV}
+                            className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
+                        >
+                            <span className="hidden sm:inline">Export CSV</span>
+                            <span className="sm:hidden">Export</span>
+                        </DynamicButton>
+                    </div>
+                    {/* Desktop Export Link */}
+                    <button
                         onClick={handleExportCSV}
-                        className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
+                        className="hidden md:block text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
                     >
-                        <span className="hidden sm:inline">Export CSV</span>
-                        <span className="sm:hidden">Export</span>
-                    </DynamicButton>
+                        Export CSV
+                    </button>
                 </div>
                 {statuses.length > 1 && (
                     <div className="order-3 sm:order-2 col-span-1 sm:w-36 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none">
@@ -257,7 +280,7 @@ function CounterList() {
                         />
                     </div>
                 )}
-                <div className="order-4 sm:order-3 col-span-1 sm:w-auto flex justify-end">
+                <div className="order-4 sm:order-3 col-span-1 sm:w-auto flex justify-end md:hidden">
                     <DynamicButton
                         icon={FiPlus}
                         onClick={handleAddNew}
