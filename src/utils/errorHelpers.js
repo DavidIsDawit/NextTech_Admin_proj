@@ -279,7 +279,10 @@ export const mapBackendErrors = (error) => {
                 if (matchesAny(['client', 'customer'])) addError('client', strError);
                 if (matchesAny(['sector'])) addError('sector', strError);
                 if (matchesAny(['result'])) addError('resultOne', strError);
-                if (matchesAny(['requirement'])) addError('requirement', strError);
+                if (matchesAny(['requirement'])) {
+                    addError('requirement', strError);
+                    addError('requirements', strError);
+                }
             }
         }
     }

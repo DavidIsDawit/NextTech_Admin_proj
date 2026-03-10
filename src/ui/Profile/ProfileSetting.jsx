@@ -68,20 +68,17 @@ function ProfileSetting() {
       try {
         // Step 1: Get the current user's ID
         const meResponse = await getMe();
-        console.log("Profile getMe response:", meResponse);
 
         const meUser = meResponse.user || meResponse.data?.user || null;
         const userId = meUser?.id || meUser?._id;
 
         if (!userId) {
-          console.error("Profile: Could not find user ID in getMe response");
           setIsLoading(false);
           return;
         }
 
         // Step 2: Get full user details using the ID
         const fullResponse = await getUserById(userId);
-        console.log("Profile full response:", fullResponse);
 
         // Best-candidate search helper
         const findUser = (obj) => {
@@ -105,7 +102,6 @@ function ProfileSetting() {
         };
 
         const user = findUser(fullResponse);
-        console.log("Profile final discovered user:", user);
 
         if (user) {
           setFormData({
@@ -121,10 +117,8 @@ function ProfileSetting() {
             photo: user.photo || "",
             userId: user._id || user.id || "",
           });
-          console.log("Profile: State updated with full details");
         }
       } catch (error) {
-        console.error("Profile fetch error:", error);
       } finally {
         setIsLoading(false);
       }
@@ -192,7 +186,6 @@ function ProfileSetting() {
         newPassword: passwordData.new,
         confirmPassword: passwordData.confirm
       });
-      console.log("Profile update-password success:", response);
       if (response.status === "success" || response.status === 200) {
         toast.success("Password updated successfully!");
         localStorage.setItem("firstTimeLogin", "false");
@@ -200,12 +193,9 @@ function ProfileSetting() {
         setPasswordStrength(0);
       }
     } catch (error) {
-      console.error("Profile update-password error:", error);
       const responseData = error?.response?.data;
-      console.log("Raw backend error data:", responseData);
 
       const backendErrors = mapBackendErrors(error);
-      console.log("Mapped field errors:", backendErrors);
 
       if (Object.keys(backendErrors).length > 0) {
         setErrors(backendErrors);
@@ -255,7 +245,6 @@ function ProfileSetting() {
         window.dispatchEvent(new CustomEvent('userProfileUpdated'));
       }
     } catch (error) {
-      console.error("Photo upload error", error);
       const msg = error.response?.data?.message || "Failed to upload photo";
       toast.error(msg);
     } finally {

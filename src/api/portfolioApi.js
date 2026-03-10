@@ -39,7 +39,6 @@ export const getAllPortfolios = async ({ page = 1, limit = 10, sort = "latest" }
 
         return result;
     } catch (error) {
-        console.error("Error fetching portfolios:", error);
         throw error;
     }
 };
@@ -54,7 +53,6 @@ export const getPortfolio = async (id) => {
         }
         return result;
     } catch (error) {
-        console.error(`Error fetching portfolio ${id}:`, error);
         throw error;
     }
 };
@@ -69,7 +67,6 @@ export const createPortfolio = async (formData) => {
         }
         return result;
     } catch (error) {
-        console.error("Error creating portfolio:", error);
         throw error;
     }
 };
@@ -84,7 +81,6 @@ export const updatePortfolio = async (id, formData) => {
         }
         return result;
     } catch (error) {
-        console.error(`Error updating portfolio ${id}:`, error);
         throw error;
     }
 };
@@ -95,7 +91,6 @@ export const deletePortfolio = async (id) => {
         const response = await api.delete(`/deletePortfolio/${id}`);
         return response.data;
     } catch (error) {
-        console.error(`Error deleting portfolio ${id}:`, error);
         throw error;
     }
 };

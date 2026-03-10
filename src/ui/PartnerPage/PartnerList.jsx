@@ -45,7 +45,6 @@ function PartnerList() {
                 setTotalPartners(data.totalPartners || 0);
             }
         } catch (error) {
-            console.error("Failed to fetch partners:", error);
         } finally {
             setIsLoading(false);
         }
@@ -145,12 +144,10 @@ function PartnerList() {
         data.append('status', formData.status || "Active");
 
         try {
-            console.log('Submitting partner...', { formType, name: partnerName });
             const payload = {};
             for (let [key, value] of data.entries()) {
                 payload[key] = value instanceof File ? `File: ${value.name}` : value;
             }
-            console.log("Partner Payload:", payload);
 
             if (formType === 'add') {
                 const res = await createPartner(data);
@@ -172,7 +169,6 @@ function PartnerList() {
                 }
             }
         } catch (error) {
-            console.error("Partner submission error:", error);
             const backendErrors = mapBackendErrors(error);
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
@@ -254,7 +250,6 @@ function PartnerList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row._id || row.id)}
                         title="View"
                     >
                         <FiEye size={21} />

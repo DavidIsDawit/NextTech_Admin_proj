@@ -28,7 +28,6 @@ export const getAllTeams = async (params = {}) => {
 
         return result;
     } catch (error) {
-        console.error("Error fetching teams:", error);
         throw error;
     }
 };
@@ -47,7 +46,6 @@ export const getTeamMember = async (id) => {
 
         return result;
     } catch (error) {
-        console.error(`Error fetching team member ${id}:`, error);
         throw error;
     }
 };
@@ -60,7 +58,6 @@ export const createTeamMember = async (formData) => {
         const response = await api.post("/createTeamOne", formData);
         return response.data;
     } catch (error) {
-        console.error("Error creating team member:", error);
         throw error;
     }
 };
@@ -73,7 +70,6 @@ export const updateTeamMember = async (id, formData) => {
         const response = await api.put(`/updateTeam/${id}`, formData);
         return response.data;
     } catch (error) {
-        console.error(`Error updating team member ${id}:`, error);
         throw error;
     }
 };
@@ -86,7 +82,6 @@ export const deleteTeamMember = async (id) => {
         const response = await api.delete(`/deleteTeam/${id}`);
         return response.data;
     } catch (error) {
-        console.error(`Error deleting team member ${id}:`, error);
         throw error;
     }
 };

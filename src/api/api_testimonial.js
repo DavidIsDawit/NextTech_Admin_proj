@@ -26,7 +26,6 @@ export const getAllTestimonials = async (params = {}) => {
 
     return result;
   } catch (error) {
-    console.error("Error fetching testimonials:", error);
     throw error;
   }
 };
@@ -45,7 +44,6 @@ export const getTestimonial = async (id) => {
 
     return result;
   } catch (error) {
-    console.error(`Error fetching testimonial ${id}:`, error);
     throw error;
   }
 };
@@ -58,7 +56,6 @@ export const createTestimonial = async (formData) => {
     const response = await api.post("/createTestimonial", formData);
     return response.data;
   } catch (error) {
-    console.error("Error creating testimonial:", error);
     throw error;
   }
 };
@@ -77,7 +74,6 @@ export const updateTestimonial = async (id, formData) => {
 
     return result;
   } catch (error) {
-    console.error(`Error updating testimonial ${id}:`, error);
     throw error;
   }
 };
@@ -90,7 +86,6 @@ export const deleteTestimonial = async (id) => {
     const response = await api.delete(`/deleteTestimonial/${id}`);
     return response.data;
   } catch (error) {
-    console.error(`Error deleting testimonial ${id}:`, error);
     throw error;
   }
 };

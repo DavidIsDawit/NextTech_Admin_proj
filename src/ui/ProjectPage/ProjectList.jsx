@@ -77,7 +77,6 @@ function ProjectList() {
         setIsSubmitting(true);
         // Simulate API call
         setTimeout(() => {
-            console.log(`Project ${formType === 'add' ? 'added' : 'updated'}:`, formData);
             toast.success(`Project ${formType === 'add' ? 'added' : 'updated'} successfully!`);
             setIsSubmitting(false);
             setIsFormModalOpen(false);
@@ -88,7 +87,6 @@ function ProjectList() {
         setIsDeleting(true);
         // Simulate API call
         setTimeout(() => {
-            console.log("Project deleted:", selectedItem.id);
             setIsDeleting(false);
             setIsDeleteModalOpen(false);
         }, 1000);
@@ -136,7 +134,6 @@ function ProjectList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row.id)}
                         title="View"
                     >
                         <FiEye size={21} />

@@ -46,7 +46,6 @@ function Services() {
                 setTotalItems(result.total || result.data.services?.length || 0);
             }
         } catch (error) {
-            console.error("Failed to fetch services:", error);
         } finally {
             setIsLoading(false);
         }
@@ -160,11 +159,8 @@ function Services() {
                 }
             });
 
-            console.log('--- Service FormData payload ---');
             for (const [key, value] of data.entries()) {
-                console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size}b)` : value);
             }
-            console.log('------------------------');
 
 
             if (formType === 'add') {
@@ -187,7 +183,6 @@ function Services() {
                 }
             }
         } catch (error) {
-            console.error("Service submission error:", error);
             const backendErrors = mapBackendErrors(error);
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
@@ -206,7 +201,6 @@ function Services() {
             await fetchServices();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            console.error("Failed to delete service:", error);
         } finally {
             setIsDeleting(false);
         }
@@ -274,7 +268,6 @@ function Services() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row.id)}
                         title="View"
                     >
                         <FiEye size={21} />
