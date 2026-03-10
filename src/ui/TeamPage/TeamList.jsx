@@ -46,7 +46,6 @@ function TeamList() {
                 setTotalItems(result.totalTeams || result.data?.length || 0);
             }
         } catch (error) {
-            console.error("Failed to fetch team:", error);
         } finally {
             setIsLoading(false);
         }
@@ -135,7 +134,6 @@ function TeamList() {
                 }
             });
 
-            console.log('Submitting team member...', { formType, name: formData.name });
 
             if (formType === 'add') {
                 await createTeamMember(data);
@@ -147,12 +145,9 @@ function TeamList() {
             await fetchTeam();
             setIsFormModalOpen(false);
         } catch (error) {
-            console.error("Team member submission error:", error);
             const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
 
             const backendErrors = mapBackendErrors(error);
-            console.log("Mapped field errors:", backendErrors);
 
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
@@ -171,7 +166,6 @@ function TeamList() {
             await fetchTeam();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            console.error("Failed to delete team member:", error);
         } finally {
             setIsDeleting(false);
         }
@@ -219,7 +213,6 @@ function TeamList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row.id)}
                         title="View"
                     >
                         <FiEye size={21} />

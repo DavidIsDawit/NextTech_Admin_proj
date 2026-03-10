@@ -49,6 +49,14 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
         };
     }, [formData.thumbinal, formData.images]);
 
+    // Initialize requirements array from string if needed
+    useEffect(() => {
+        if (formData.requirement && typeof formData.requirement === 'string' && !formData.requirements) {
+            const reqs = formData.requirement.split(',').map(r => r.trim()).filter(r => r);
+            onChange?.({ ...formData, requirements: reqs, requirement: undefined });
+        }
+    }, [formData.requirement, formData.requirements]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         onChange?.({ ...formData, [name]: value });
@@ -237,17 +245,47 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Project Requirement */}
             <div className="space-y-2">
-                <Label htmlFor="requirement" className="text-gray-500 font-normal">Project Requirement</Label>
-                <Textarea
-                    id="requirement"
-                    name="requirement"
-                    placeholder="Add technical requirements separated by commas...."
-                    value={formData.requirement || ''}
-                    onChange={handleChange}
-                    rows={4}
-                    className={`bg-white border-gray-200 focus:border-[#00adef] resize-none ${errors.requirement ? 'border-red-500' : ''}`}
-                />
-                {errors.requirement && <p className="text-xs text-red-500">{errors.requirement}</p>}
+                <Label className="text-gray-500 font-normal">Project Requirements</Label>
+                <div className="space-y-2">
+                    {(formData.requirements || []).map((req, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                            <Input
+                                placeholder={`Requirement ${index + 1}`}
+                                value={req || ''}
+                                onChange={(e) => {
+                                    const newReqs = [...(formData.requirements || [])];
+                                    newReqs[index] = e.target.value;
+                                    onChange?.({ ...formData, requirements: newReqs });
+                                }}
+                                className={`bg-white border-gray-200 focus:border-[#00adef] flex-1 ${errors.requirements ? 'border-red-500' : ''}`}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const newReqs = [...(formData.requirements || [])];
+                                    newReqs.splice(index, 1);
+                                    onChange?.({ ...formData, requirements: newReqs });
+                                }}
+                                className="text-red-500 hover:text-red-700 p-1"
+                                title="Remove requirement"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    ))}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const newReqs = [...(formData.requirements || []), ''];
+                            onChange?.({ ...formData, requirements: newReqs });
+                        }}
+                        className="text-[#00adef] hover:text-[#00adef]/80 text-sm font-medium flex items-center gap-1"
+                    >
+                        <span>+ Add Requirement</span>
+                    </button>
+                </div>
+                {errors.requirements && <p className="text-xs text-red-500">{errors.requirements}</p>}
+                <p className="text-xs text-gray-400">Each requirement can be sent as a separate key or comma-separated</p>
             </div>
 
             {/* Hidden/Extra Fields from Backend (Maintaining Schema) */}

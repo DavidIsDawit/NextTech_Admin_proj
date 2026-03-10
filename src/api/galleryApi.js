@@ -32,7 +32,6 @@ export const getAllGallery = async (params = {}) => {
 
         return result;
     } catch (error) {
-        console.error("Error fetching gallery:", error);
         throw error;
     }
 };
@@ -51,7 +50,6 @@ export const getGallery = async (id) => {
 
         return result;
     } catch (error) {
-        console.error(`Error fetching gallery item ${id}:`, error);
         throw error;
     }
 };
@@ -70,7 +68,6 @@ export const addGallery = async (formData) => {
 
         return result;
     } catch (error) {
-        console.error("Error adding gallery item:", error);
         throw error;
     }
 };
@@ -89,7 +86,6 @@ export const updateGallery = async (id, formData) => {
 
         return result;
     } catch (error) {
-        console.error(`Error updating gallery item ${id}:`, error);
         throw error;
     }
 };
@@ -102,7 +98,6 @@ export const deleteGallery = async (id) => {
         const response = await api.delete(`/deleteGallery/${id}`);
         return response.data;
     } catch (error) {
-        console.error(`Error deleting gallery item ${id}:`, error);
         throw error;
     }
 };

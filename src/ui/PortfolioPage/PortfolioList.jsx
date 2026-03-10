@@ -59,7 +59,6 @@ function PortfolioList() {
                 setTotalItems(total);
             }
         } catch (error) {
-            console.error("Failed to fetch portfolios:", error);
             const status = error.response?.status;
             const msg = error.response?.data?.message || error.message;
             toast.error(`Failed to load portfolios (${status || 'Network Error'}): ${msg}`);
@@ -113,7 +112,7 @@ function PortfolioList() {
             resultOne: '',
             resultTwo: '',
             resultThere: '',
-            requirement: '',
+            requirements: [],
             status: 'Active',
             happingDate: new Date().toISOString().split('T')[0],
             thumbinal: null,
@@ -156,7 +155,7 @@ function PortfolioList() {
         if (!formData.catagory) newErrors.catagory = "Category is required";
         if (!formData.descriptionOne) newErrors.descriptionOne = "Project description is required";
         if (!formData.resultOne) newErrors.resultOne = "Result description is required";
-        if (!formData.requirement) newErrors.requirement = "Project requirements are required";
+        if (!formData.requirements || formData.requirements.length === 0 || formData.requirements.every(r => !r.trim())) newErrors.requirements = "At least one project requirement is required";
         if (!formData.happingDate) newErrors.happingDate = "Project date is required";
         if (!formData.images || formData.images.length === 0) newErrors.images = "At least one gallery image is required";
 
@@ -185,9 +184,12 @@ function PortfolioList() {
                 }
             });
 
-            // Handle requirement (string or array)
-            if (formData.requirement) {
-                data.append('requirement', formData.requirement);
+            // Handle requirements (array joined as comma-separated string)
+            if (formData.requirements && Array.isArray(formData.requirements)) {
+                const reqString = formData.requirements.filter(r => r.trim()).join(', ');
+                if (reqString) {
+                    data.append('requirement', reqString);
+                }
             }
 
             // Append thumbinal if it's a new file
@@ -201,14 +203,6 @@ function PortfolioList() {
                     if (file instanceof File) data.append('images', file);
                 });
             }
-
-            console.log('--- Portfolio FormData payload ---');
-            const payload = {};
-            for (const [key, value] of data.entries()) {
-                payload[key] = value instanceof File ? `File(${value.name}, ${value.size}b)` : value;
-            }
-            console.log("Portfolio Payload:", payload);
-            console.log('------------------------');
 
             let result;
             if (formType === 'add') {
@@ -231,15 +225,6 @@ function PortfolioList() {
                 }
             }
         } catch (error) {
-            console.error("Portfolio submission error:", error);
-            const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
-            console.group("Full Axios Error Details");
-            console.log("Status:", error?.response?.status);
-            console.log("Data:", responseData);
-            console.log("Headers:", error?.response?.headers);
-            console.groupEnd();
-
             const backendErrors = mapBackendErrors(error);
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
@@ -259,7 +244,6 @@ function PortfolioList() {
             fetchPortfolios();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            console.error("Failed to delete portfolio:", error);
             toast.error(extractErrorMessage(error, "Failed to delete portfolio"));
         } finally {
             setIsDeleting(false);
@@ -309,7 +293,6 @@ function PortfolioList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row._id || row.id)}
                         title="View"
                     >
                         <FiEye size={21} />

@@ -47,7 +47,6 @@ function TestimonialList() {
                 setTotalTestimonials(result.totalCount || result.total || data.length || 0);
             }
         } catch (error) {
-            console.error("Failed to fetch testimonials:", error);
         } finally {
             setIsLoading(false);
         }
@@ -205,12 +204,10 @@ function TestimonialList() {
 
             // Note: speciality and date are in the UI but potentially not in backend schema.
             // Logging them here for diagnostics.
-            console.log('Submitting testimonial...', { formType, name: formData.name });
             const payload = {};
             for (let [key, value] of data.entries()) {
                 payload[key] = value instanceof File ? `File: ${value.name}` : value;
             }
-            console.log("Testimonial Payload:", payload);
 
             if (formType === 'add') {
                 await createTestimonial(data);
@@ -222,17 +219,9 @@ function TestimonialList() {
             await fetchTestimonials();
             setIsFormModalOpen(false);
         } catch (error) {
-            console.error("Testimonial submission error:", error);
             const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
-            console.group("Full Axios Error Details");
-            console.log("Status:", error?.response?.status);
-            console.log("Data:", responseData);
-            console.log("Headers:", error?.response?.headers);
-            console.groupEnd();
 
             const backendErrors = mapBackendErrors(error);
-            console.log("Mapped field errors:", backendErrors);
 
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
@@ -251,7 +240,6 @@ function TestimonialList() {
             await fetchTestimonials();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            console.error("Failed to delete testimonial:", error);
         } finally {
             setIsDeleting(false);
         }
@@ -318,7 +306,6 @@ function TestimonialList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row.id)}
                         title="View"
                     >
                         <FiEye size={21} />

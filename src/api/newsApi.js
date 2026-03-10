@@ -39,7 +39,6 @@ export const getAllNews = async (params = {}) => {
 
         return result;
     } catch (error) {
-        console.error("Error fetching news:", error);
         throw error;
     }
 };
@@ -58,7 +57,6 @@ export const getNewsById = async (id) => {
 
         return result;
     } catch (error) {
-        console.error(`Error fetching news ${id}:`, error);
         throw error;
     }
 };
@@ -71,7 +69,6 @@ export const createNews = async (formData) => {
         const response = await api.post("/news", formData);
         return response.data;
     } catch (error) {
-        console.error("Error creating news:", error);
         throw error;
     }
 };
@@ -84,7 +81,6 @@ export const updateNews = async (id, formData) => {
         const response = await api.put(`/news/${id}`, formData);
         return response.data;
     } catch (error) {
-        console.error(`Error updating news ${id}:`, error);
         throw error;
     }
 };
@@ -97,7 +93,6 @@ export const deleteNews = async (id) => {
         const response = await api.delete(`/DeleteNews/${id}`);
         return response.data;
     } catch (error) {
-        console.error(`Error deleting news ${id}:`, error);
         throw error;
     }
 };

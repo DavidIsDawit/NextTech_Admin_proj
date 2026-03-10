@@ -190,7 +190,6 @@ function CertificateList() {
         });
 
         try {
-            console.log('Submitting certificate form...', { formType, id: selectedItem?._id || selectedItem?.id });
 
             if (formType === 'add') {
                 await createCertificate(data);
@@ -202,12 +201,9 @@ function CertificateList() {
             setIsFormModalOpen(false);
             fetchCertificates();
         } catch (error) {
-            console.error('Certificate submission error:', error);
             const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
 
             const backendErrors = mapBackendErrors(error);
-            console.log("Mapped field errors:", backendErrors);
 
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);

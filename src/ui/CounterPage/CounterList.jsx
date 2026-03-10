@@ -51,7 +51,6 @@ function CounterList() {
             }
         } catch (error) {
             toast.error("Failed to fetch counters");
-            console.error(error);
         } finally {
             setIsLoading(false);
         }
@@ -145,12 +144,9 @@ function CounterList() {
                 fetchCounters();
             }
         } catch (error) {
-            console.error("Counter submission error:", error);
             const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
 
             const backendErrors = mapBackendErrors(error);
-            console.log("Mapped field errors:", backendErrors);
 
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
@@ -196,7 +192,6 @@ function CounterList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row._id || row.id)}
                         title="View"
                     >
                         <FiEye size={21} />

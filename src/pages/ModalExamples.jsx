@@ -55,7 +55,6 @@ export default function ModalExamples() {
     const handleDelete = async () => {
         setIsDeleting(true);
         await new Promise((resolve) => setTimeout(resolve, 1500));
-        console.log('Item deleted');
         setIsDeleting(false);
         setDeleteModalOpen(false);
     };
@@ -65,7 +64,6 @@ export default function ModalExamples() {
         e.preventDefault();
         setIsSubmitting(true);
         await new Promise((resolve) => setTimeout(resolve, 1500));
-        console.log(`${formName} submitted:`, formData);
         setIsSubmitting(false);
         setModalOpen(false);
         setFormData({});

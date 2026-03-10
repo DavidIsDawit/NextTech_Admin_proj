@@ -48,7 +48,6 @@ function NewsList() {
                 setTotalItems(result.totalNews || result.count || newsItems.length || 0);
             }
         } catch (error) {
-            console.error("Failed to fetch news:", error);
         } finally {
             setIsLoading(false);
         }
@@ -157,11 +156,8 @@ function NewsList() {
                 });
             }
 
-            console.log('--- FormData payload ---');
             for (const [key, value] of data.entries()) {
-                console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size}b)` : value);
             }
-            console.log('------------------------');
 
             if (formType === 'add') {
                 const res = await createNews(data);
@@ -183,7 +179,6 @@ function NewsList() {
                 }
             }
         } catch (error) {
-            console.error("News submission error:", error);
             const backendErrors = mapBackendErrors(error);
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
@@ -202,7 +197,6 @@ function NewsList() {
             await fetchNews();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            console.error("Failed to delete news:", error);
         } finally {
             setIsDeleting(false);
         }
@@ -256,7 +250,6 @@ function NewsList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row.id)}
                         title="View"
                     >
                         <FiEye size={21} />
