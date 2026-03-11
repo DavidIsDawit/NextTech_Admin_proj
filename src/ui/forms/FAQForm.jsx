@@ -27,7 +27,9 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
         <div className="space-y-4">
             {/* Question */}
             <div className="space-y-2">
-                <Label htmlFor="question">Question</Label>
+                <Label htmlFor="question" className={errors.question ? 'text-red-500' : ''}>
+                    Question <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="question"
                     name="question"
@@ -43,7 +45,9 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
 
             {/* Answer */}
             <div className="space-y-2">
-                <Label htmlFor="answer">Answer</Label>
+                <Label htmlFor="answer" className={errors.answer ? 'text-red-500' : ''}>
+                    Answer <span className="text-red-500">*</span>
+                </Label>
                 <div className={`rounded-md border bg-transparent ${errors.answer ? 'border-red-500' : 'border-input'}`}>
                     {/* Simple Toolbar Placeholder */}
                     <div className="flex items-center gap-2 border-b px-3 py-2 text-sm text-muted-foreground">
@@ -69,7 +73,9 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
 
             {/* Category */}
             <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category" className={errors.category ? 'text-red-500' : ''}>
+                    Category <span className="text-red-500">*</span>
+                </Label>
                 <Select
                     value={formData.category}
                     onValueChange={(value) => handleSelectChange('category', value)}
@@ -91,7 +97,9 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
 
             {/* Status */}
             <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className={errors.status ? 'text-red-500' : ''}>
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status}
                     onValueChange={(value) => handleSelectChange('status', value)}

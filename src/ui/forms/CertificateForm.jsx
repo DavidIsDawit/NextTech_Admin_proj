@@ -134,7 +134,9 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Title */}
             <div className="space-y-2">
-                <Label htmlFor="title">Certificate Title</Label>
+                <Label htmlFor="title" className={errors.title ? 'text-red-500' : ''}>
+                    Certificate Title <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="title"
                     name="title"
@@ -150,7 +152,9 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Issued By */}
             <div className="space-y-2">
-                <Label htmlFor="issuedBy">Issued By</Label>
+                <Label htmlFor="issuedBy" className={errors.issuedBy ? 'text-red-500' : ''}>
+                    Issued By <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="issuedBy"
                     name="issuedBy"
@@ -182,7 +186,9 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Issue Date */}
             <div className="space-y-2">
-                <Label htmlFor="issueDate">Issue Date</Label>
+                <Label htmlFor="issueDate" className={errors.issueDate ? 'text-red-500' : ''}>
+                    Issue Date <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="issueDate"
                     name="issueDate"
@@ -198,7 +204,9 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Status */}
             <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className={errors.status ? 'text-red-500' : ''}>
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status || 'Active'}
                     onValueChange={handleStatusChange}

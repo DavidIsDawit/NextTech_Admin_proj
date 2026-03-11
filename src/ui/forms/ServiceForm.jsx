@@ -101,7 +101,9 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
         <div className="space-y-4">
             {/* Image Cover Upload */}
             <div className="space-y-2">
-                <Label>Cover Image</Label>
+                <Label className={errors.imageCover ? 'text-red-500' : ''}>
+                    Cover Image <span className="text-red-500">*</span>
+                </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.imageCover ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('service-imageCover').click()}
@@ -149,7 +151,9 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Service Images Upload */}
             <div className="space-y-2">
-                <Label>Service Images (Gallery)</Label>
+                <Label className={errors.images ? 'text-red-500' : ''}>
+                    Service Images (Gallery) <span className="text-red-500">*</span>
+                </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('service-images').click()}
@@ -213,7 +217,9 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Service Title */}
             <div className="space-y-2">
-                <Label htmlFor="title">Service Title</Label>
+                <Label htmlFor="title" className={errors.title ? 'text-red-500' : ''}>
+                    Service Title <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="title"
                     name="title"
@@ -229,7 +235,9 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Category */}
             <div className="space-y-2">
-                <Label htmlFor="catagory">Category</Label>
+                <Label htmlFor="catagory" className={errors.catagory ? 'text-red-500' : ''}>
+                    Category <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="catagory"
                     name="catagory"
@@ -245,7 +253,9 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Service Description */}
             <div className="space-y-2">
-                <Label htmlFor="description">Service Description</Label>
+                <Label htmlFor="description" className={errors.description ? 'text-red-500' : ''}>
+                    Service Description <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                     id="description"
                     name="description"
@@ -262,7 +272,9 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Headline */}
             <div className="space-y-2">
-                <Label htmlFor="headLine">Headline</Label>
+                <Label htmlFor="headLine" className={errors.headLine ? 'text-red-500' : ''}>
+                    Headline <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="headLine"
                     name="headLine"
@@ -298,7 +310,9 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Status */}
             <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className={errors.status ? 'text-red-500' : ''}>
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status || Active}
                     onValueChange={handleStatusChange}

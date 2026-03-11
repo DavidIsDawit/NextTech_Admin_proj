@@ -103,7 +103,9 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
         <div className="space-y-4">
             {/* Cover Image Upload */}
             <div className="space-y-2">
-                <Label>Cover Image</Label>
+                <Label className={errors.coverImage ? 'text-red-500' : ''}>
+                    Cover Image <span className="text-red-500">*</span>
+                </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.coverImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('media-coverImage').click()}
@@ -145,7 +147,9 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Images Gallery Upload */}
             <div className="space-y-2">
-                <Label>Gallery Images</Label>
+                <Label className={errors.images ? 'text-red-500' : ''}>
+                    Gallery Images <span className="text-red-500">*</span>
+                </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('media-gallery').click()}
@@ -209,7 +213,9 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Category */}
             <div className="space-y-2">
-                <Label htmlFor="catagory">Category</Label>
+                <Label htmlFor="catagory" className={errors.catagory ? 'text-red-500' : ''}>
+                    Category <span className="text-red-500">*</span>
+                </Label>
                 <Select
                     value={formData.catagory || ''}
                     onValueChange={(value) => handleSelectChange('catagory', value)}
@@ -232,7 +238,9 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
 
             {/* File Type */}
             <div className="space-y-2">
-                <Label htmlFor="fileType">File Type</Label>
+                <Label htmlFor="fileType" className={errors.fileType ? 'text-red-500' : ''}>
+                    File Type <span className="text-red-500">*</span>
+                </Label>
                 <Select
                     value={formData.fileType || ''}
                     onValueChange={(value) => handleSelectChange('fileType', value)}
@@ -254,7 +262,9 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Status */}
             <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className={errors.status ? 'text-red-500' : ''}>
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status}
                     onValueChange={handleStatusChange}

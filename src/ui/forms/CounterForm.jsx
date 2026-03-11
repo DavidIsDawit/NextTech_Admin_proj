@@ -65,7 +65,9 @@ export function CounterForm({ formData = {}, setFormData, errors = {}, existingN
         <div className="space-y-4">
             {/* Number (Value) */}
             <div className="space-y-2">
-                <Label htmlFor="value">Value (Number)</Label>
+                <Label htmlFor="value" className={errors.value ? 'text-red-500' : ''}>
+                    Value (Number) <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="value"
                     name="number"
@@ -82,7 +84,9 @@ export function CounterForm({ formData = {}, setFormData, errors = {}, existingN
 
             {/* Title (Name Enum) */}
             <div className="space-y-2">
-                <Label htmlFor="name">Counter Type</Label>
+                <Label htmlFor="name" className={errors.name ? 'text-red-500' : ''}>
+                    Counter Type <span className="text-red-500">*</span>
+                </Label>
                 <Select
                     value={(formData.name || formData.title) || ""}
                     onValueChange={(value) => handleSelectChange('name', value)}
@@ -109,7 +113,9 @@ export function CounterForm({ formData = {}, setFormData, errors = {}, existingN
 
             {/* Status */}
             <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className={errors.status ? 'text-red-500' : ''}>
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status || 'Active'}
                     onValueChange={(value) => handleSelectChange('status', value)}

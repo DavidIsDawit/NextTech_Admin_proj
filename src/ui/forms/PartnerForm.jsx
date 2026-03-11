@@ -114,7 +114,9 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Company / Partner Name */}
             <div className="space-y-2">
-                <Label htmlFor="partnerName">Partner Name</Label>
+                <Label htmlFor="partnerName" className={errors.partnerName ? 'text-red-500' : ''}>
+                    Partner Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="partnerName"
                     name="partnerName"
@@ -130,7 +132,9 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Status */}
             <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className={errors.status ? 'text-red-500' : ''}>
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status}
                     onValueChange={handleStatusChange}

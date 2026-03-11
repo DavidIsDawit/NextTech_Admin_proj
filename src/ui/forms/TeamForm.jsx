@@ -99,7 +99,9 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Name */}
             <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name" className={errors.name ? 'text-red-500' : ''}>
+                    Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="name"
                     name="name"
@@ -115,7 +117,9 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Specialty */}
             <div className="space-y-2">
-                <Label htmlFor="specialty">Specialty</Label>
+                <Label htmlFor="specialty" className={errors.specialty ? 'text-red-500' : ''}>
+                    Specialty <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="specialty"
                     name="specialty"
@@ -132,7 +136,9 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Status */}
             <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className={errors.status ? 'text-red-500' : ''}>
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status}
                     onValueChange={handleStatusChange}

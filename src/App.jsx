@@ -5,7 +5,7 @@ import Services from "./pages/Services";
 import Dashboard from "./pages/Dashboard";
 import Teams from "./pages/Teams";
 import Projects from "./pages/Projects";
-import Login from "./pages/Login"
+import Login from "./pages/Login";
 import ChangePassword from "./pages/ChangePassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -26,7 +26,9 @@ import { Toaster } from "sonner";
 
 // simple wrapper that redirects to login if there is no access token
 const RequireAuth = ({ children }) => {
-  const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+  const token =
+    localStorage.getItem("accessToken") ||
+    sessionStorage.getItem("accessToken");
   if (!token) {
     return <Navigate to="/admin/login" replace />;
   }
@@ -35,7 +37,9 @@ const RequireAuth = ({ children }) => {
 
 // guard that ensures first-time login flow is completed
 const RequireFirstTimeCompleted = ({ children }) => {
-  const firstTime = (localStorage.getItem("firstTimeLogin") === "true") || (sessionStorage.getItem("firstTimeLogin") === "true");
+  const firstTime =
+    localStorage.getItem("firstTimeLogin") === "true" ||
+    sessionStorage.getItem("firstTimeLogin") === "true";
   // if user is currently on change-password allow it
   const pathname = window.location.pathname;
   if (firstTime && pathname !== "/admin/change-password") {
@@ -49,7 +53,7 @@ import api from "./api/api";
 
 function App() {
   // Proactively check server connectivity on boot.
-  // This ensures the user is redirected to the server error page 
+  // This ensures the user is redirected to the server error page
   // even on the login page if the server is down.
   useEffect(() => {
     // If we're already on the server-error page, don't ping again
@@ -58,17 +62,28 @@ function App() {
 
     // The interceptor in api.js will handle the redirect if this fails.
     // We use a slightly longer timeout (8s) for this initial check to avoid false redirects on slow networks.
-    api.get("/AllNews", { timeout: 8000 }).catch(() => { });
+    api.get("/AllNews", { timeout: 8000 }).catch(() => {});
   }, []);
 
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <Toaster position="top-right" richColors />
+    <BrowserRouter
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <Toaster
+        position="top-center"
+        richColors
+        toastOptions={{
+          style: { textAlign: "center", fontSize: "16px", padding: "16px" },
+        }}
+      />
       <Routes>
         {/* always allow login and password reset pages */}
         <Route path="/admin/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/admin/login/Reset_password/:token" element={<ResetPassword />} />
+        <Route
+          path="/admin/login/Reset_password/:token"
+          element={<ResetPassword />}
+        />
         <Route
           path="/admin/change-password"
           element={
@@ -113,5 +128,3 @@ function App() {
 }
 
 export default App;
-
-

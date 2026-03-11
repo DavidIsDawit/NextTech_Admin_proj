@@ -106,7 +106,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
         <div className="space-y-4">
             {/* Image Cover Upload */}
             <div className="space-y-2">
-                <Label>Cover Image</Label>
+                <Label className={errors.imageCover ? 'text-red-500' : ''}>
+                    Cover Image <span className="text-red-500">*</span>
+                </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative ${errors.imageCover ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('news-imageCover').click()}
@@ -152,7 +154,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* News Images (Gallery) Upload */}
             <div className="space-y-2">
-                <Label>News Images (Gallery)</Label>
+                <Label className={errors.images ? 'text-red-500' : ''}>
+                    News Images (Gallery) <span className="text-red-500">*</span>
+                </Label>
                 {/* Upload zone — click to browse */}
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors  ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
@@ -221,7 +225,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Article Title */}
             <div className="space-y-2">
-                <Label htmlFor="title">Article Title</Label>
+                <Label htmlFor="title" className={errors.title ? 'text-red-500' : ''}>
+                    Article Title <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="title"
                     name="title"
@@ -237,7 +243,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Category */}
             <div className="space-y-2">
-                <Label htmlFor="catagory">Category</Label>
+                <Label htmlFor="catagory" className={errors.catagory ? 'text-red-500' : ''}>
+                    Category <span className="text-red-500">*</span>
+                </Label>
                 <Select
                     value={formData.catagory || ''}
                     onValueChange={(value) => handleSelectChange('catagory', value)}
@@ -260,7 +268,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Author Name */}
             <div className="space-y-2">
-                <Label htmlFor="author">Author Name</Label>
+                <Label htmlFor="author" className={errors.author ? 'text-red-500' : ''}>
+                    Author Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="author"
                     name="author"
@@ -276,7 +286,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Description One */}
             <div className="space-y-2">
-                <Label htmlFor="descriptionOne">Article Description One</Label>
+                <Label htmlFor="descriptionOne" className={errors.descriptionOne ? 'text-red-500' : ''}>
+                    Article Description One <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                     id="descriptionOne"
                     name="descriptionOne"
@@ -293,7 +305,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Description Two */}
             <div className="space-y-2">
-                <Label htmlFor="descriptionTwo">Article Description Two</Label>
+                <Label htmlFor="descriptionTwo" className={errors.descriptionTwo ? 'text-red-500' : ''}>
+                    Article Description Two <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                     id="descriptionTwo"
                     name="descriptionTwo"
@@ -310,7 +324,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Description Three */}
             <div className="space-y-2">
-                <Label htmlFor="discriptionThree">Article Description Three</Label>
+                <Label htmlFor="discriptionThree" className={errors.discriptionThree ? 'text-red-500' : ''}>
+                    Article Description Three <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                     id="discriptionThree"
                     name="discriptionThree"
@@ -327,7 +343,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Description Four */}
             <div className="space-y-2">
-                <Label htmlFor="discriptionFour">Article Description Four</Label>
+                <Label htmlFor="discriptionFour" className={errors.discriptionFour ? 'text-red-500' : ''}>
+                    Article Description Four <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                     id="discriptionFour"
                     name="discriptionFour"
@@ -344,7 +362,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Tags */}
             <div className="space-y-2">
-                <Label htmlFor="tags">Tags</Label>
+                <Label htmlFor="tags" className={errors.tags ? 'text-red-500' : ''}>
+                    Tags <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="tags"
                     name="tags"
@@ -360,7 +380,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Happened On Date */}
             <div className="space-y-2">
-                <Label htmlFor="happenedOn">Published Date</Label>
+                <Label htmlFor="happenedOn" className={errors.happenedOn ? 'text-red-500' : ''}>
+                    Published Date <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="happenedOn"
                     name="happenedOn"
@@ -376,7 +398,9 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Status */}
             <div className="space-y-2">
-                <Label>Status</Label>
+                <Label className={errors.status ? 'text-red-500' : ''}>
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status || 'published'}
                     onValueChange={handleStatusChange}

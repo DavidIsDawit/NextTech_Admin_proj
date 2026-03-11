@@ -84,7 +84,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Thumbnail Upload */}
             <div className="space-y-2">
-                <Label className="text-gray-500 font-normal">Thumbnail</Label>
+                <Label className={`text-gray-500 font-normal ${errors.thumbinal ? 'text-red-500' : ''}`}>
+                    Thumbnail <span className="text-red-500">*</span>
+                </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative min-h-32 flex flex-col items-center justify-center ${errors.thumbinal ? 'border-red-500 bg-red-50' : 'border-[#00adef]'}`}
                     onClick={() => document.getElementById('port-thumb').click()}
@@ -110,7 +112,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Project Gallery Upload */}
             <div className="space-y-2">
-                <Label className="text-gray-500 font-normal">Project Gallery</Label>
+                <Label className={`text-gray-500 font-normal ${errors.images ? 'text-red-500' : ''}`}>
+                    Project Gallery <span className="text-red-500">*</span>
+                </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors min-h-32 flex flex-col items-center justify-center ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#00adef]'}`}
                     onClick={() => document.getElementById('port-gall').click()}
@@ -151,7 +155,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Project Name */}
             <div className="space-y-2">
-                <Label htmlFor="title" className="text-gray-500 font-normal">Project Name</Label>
+                <Label htmlFor="title" className={`text-gray-500 font-normal ${errors.title ? 'text-red-500' : ''}`}>
+                    Project Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="title"
                     name="title"
@@ -165,7 +171,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Client */}
             <div className="space-y-2">
-                <Label htmlFor="client" className="text-gray-500 font-normal">Client</Label>
+                <Label htmlFor="client" className={`text-gray-500 font-normal ${errors.client ? 'text-red-500' : ''}`}>
+                    Client <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="client"
                     name="client"
@@ -179,7 +187,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Sector */}
             <div className="space-y-2">
-                <Label htmlFor="sector" className="text-gray-500 font-normal">Sector</Label>
+                <Label htmlFor="sector" className={`text-gray-500 font-normal ${errors.sector ? 'text-red-500' : ''}`}>
+                    Sector <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="sector"
                     name="sector"
@@ -193,7 +203,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Category */}
             <div className="space-y-2">
-                <Label htmlFor="catagory" className="text-gray-500 font-normal">Category</Label>
+                <Label htmlFor="catagory" className={`text-gray-500 font-normal ${errors.catagory ? 'text-red-500' : ''}`}>
+                    Category <span className="text-red-500">*</span>
+                </Label>
                 <Input
                     id="catagory"
                     name="catagory"
@@ -207,7 +219,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Project Description (Mapped to descriptionOne) */}
             <div className="space-y-2">
-                <Label htmlFor="descriptionOne" className="text-gray-500 font-normal">Project Description</Label>
+                <Label htmlFor="descriptionOne" className={`text-gray-500 font-normal ${errors.descriptionOne ? 'text-red-500' : ''}`}>
+                    Project Description <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                     id="descriptionOne"
                     name="descriptionOne"
@@ -222,7 +236,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Result (Mapped to resultOne) */}
             <div className="space-y-2">
-                <Label htmlFor="resultOne" className="text-gray-500 font-normal">Result</Label>
+                <Label htmlFor="resultOne" className={`text-gray-500 font-normal ${errors.resultOne ? 'text-red-500' : ''}`}>
+                    Result <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                     id="resultOne"
                     name="resultOne"
@@ -237,7 +253,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Project Requirement */}
             <div className="space-y-2">
-                <Label htmlFor="requirement" className="text-gray-500 font-normal">Project Requirement</Label>
+                <Label htmlFor="requirement" className={`text-gray-500 font-normal ${errors.requirement ? 'text-red-500' : ''}`}>
+                    Project Requirement <span className="text-red-500">*</span>
+                </Label>
                 <Textarea
                     id="requirement"
                     name="requirement"
@@ -297,7 +315,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Date */}
             <div className="space-y-2">
-                <Label htmlFor="happingDate" className="text-gray-500 font-normal">Date</Label>
+                <Label htmlFor="happingDate" className={`text-gray-500 font-normal ${errors.happingDate ? 'text-red-500' : ''}`}>
+                    Date <span className="text-red-500">*</span>
+                </Label>
                 <div className="relative">
                     <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
                     <Input
@@ -314,7 +334,9 @@ export function PortfolioForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Status */}
             <div className="space-y-2">
-                <Label className="text-gray-500 font-normal">Status</Label>
+                <Label className="text-gray-500 font-normal">
+                    Status <span className="text-red-500">*</span>
+                </Label>
                 <RadioGroup
                     value={formData.status || "Active"}
                     onValueChange={(v) => onChange?.({ ...formData, status: v })}
