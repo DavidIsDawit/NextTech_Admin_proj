@@ -29,12 +29,10 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
     React.useEffect(() => {
         let objectUrl;
         if (formData.certificate instanceof File) {
-            console.debug('using local File for preview', formData.certificate);
             objectUrl = URL.createObjectURL(formData.certificate);
             setFilePreview(objectUrl);
         } else if (formData.certificateImage && typeof formData.certificateImage === 'string') {
             const url = getImageUrl(formData.certificateImage);
-            console.debug('using existing image URL', url);
             setFilePreview(url);
             setImageError(false);
         } else {
@@ -53,7 +51,6 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
-        console.debug('handleFileChange', file);
         if (file) {
             setImageError(false);
             onChange?.({ ...formData, certificate: file });
@@ -95,7 +92,6 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                                     crossOrigin="anonymous"
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
                                     onError={(e) => {
-                                        console.error("Preview load error:", filePreview);
                                         e.target.src = "/upload-placeholder.png";
                                     }}
                                 />

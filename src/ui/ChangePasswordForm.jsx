@@ -38,19 +38,15 @@ export default function ChangePasswordForm() {
         newPassword: passwordData.new,
         confirmPassword: passwordData.confirm,
       });
-      console.log("Change-password success:", res);
       if (res.status === "success") {
         toast.success("Password updated successfully");
         localStorage.setItem("firstTimeLogin", "false");
         navigate("/");
       }
     } catch (err) {
-      console.error("Change-password error:", err);
       const responseData = err?.response?.data;
-      console.log("Raw backend error data:", responseData);
 
       const backendErrors = mapBackendErrors(err);
-      console.log("Mapped field errors:", backendErrors);
 
       if (Object.keys(backendErrors).length > 0) {
         setErrors(backendErrors);

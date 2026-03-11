@@ -52,7 +52,6 @@ function GalleryList() {
             const status = error.response?.status;
             const msg = error.response?.data?.message || error.message;
             toast.error(`Failed to fetch gallery (${status || 'Network Error'}): ${msg}`);
-            console.error("Failed to fetch gallery:", error);
         } finally {
             setIsLoading(false);
         }
@@ -165,14 +164,6 @@ function GalleryList() {
                 }
             });
 
-            console.log(`Submitting gallery item (${formType})...`);
-            // Debug: Log complete payload
-            const payload = {};
-            for (let [key, value] of data.entries()) {
-                payload[key] = value instanceof File ? `File: ${value.name}` : value;
-            }
-            console.log("Gallery Payload:", payload);
-
             let result;
             if (formType === 'add') {
                 result = await addGallery(data);
@@ -190,17 +181,9 @@ function GalleryList() {
                 toast.error(result.message || `Failed to ${formType} gallery item`);
             }
         } catch (error) {
-            console.error("Gallery submission error:", error);
             const responseData = error?.response?.data;
-            console.log("Raw backend error data:", responseData);
-            console.group("Full Axios Error Details");
-            console.log("Status:", error?.response?.status);
-            console.log("Data:", responseData);
-            console.log("Headers:", error?.response?.headers);
-            console.groupEnd();
 
             const backendErrors = mapBackendErrors(error);
-            console.log("Mapped field errors:", backendErrors);
 
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
@@ -228,7 +211,6 @@ function GalleryList() {
             }
         } catch (error) {
             toast.error(extractErrorMessage(error, "Failed to delete gallery item"));
-            console.error("Gallery delete error:", error);
         } finally {
             setIsDeleting(false);
         }
@@ -319,7 +301,6 @@ function GalleryList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        onClick={() => console.log("View", row._id || row.id)}
                         title="View"
                     >
                         <FiEye size={21} />

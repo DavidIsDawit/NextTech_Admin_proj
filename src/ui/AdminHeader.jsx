@@ -27,7 +27,6 @@ export default function AdminHeader() {
         if (userId) {
           // Step 2: Get full user details (including name)
           const fullRes = await getUserById(userId);
-          console.log("AdminHeader full response:", fullRes);
 
           const findUser = (obj) => {
             if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
@@ -56,7 +55,6 @@ export default function AdminHeader() {
           }
         }
       } catch (err) {
-        console.error("AdminHeader fetch error:", err);
       }
     };
 

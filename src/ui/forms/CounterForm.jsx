@@ -32,7 +32,6 @@ export function CounterForm({ formData = {}, setFormData, errors = {}, existingN
                     setAllNames(response.data.validNames);
                 }
             } catch (error) {
-                console.error("Failed to fetch counter names:", error);
             }
         };
         fetchNames();
