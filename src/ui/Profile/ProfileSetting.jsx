@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { buildImageUrl } from "../../api/api";
-import { updatePassword, getMe, getUserById, uploadPhoto, cleanupAuth } from "../../api/userApi";
+import { updatePassword, getMe, getUserById, uploadPhoto, cleanupAuth, updateUser } from "../../api/userApi";
 import { mapBackendErrors } from "../../utils/errorHelpers";
 // static profile picture lives in public/images; reference via root URL
 import { LuBuilding2 } from "react-icons/lu";
@@ -62,6 +62,48 @@ function ProfileSetting() {
       }
     };
   }, [photoPreview]);
+
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  const handleUpdateProfile = async () => {
+    if (!formData.userId) {
+      toast.error("User ID not found");
+      return;
+    }
+
+    setIsUpdatingProfile(true);
+    try {
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        location: formData.location,
+        bio: formData.bio,
+        employeId: formData.employeId,
+        department: formData.department,
+        role: formData.role
+      };
+      if (passwordData.new) {
+        payload.password = passwordData.new;
+      }
+
+      const response = await updateUser(formData.userId, payload);
+      if (response.status === "success" || response.status === 200) {
+        toast.success("Profile updated successfully!");
+        window.dispatchEvent(new CustomEvent('userProfileUpdated'));
+      }
+    } catch (error) {
+      console.error("Profile update error:", error);
+      const backendErrors = mapBackendErrors(error);
+      if (Object.keys(backendErrors).length > 0) {
+        setErrors(backendErrors);
+      } else {
+        toast.error(error.response?.data?.message || "Failed to update profile");
+      }
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -368,7 +410,6 @@ function ProfileSetting() {
                     value={formData.name}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] bg-[#F9FAFB] border"
-                    readOnly
                   />
                 </div>
 
@@ -380,7 +421,6 @@ function ProfileSetting() {
                     value={formData.role}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] bg-[#F9FAFB] border"
-                    readOnly
                   />
                 </div>
 
@@ -393,7 +433,6 @@ function ProfileSetting() {
                     value={formData.email}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] bg-[#F9FAFB] border"
-                    readOnly
                   />
                 </div>
 
@@ -405,7 +444,6 @@ function ProfileSetting() {
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] bg-[#F9FAFB] border"
-                    readOnly
                   />
                 </div>
 
@@ -417,7 +455,6 @@ function ProfileSetting() {
                     value={formData.employeId}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] bg-[#F9FAFB] border"
-                    readOnly
                   />
                 </div>
 
@@ -442,7 +479,6 @@ function ProfileSetting() {
                     <Select
                       value={formData.department}
                       onValueChange={(val) => handleSelectChange('department', val)}
-                      disabled
                     >
                       <SelectTrigger className="pl-10 h-11 border-[#D1D5DB] border focus:ring-[#00A3E0]">
                         <SelectValue placeholder="Select Department" />
@@ -466,7 +502,6 @@ function ProfileSetting() {
                     value={formData.location}
                     onChange={handleInputChange}
                     className="border-[#D1D5DB] bg-[#F9FAFB] border"
-                    readOnly
                   />
                 </div>
               </div>
@@ -482,12 +517,25 @@ function ProfileSetting() {
                     onChange={handleInputChange}
                     rows={4}
                     className="border-[#D1D5DB] bg-[#F9FAFB] border focus:ring-[#00A3E0] rounded-xl resize-none p-4 min-h-[120px]"
-                    readOnly
                   />
-                  <div className="absolute bottom-2 right-4 text-[10px] text-gray-400 font-medium">
+                 
+                </div>
+                 <div className="flex justify-end  bottom-2 right-4 text-xs md:text-sm lg:text-base text-gray-400 font-medium">
                     {formData.bio.length}/500
                   </div>
-                </div>
+              </div>
+              <div className="space-y-2 mx-10 pb-4 pt-10  border-t-neutral-300 border-t " >
+              </div>
+
+              {/* Update Profile Button */}
+              <div className="mx-10 mb-10 mt-0  pb-8 flex justify-center">
+                <Button 
+                  onClick={handleUpdateProfile} 
+                  disabled={isUpdatingProfile}
+                  className="bg-[#00A3E0] hover:bg-[#008cc2] text-white px-12 h-12 rounded-xl font-bold transition-all active:scale-95"
+                >
+                  {isUpdatingProfile ? "Saving..." : "Save Changes"}
+                </Button>
               </div>
 
             </div>
