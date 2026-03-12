@@ -22,19 +22,41 @@ const chartConfig = {
 };
 
 export function TrafficChart({ data }) {
-  const chartData = (data || []).map((item, index) => {
+  // Ensure we always have an array
+  const rawData = data || [];
+  
+  // Format the existing data
+  const formattedData = rawData.map((item, index) => {
     if (typeof item === "object" && item !== null) {
-      // Backend structured format
       return {
         day: item.day || index + 1,
         visitors: item.visitors || 0,
         date: item.date,
       };
     }
-    // Legacy static numbers array fallback
     return {
       day: index + 1,
       visitors: typeof item === "number" ? item : 0,
+    };
+  });
+
+  // Ensure there are always exactly 30 days mapped out
+  const chartData = Array.from({ length: 30 }, (_, i) => {
+    const day = i + 1;
+    // Find if we have data for this day
+    const existingData = formattedData.find(d => d.day === day) || formattedData[i];
+    
+    if (existingData) {
+        return {
+            ...existingData,
+            day: day
+        };
+    }
+
+    return {
+      day: day,
+      visitors: 0,
+      date: null,
     };
   });
 

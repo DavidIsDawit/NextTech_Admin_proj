@@ -85,6 +85,10 @@ function FAQList() {
 
     // Modal Handlers
     const handleAddNew = () => {
+        if (faqs.length >= 5) {
+            toast.error("Maximum 5 FAQs allowed");
+            return;
+        }
         setFormType('add');
         setFormData({
             question: '',
@@ -230,13 +234,19 @@ function FAQList() {
                 </div>
                 {/* Desktop Add Button */}
                 <div className="hidden md:flex justify-end mt-2">
-                    <button
-                        onClick={handleAddNew}
-                        className="flex items-center gap-2 bg-[#00A3E0] hover:bg-blue-600 text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors cursor-pointer"
-                    >
-                        <FiPlus size={18} />
-                        Add FAQ
-                    </button>
+                    {faqs.length < 5 ? (
+                        <button
+                            onClick={handleAddNew}
+                            className="flex items-center gap-2 bg-[#00A3E0] hover:bg-blue-600 text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors cursor-pointer"
+                        >
+                            <FiPlus size={18} />
+                            Add FAQ
+                        </button>
+                    ) : (
+                        <div className="flex items-center gap-2 bg-gray-100 text-gray-500 px-5 py-2.5 rounded-md font-medium text-sm">
+                            Maximum 5 FAQs reached
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -278,14 +288,20 @@ function FAQList() {
                     </div>
                 )}
                 <div className="col-span-1 sm:w-auto flex justify-start md:hidden">
-                    <DynamicButton
-                        icon={FiPlus}
-                        onClick={handleAddNew}
-                        className="w-auto md:w-52 md:h-11 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
-                    >
-                        <span className="hidden sm:inline">Add FAQ</span>
-                        <span className="sm:hidden">Add</span>
-                    </DynamicButton>
+                    {faqs.length < 5 ? (
+                        <DynamicButton
+                            icon={FiPlus}
+                            onClick={handleAddNew}
+                            className="w-auto md:w-52 md:h-11 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                        >
+                            <span className="hidden sm:inline">Add FAQ</span>
+                            <span className="sm:hidden">Add</span>
+                        </DynamicButton>
+                    ) : (
+                        <div className="flex items-center justify-center bg-gray-100 text-gray-500 px-4 py-2 rounded-md font-medium text-sm">
+                            Max 5 FAQs
+                        </div>
+                    )}
                 </div>
                 <div className="col-span-1 sm:w-auto flex justify-end md:ml-auto flex-col sm:flex-row items-end sm:items-center">
                     {/* Mobile Export Button */}
