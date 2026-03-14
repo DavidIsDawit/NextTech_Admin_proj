@@ -25,38 +25,28 @@ export function TrafficChart({ data }) {
   // Ensure we always have an array
   const rawData = data || [];
   
-  // Format the existing data
-  const formattedData = rawData.map((item, index) => {
-    if (typeof item === "object" && item !== null) {
-      return {
-        day: item.day || index + 1,
-        visitors: item.visitors || 0,
-        date: item.date,
-      };
-    }
-    return {
-      day: index + 1,
-      visitors: typeof item === "number" ? item : 0,
-    };
-  });
-
-  // Ensure there are always exactly 30 days mapped out
+  // Calculate the dates for the last 30 days ending today
   const chartData = Array.from({ length: 30 }, (_, i) => {
-    const day = i + 1;
-    // Find if we have data for this day
-    const existingData = formattedData.find(d => d.day === day) || formattedData[i];
+    const d = new Date();
+    // Offset by (29 - i) days aggressively to get the past 30 days in order
+    d.setDate(d.getDate() - (29 - i));
     
-    if (existingData) {
-        return {
-            ...existingData,
-            day: day
-        };
-    }
-
+    // Format to YYYY-MM-DD to match the backend _id format
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    
+    // Find if we have backend data for this exact date
+    const existingData = rawData.find(item => 
+      item._id === dateStr || item.date === dateStr || item.day === dateStr
+    );
+    
+    // Map backend "count" field (or fallback to "visitors")
     return {
-      day: day,
-      visitors: 0,
-      date: null,
+      day: i + 1,
+      visitors: existingData ? (existingData.count || existingData.visitors || 0) : 0,
+      date: dateStr,
     };
   });
 
@@ -91,9 +81,8 @@ export function TrafficChart({ data }) {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              domain={[2000, 10000]}
-              ticks={[0, 2000, 4000, 6000, 8000, 10000]}
-              tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+              allowDecimals={false}
+              tickFormatter={(value) => new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(value)}
               tick={{ fill: "#6b7280", fontSize: 12 }}
             />
             <ChartTooltip
@@ -104,12 +93,12 @@ export function TrafficChart({ data }) {
               />}
             />
             <Area
-              type="monotone"           // smooth curve like screenshot
+              type="monotone"
               dataKey="visitors"
               stroke="#3b82f6"
               strokeWidth={2.5}
               fill="#3b82f6"
-              fillOpacity={0.12}        // very light fill
+              fillOpacity={0.12}
             />
           </AreaChart>
         </ResponsiveContainer>
