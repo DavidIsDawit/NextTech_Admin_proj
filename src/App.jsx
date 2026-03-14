@@ -23,12 +23,11 @@ import ProfileSetting from "./pages/ProfileSetting";
 import ServerError from "./pages/ServerError";
 
 import { Toaster } from "sonner";
+import { getSecureItem } from "./utils/storageUtils";
 
 // simple wrapper that redirects to login if there is no access token
 const RequireAuth = ({ children }) => {
-  const token =
-    localStorage.getItem("accessToken") ||
-    sessionStorage.getItem("accessToken");
+  const token = getSecureItem("accessToken");
   if (!token) {
     return <Navigate to="/admin/login" replace />;
   }
@@ -37,9 +36,7 @@ const RequireAuth = ({ children }) => {
 
 // guard that ensures first-time login flow is completed
 const RequireFirstTimeCompleted = ({ children }) => {
-  const firstTime =
-    localStorage.getItem("firstTimeLogin") === "true" ||
-    sessionStorage.getItem("firstTimeLogin") === "true";
+  const firstTime = getSecureItem("firstTimeLogin") === "true";
   // if user is currently on change-password allow it
   const pathname = window.location.pathname;
   if (firstTime && pathname !== "/admin/change-password") {

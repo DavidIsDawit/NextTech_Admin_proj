@@ -5,6 +5,7 @@
  */
 
 import api from "./api";
+import { setSecureItem } from "../utils/storageUtils";
 
 /* ------------------------------------------------------------------
    AUTH – Login
@@ -19,17 +20,15 @@ export const login = async (email, password, rememberMe = false) => {
 
         // Access token is returned in the Authorization header
         const authHeader = response.headers.authorization;
-        const storage = rememberMe ? localStorage : sessionStorage;
-
         if (authHeader && authHeader.startsWith("Bearer ")) {
             const token = authHeader.replace("Bearer ", "");
-            storage.setItem("accessToken", token);
+            setSecureItem("accessToken", token);
         }
 
         if (response.data?.status === "success") {
             const { role, firstTimeLogin } = response.data.data;
-            storage.setItem("userRole", role);
-            storage.setItem("firstTimeLogin", firstTimeLogin ? "true" : "false");
+            setSecureItem("userRole", role);
+            setSecureItem("firstTimeLogin", firstTimeLogin ? "true" : "false");
         }
 
         return response.data;

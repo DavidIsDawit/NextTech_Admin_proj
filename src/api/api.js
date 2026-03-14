@@ -1,6 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
+import { getSecureItem, setSecureItem, removeSecureItem } from "../utils/storageUtils";
 
 // Use Vite env var with fallback to local IP
 // export const BASE_URL = import.meta.env.VITE_PUBLIC_URL;
@@ -19,7 +20,7 @@ api.interceptors.request.use((config) => {
     return config;
   }
 
-  const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+  const token = getSecureItem("accessToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -97,20 +98,22 @@ api.interceptors.response.use(
 
     // Handle Backend Error Messages (4xx, 403, 400 etc)
     if (err.response?.data?.message) {
-      if (err.response.status !== 401) {
-        const msg = err.response.data.message || "";
-        const isValidationOrDuplicate =
-          msg.includes('E11000') ||
-          msg.toLowerCase().includes('duplicate') ||
-          msg.toLowerCase().includes('validation failed') ||
-          msg.toLowerCase().includes('already exists') ||
-          msg.toLowerCase().includes('is not unique') ||
-          err.response.data.errors ||
-          err.response.data.fields;
+      // Show ALL error messages including 401 (Unauthorized) 
+      // EXCEPT on token refresh/login which handles things separately in its own logic or UI.
+      const isAuthUrl = originalRequest.url.includes("/user/login") || originalRequest.url.includes("/refresh-token");
+      
+      const msg = err.response.data.message || "";
+      const isValidationOrDuplicate =
+        msg.includes('E11000') ||
+        msg.toLowerCase().includes('duplicate') ||
+        msg.toLowerCase().includes('validation failed') ||
+        msg.toLowerCase().includes('already exists') ||
+        msg.toLowerCase().includes('is not unique') ||
+        err.response.data.errors ||
+        err.response.data.fields;
 
-        if (!isValidationOrDuplicate) {
-          toast.error(msg);
-        }
+      if (!isValidationOrDuplicate) {
+        toast.error(msg);
       }
     }
 
@@ -144,12 +147,8 @@ api.interceptors.response.use(
 
         const newToken = authHeader.replace("Bearer ", "");
 
-        // Save token to the appropriate storage
-        if (localStorage.getItem("accessToken")) {
-          localStorage.setItem("accessToken", newToken);
-        } else {
-          sessionStorage.setItem("accessToken", newToken);
-        }
+        // Save token to the appropriate storage using secure utility
+        setSecureItem("accessToken", newToken);
         api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
 
         processQueue(null, newToken);
@@ -159,11 +158,9 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
 
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userRole");
-        sessionStorage.removeItem("accessToken");
-        sessionStorage.removeItem("userRole");
+        removeSecureItem("accessToken");
+        removeSecureItem("refreshToken");
+        removeSecureItem("userRole");
 
         if (window.location.pathname !== "/admin/login") {
           window.location.href = "/admin/login";
@@ -185,7 +182,7 @@ api.interceptors.response.use(
 let refreshTimer = null;
 
 const startProactiveRefresh = () => {
-  const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+  const token = getSecureItem("accessToken");
   if (!token) return;
 
   try {
@@ -220,13 +217,11 @@ export const initAuth = () => {
 
 export const cleanupAuth = () => {
   if (refreshTimer) clearTimeout(refreshTimer);
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("userRole");
-  localStorage.removeItem("firstTimeLogin");
-  sessionStorage.removeItem("accessToken");
-  sessionStorage.removeItem("userRole");
-  sessionStorage.removeItem("firstTimeLogin");
+  removeSecureItem("accessToken");
+  removeSecureItem("refreshToken");
+  removeSecureItem("userRole");
+  removeSecureItem("firstTimeLogin");
+  removeSecureItem("firstTimeLogin");
 };
 
 

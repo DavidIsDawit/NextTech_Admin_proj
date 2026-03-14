@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { buildImageUrl } from "../../api/api";
+import { setSecureItem, getSecureItem } from "../../utils/storageUtils";
 import { updatePassword, getMe, getUserById, uploadPhoto, cleanupAuth, updateUser } from "../../api/userApi";
 import { mapBackendErrors } from "../../utils/errorHelpers";
 // static profile picture lives in public/images; reference via root URL
@@ -230,7 +231,7 @@ function ProfileSetting() {
       });
       if (response.status === "success" || response.status === 200) {
         toast.success("Password updated successfully!");
-        localStorage.setItem("firstTimeLogin", "false");
+        setSecureItem("firstTimeLogin", "false");
         setPasswordData({ current: "", new: "", confirm: "" });
         setPasswordStrength(0);
       }
