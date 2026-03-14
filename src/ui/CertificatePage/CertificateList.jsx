@@ -102,6 +102,8 @@ function CertificateList() {
             description: '',
             issueDate: '',
             status: 'Active',
+            project: '',
+            catagory: '',
             certificate: null,
             certificateImage: ''
         });
@@ -136,7 +138,9 @@ function CertificateList() {
             issuedBy: item.issuedBy || item.certificateFrom || '',
             description: item.description || item.certificateType || '',
             issueDate: formattedDate,
-            status: item.status || 'Active'
+            status: item.status || 'Active',
+            project: item.project || '',
+            catagory: item.catagory || ''
         });
         setIsFormModalOpen(true);
     };
@@ -155,6 +159,7 @@ function CertificateList() {
         if (formType === 'add' && !formData.certificate) newErrors.certificate = "Certificate image is required";
         if (!formData.title) newErrors.title = "Certificate title is required";
         if (!formData.issuedBy) newErrors.issuedBy = "Issuer name is required";
+        if (!formData.catagory) newErrors.catagory = "Category is required";
         if (!formData.issueDate) newErrors.issueDate = "Issue date is required";
 
         if (Object.keys(newErrors).length > 0) {
@@ -180,7 +185,9 @@ function CertificateList() {
             issuedBy: formData.issuedBy || "",
             IssueDate: formData.issueDate || "",
             issueDate: formData.issueDate || "",
-            status: formData.status || "Active"
+            status: formData.status || "Active",
+            project: formData.project || "",
+            catagory: formData.catagory || ""
         };
 
         Object.keys(payload).forEach(key => {
