@@ -164,6 +164,42 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
+            {/* Project */}
+            <div className="space-y-2">
+                <Label htmlFor="project" className={errors.project ? 'text-red-500' : ''}>
+                    Project
+                </Label>
+                <Input
+                    id="project"
+                    name="project"
+                    placeholder="Associated project (Optional)"
+                    value={formData.project || ''}
+                    onChange={handleChange}
+                    className={errors.project ? 'border-red-500' : ''}
+                />
+                {errors.project && (
+                    <p className="text-sm text-red-500">{errors.project}</p>
+                )}
+            </div>
+
+            {/* Catagory */}
+            <div className="space-y-2">
+                <Label htmlFor="catagory" className={errors.catagory ? 'text-red-500' : ''}>
+                    Catagory <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                    id="catagory"
+                    name="catagory"
+                    placeholder="e.g., Engineering, Safety, etc."
+                    value={formData.catagory || ''}
+                    onChange={handleChange}
+                    className={errors.catagory ? 'border-red-500' : ''}
+                />
+                {errors.catagory && (
+                    <p className="text-sm text-red-500">{errors.catagory}</p>
+                )}
+            </div>
+
             {/* Description */}
             <div className="space-y-2">
                 <Label htmlFor="description">Description (Optional)</Label>
