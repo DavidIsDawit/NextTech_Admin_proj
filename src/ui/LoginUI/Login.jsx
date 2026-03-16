@@ -58,7 +58,12 @@ function Login() {
       }
     } catch (error) {
       const message = error.response?.data?.message || error.message || "Something went wrong";
-      toast.error(message);
+      const isForbidden = error.response?.status === 403;
+      const isInvalid = message.toLowerCase().includes("invalid");
+      
+      if (!isForbidden && !isInvalid) {
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -170,7 +175,7 @@ function Login() {
               />
 
               <Label htmlFor="remember" className="text-gray-600 text-sm cursor-pointer">
-                Remember me for 30 days
+                Remember me
               </Label>
             </div>
 

@@ -53,7 +53,12 @@ export default function ChangePasswordForm() {
         setErrors(backendErrors);
       } else {
         const msg = err.response?.data?.message || err.message || "Update failed";
-        toast.error(msg);
+        const isForbidden = err.response?.status === 403;
+        const isInvalid = msg.toLowerCase().includes("invalid");
+
+        if (!isForbidden && !isInvalid) {
+          toast.error(msg);
+        }
       }
     } finally {
       setLoading(false);

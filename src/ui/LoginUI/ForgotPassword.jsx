@@ -33,7 +33,9 @@ function ForgotPassword() {
             }
         } catch (error) {
             const message = error.response?.data?.message || "Something went wrong";
-            toast.error(message);
+            if (!message.toLowerCase().includes("invalid")) {
+                toast.error(message);
+            }
         } finally {
             setLoading(false);
         }

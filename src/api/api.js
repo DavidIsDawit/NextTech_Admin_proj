@@ -53,6 +53,7 @@ api.interceptors.response.use(
         msg.toLowerCase().includes('validation failed') ||
         msg.toLowerCase().includes('already exists') ||
         msg.toLowerCase().includes('is not unique') ||
+        msg.toLowerCase().includes('invalid') ||
         response.data.errors ||
         response.data.fields;
 
@@ -103,16 +104,18 @@ api.interceptors.response.use(
       const isAuthUrl = originalRequest.url.includes("/user/login") || originalRequest.url.includes("/refresh-token");
       
       const msg = err.response.data.message || "";
+      const isForbidden = err.response?.status === 403;
       const isValidationOrDuplicate =
         msg.includes('E11000') ||
         msg.toLowerCase().includes('duplicate') ||
         msg.toLowerCase().includes('validation failed') ||
         msg.toLowerCase().includes('already exists') ||
         msg.toLowerCase().includes('is not unique') ||
+        msg.toLowerCase().includes('invalid') ||
         err.response.data.errors ||
         err.response.data.fields;
 
-      if (!isValidationOrDuplicate) {
+      if (!isValidationOrDuplicate && !isForbidden) {
         toast.error(msg);
       }
     }
