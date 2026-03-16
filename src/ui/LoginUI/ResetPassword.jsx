@@ -46,7 +46,12 @@ function ResetPassword() {
             }
         } catch (error) {
             const message = error.response?.data?.message || "Something went wrong";
-            toast.error(message);
+            const isForbidden = error.response?.status === 403;
+            const isInvalid = message.toLowerCase().includes("invalid");
+
+            if (!isForbidden && !isInvalid) {
+                toast.error(message);
+            }
         } finally {
             setLoading(false);
         }
