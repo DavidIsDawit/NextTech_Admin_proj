@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { setSecureItem } from "../utils/storageUtils";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
@@ -40,7 +41,7 @@ export default function ChangePasswordForm() {
       });
       if (res.status === "success") {
         toast.success("Password updated successfully");
-        localStorage.setItem("firstTimeLogin", "false");
+        setSecureItem("firstTimeLogin", "false");
         navigate("/");
       }
     } catch (err) {

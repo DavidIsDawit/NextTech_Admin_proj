@@ -9,6 +9,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 const NextTech_logo = "/NextTech_logo.png";
 import { login } from "../../api/userApi";
 import { toast } from "sonner";
+import { getSecureItem, setSecureItem, removeSecureItem } from "../../utils/storageUtils";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +21,7 @@ function Login() {
 
   // Load remembered email on mount
   useEffect(() => {
-    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedEmail = getSecureItem("rememberedEmail");
     if (savedEmail) {
       setEmail(savedEmail);
       setRememberMe(true);
@@ -44,22 +45,20 @@ function Login() {
         } else {
           // Handle Remember Me
           if (rememberMe) {
-            localStorage.setItem("rememberedEmail", email);
+            setSecureItem("rememberedEmail", email);
           } else {
-            localStorage.removeItem("rememberedEmail");
+            removeSecureItem("rememberedEmail");
           }
           navigate("/");
         }
       } else {
-        if (res.statusCode !== 401) {
-          toast.error(res.message || "Login failed");
-        }
+        // Now toast.error is handled globally in api.js or here 
+        // We ensure we show the backend message if available
+        toast.error(res.message || "Login failed");
       }
     } catch (error) {
-      if (error.response?.status !== 401) {
-        const message = error.response?.data?.message || "Something went wrong";
-        toast.error(message);
-      }
+      const message = error.response?.data?.message || error.message || "Something went wrong";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

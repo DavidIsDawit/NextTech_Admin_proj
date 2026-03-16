@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { getSecureItem, removeSecureItem } from "../utils/storageUtils";
 // static assets from public/images – reference via root path instead of importing
 const NextTech_logo = "/NextTech_logo.png";
 const Logout = "/images/Logout.png";
@@ -28,7 +29,7 @@ const gamenuItems = [
 ];
 
 const getUserRole = () => {
-  return localStorage.getItem("userRole") || sessionStorage.getItem("userRole") || null;
+  return getSecureItem("userRole");
 };
 import {
   Users,
@@ -66,10 +67,10 @@ const AdminSidebar = () => {
       // ignore network errors
     }
     // Remove tokens and role explicitly from localStorage
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("firstTimeLogin");
+    removeSecureItem("accessToken");
+    removeSecureItem("refreshToken");
+    removeSecureItem("userRole");
+    removeSecureItem("firstTimeLogin");
 
     // Also run cleanup for refresh timers if any
     cleanupAuth();
