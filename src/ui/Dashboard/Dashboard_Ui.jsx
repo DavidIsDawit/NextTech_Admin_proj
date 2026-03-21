@@ -97,8 +97,8 @@ export default function Dashboard() {
                 {/* Traffic Chart Card */}
                 <Card className="border shadow-sm ">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">
-                            30-Day Website Traffic
+                        <CardTitle className="text-lg">
+                            <span className="font-bold text-2xl"> {new Date().toLocaleString('default', { month: 'long' })}</span>  Website Traffic
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
