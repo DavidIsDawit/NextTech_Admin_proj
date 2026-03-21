@@ -26,26 +26,32 @@ export function TrafficChart({ data }) {
   const rawData = data || [];
   
   // Calculate the dates for the last 30 days ending today
-  const chartData = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date();
-    // Offset by (29 - i) days aggressively to get the past 30 days in order
-    d.setDate(d.getDate() - (29 - i));
+  const now = new Date();
+  const today = now.getDate();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  
+  // Calculate the chart data for the current month
+  const chartData = Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
     
     // Format to YYYY-MM-DD to match the backend _id format
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
     // Find if we have backend data for this exact date
     const existingData = rawData.find(item => 
       item._id === dateStr || item.date === dateStr || item.day === dateStr
     );
     
-    // Map backend "count" field (or fallback to "visitors")
+    // Set to null for future days to stop the line graph
+    const visitors = (day <= today) 
+      ? (existingData ? (existingData.count || existingData.visitors || 0) : 0)
+      : null;
+
     return {
-      day: i + 1,
-      visitors: existingData ? (existingData.count || existingData.visitors || 0) : 0,
+      day: day,
+      visitors: visitors,
       date: dateStr,
     };
   });
