@@ -30,6 +30,7 @@ export const login = async (email, password, rememberMe = false) => {
       : bodyToken;
     
     // Clear any stale local auth state
+    localStorage.removeItem("nt_remember_me");
     setAccessToken(null);
     removeSecureItem("userRole");
     removeSecureItem("firstTimeLogin");
@@ -46,6 +47,13 @@ export const login = async (email, password, rememberMe = false) => {
     
     setSecureItem("userRole", role, { storage: storageType });
     setSecureItem("firstTimeLogin", firstTimeLogin ? "true" : "false", { storage: storageType });
+
+    // Handle "Remember Me" persistence flag for initAuth
+    if (rememberMe) {
+      localStorage.setItem("nt_remember_me", "true");
+    } else {
+      localStorage.removeItem("nt_remember_me");
+    }
   }
 
   return response.data;
