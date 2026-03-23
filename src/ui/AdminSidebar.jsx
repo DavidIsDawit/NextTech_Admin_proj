@@ -39,7 +39,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import api, { cleanupAuth } from "../api/api"; // Import your API instance
+import api, { syncLogout, cleanupAuth } from "../api/api"; // Import your API instance
 
 const AdminSidebar = () => {
   const [userManagementOpen, setUserManagementOpen] = useState(false);
@@ -72,8 +72,8 @@ const AdminSidebar = () => {
     removeSecureItem("userRole");
     removeSecureItem("firstTimeLogin");
 
-    // Also run cleanup for refresh timers if any
-    cleanupAuth();
+    // Trigger cross-tab logout sync
+    syncLogout();
 
     window.location.href = "/admin/login";
   };

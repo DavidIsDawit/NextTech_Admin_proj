@@ -25,12 +25,12 @@ import ServerError from "./pages/ServerError";
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { getSecureItem } from "./utils/storageUtils";
-import api, { initAuth } from "./api/api";
+import api, { initAuth, getAccessToken } from "./api/api";
 import PropTypes from "prop-types";
 
 // simple wrapper that redirects to login if there is no access token
 const RequireAuth = ({ children }) => {
-  const token = getSecureItem("accessToken");
+  const token = getAccessToken();
   if (!token) {
     return <Navigate to="/admin/login" replace />;
   }
@@ -96,6 +96,20 @@ function App() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // CROSS-TAB SYNC: Listen for logout event in other tabs
+  useEffect(() => {
+    const authChannel = new BroadcastChannel("auth_sync");
+    
+    authChannel.onmessage = (e) => {
+      if (e.data?.type === "logout") {
+        setAuthReady(false);
+        window.location.href = "/admin/login";
+      }
+    };
+    
+    return () => authChannel.close();
   }, []);
 
   if (!authReady && !isPublicRoute) {
