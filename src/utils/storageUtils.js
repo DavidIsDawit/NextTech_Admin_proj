@@ -1,25 +1,31 @@
-import CryptoJS from 'crypto-js';
-
-const SECRET_KEY = import.meta.env.VITE_STORAGE_SECRET_KEY || 'next-tech-default-secret';
-
-const encryptValue = (stringValue) => {
-    return CryptoJS.AES.encrypt(stringValue, SECRET_KEY).toString();
+/* =====================
+   COOKIE HELPERS
+===================== */
+const setCookie = (name, value, days = 7) => {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    // Secure and SameSite=Lax for better security.
+    // Note: HttpOnly can ONLY be set by the server.
+    document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`;
 };
 
-const decryptValue = (encrypted) => {
-    try {
-        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
-        const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
-        if (!decryptedString) return encrypted;
-
-        try {
-            return JSON.parse(decryptedString);
-        } catch {
-            return decryptedString;
-        }
-    } catch {
-        return encrypted;
+const getCookie = (name) => {
+    const nameEQ = `${name}=`;
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
     }
+    return null;
+};
+
+const eraseCookie = (name) => {
+    document.cookie = `${name}=; Max-Age=-99999999; path=/; SameSite=Lax; Secure`;
 };
 
 const KEY_MAP = {
@@ -60,6 +66,9 @@ const cleanupStaleKeys = () => {
 cleanupStaleKeys();
 
 const inferStorageForKey = (key) => {
+    if (key === 'refreshToken') return 'cookie';
+    if (key === 'accessToken') return 'memory';
+
     const obfuscatedKey = getObfuscatedKey(key);
     try {
         if (sessionStorage.getItem(obfuscatedKey) !== null) return sessionStorage;
@@ -77,7 +86,19 @@ export const setSecureItem = (key, value, options = {}) => {
     // Proactively clean stale data whenever we set something new
     cleanupStaleKeys();
 
+    if (key === 'accessToken') {
+        // Access token is handled separately in memory (api.js)
+        return;
+    }
+
     const obfuscatedKey = getObfuscatedKey(key);
+
+    if (key === 'refreshToken') {
+        const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+        setCookie(obfuscatedKey, stringValue, options?.expires || 7);
+        return;
+    }
+
     const storage =
         options?.storage === 'session' ? sessionStorage :
             options?.storage === 'local' ? localStorage :
@@ -85,38 +106,47 @@ export const setSecureItem = (key, value, options = {}) => {
 
     try {
         const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
-        // Prepend random noise to make the encrypted value look even more random
-        const noise = Math.random().toString(36).substring(7);
-        const encrypted = encryptValue(`${noise}|${stringValue}`);
-        storage.setItem(obfuscatedKey, encrypted);
+        // Storing as plaintext as requested
+        storage.setItem(obfuscatedKey, stringValue);
     } catch (error) {
-        console.error('Secure Storage Error:', error);
+        console.error('Storage Error:', error);
     }
 };
 
 /**
- * Retrieve and decrypt data
+ * Retrieve data (plaintext)
  */
 export const getSecureItem = (key) => {
     const obfuscatedKey = getObfuscatedKey(key);
-    const decryptAndUnwrap = (val) => {
-        const decrypted = decryptValue(val);
-        if (typeof decrypted === 'string' && decrypted.includes('|')) {
-            const actualValue = decrypted.split('|').slice(1).join('|');
-            try { return JSON.parse(actualValue); } catch { return actualValue; }
+
+    if (key === 'accessToken') {
+        return null;
+    }
+
+    if (key === 'refreshToken') {
+        return getCookie(obfuscatedKey);
+    }
+
+    const unwrapValue = (val) => {
+        if (!val) return null;
+        // If it looks like it might be an old encrypted value (contains | or is base64-like), 
+        // we try to decrypt, but the user requested plaintext, so we prioritize raw reading.
+        try {
+            return JSON.parse(val);
+        } catch {
+            return val;
         }
-        return decrypted;
     };
 
     try {
-        const sessionEncrypted = sessionStorage.getItem(obfuscatedKey);
-        if (sessionEncrypted) return decryptAndUnwrap(sessionEncrypted);
+        const sessionVal = sessionStorage.getItem(obfuscatedKey);
+        if (sessionVal !== null) return unwrapValue(sessionVal);
     } catch { /* ignore */ }
 
     try {
-        const localEncrypted = localStorage.getItem(obfuscatedKey);
-        if (!localEncrypted) return null;
-        return decryptAndUnwrap(localEncrypted);
+        const localVal = localStorage.getItem(obfuscatedKey);
+        if (localVal === null) return null;
+        return unwrapValue(localVal);
     } catch { return null; }
 };
 
@@ -125,6 +155,11 @@ export const getSecureItem = (key) => {
  */
 export const removeSecureItem = (key) => {
     const obfuscatedKey = getObfuscatedKey(key);
+    
+    if (key === 'refreshToken') {
+        eraseCookie(obfuscatedKey);
+    }
+
     // Also try to remove the raw key just in case
     [key, obfuscatedKey].forEach(k => {
         try { sessionStorage.removeItem(k); } catch { /* ignore */ }

@@ -4,7 +4,7 @@
  * Endpoints are proxied through /api (→ http://192.168.1.16:8000/api)
  */
 
-import api from "./api";
+import api, { setAccessToken } from "./api";
 import { setSecureItem, removeSecureItem } from "../utils/storageUtils";
 
 /* ------------------------------------------------------------------
@@ -17,29 +17,43 @@ import { setSecureItem, removeSecureItem } from "../utils/storageUtils";
               - `userRole` and `firstTimeLogin` in session storage (short-lived UI state)
 ------------------------------------------------------------------ */
 export const login = async (email, password, rememberMe = false) => {
-  // Backend does not accept `rememberMe`. Keep it as a frontend-only signal.
   const response = await api.post("/user/login", { email, password });
 
   // Access token is returned in the Authorization header
   const authHeader = response.headers.authorization;
   
-  // Determine storage based on Remember Me preference
-  const tokenStorage = rememberMe ? "local" : "session";
+  const bodyToken = response.data?.accessToken || response.data?.data?.accessToken || response.data?.token;
 
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.replace("Bearer ", "");
-    // Avoid stale auth state across storage modes by clearing any existing items first.
-    removeSecureItem("accessToken");
+  if ((authHeader && authHeader.startsWith("Bearer ")) || bodyToken) {
+    const token = authHeader?.startsWith("Bearer ") 
+      ? authHeader.replace("Bearer ", "") 
+      : bodyToken;
+    
+    // Clear any stale local auth state
+    localStorage.removeItem("nt_remember_me");
+    setAccessToken(null);
     removeSecureItem("userRole");
     removeSecureItem("firstTimeLogin");
-    setSecureItem("accessToken", token, { storage: tokenStorage });
+    
+    // Set new access token in memory
+    setAccessToken(token);
+    
+    // Note: Refresh token is handled automatically by the browser via HttpOnly cookie
   }
 
   if (response.data?.status === "success") {
     const { role, firstTimeLogin } = response.data.data;
-    // Persist role and flags in the same storage as the token for consistency.
-    setSecureItem("userRole", role, { storage: tokenStorage });
-    setSecureItem("firstTimeLogin", firstTimeLogin ? "true" : "false", { storage: tokenStorage });
+    const storageType = rememberMe ? "local" : "session";
+    
+    setSecureItem("userRole", role, { storage: storageType });
+    setSecureItem("firstTimeLogin", firstTimeLogin ? "true" : "false", { storage: storageType });
+
+    // Handle "Remember Me" persistence flag for initAuth
+    if (rememberMe) {
+      localStorage.setItem("nt_remember_me", "true");
+    } else {
+      localStorage.removeItem("nt_remember_me");
+    }
   }
 
   return response.data;

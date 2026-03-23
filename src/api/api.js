@@ -3,6 +3,26 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 import { getSecureItem, setSecureItem, removeSecureItem } from "../utils/storageUtils";
 
+let memoryAccessToken = null;
+
+export const setAccessToken = (token) => {
+  memoryAccessToken = token;
+};
+
+export const getAccessToken = () => {
+  return memoryAccessToken;
+};
+
+/* =====================
+   CROSS-TAB SYNC
+===================== */
+const authChannel = new BroadcastChannel("auth_sync");
+
+export const syncLogout = () => {
+  authChannel.postMessage({ type: "logout" });
+  cleanupAuth();
+};
+
 // Use Vite env var with fallback to local IP
 // export const BASE_URL = import.meta.env.VITE_PUBLIC_URL;
 
@@ -20,9 +40,19 @@ api.interceptors.request.use((config) => {
     return config;
   }
 
-  const token = getSecureItem("accessToken");
+  const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // CSRF Protection: Read XSRF-TOKEN from cookie and set header
+  const xsrfToken = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('XSRF-TOKEN='))
+    ?.split('=')[1];
+  
+  if (xsrfToken && config.method !== 'get') {
+    config.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken);
   }
 
   return config;
@@ -34,6 +64,7 @@ api.interceptors.request.use((config) => {
 let isRefreshing = false;
 let failedQueue = [];
 let suppressRefreshFailRedirect = false;
+let initPromise = null;
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
@@ -124,13 +155,20 @@ api.interceptors.response.use(
         msg.toLowerCase().includes('refresh token') ||
         msg.toLowerCase().includes('unauthorized');
 
-      if (!isValidationOrDuplicate && !isForbidden && !isUnauthorized && !isAuthError) {
+      const shouldRetry = (isUnauthorized || isForbidden) && !originalRequest._retry;
+
+      if (isForbidden && !shouldRetry && !originalRequest.url.includes("/refresh-token")) {
+        toast.error("Access Denied", {
+          description: "You do not have permission to perform this action.",
+          id: "forbidden-error-toast",
+        });
+      } else if (!isValidationOrDuplicate && !isUnauthorized && !isAuthError && !isForbidden) {
         toast.error(msg);
       }
     }
 
     if (
-      err.response?.status === 401 &&
+      (err.response?.status === 401 || err.response?.status === 403) &&
       !originalRequest._retry &&
       !originalRequest.url.includes("/user/login") &&
       !originalRequest.url.includes("/refresh-token")
@@ -150,56 +188,41 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const accessTokenForRefresh = getSecureItem("accessToken");
-        const refreshTokenCookie = (() => {
-          try {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; refreshToken=`);
-            if (parts.length === 2) return parts.pop().split(";").shift();
-          } catch {
-            // ignore (cookie may be httpOnly and unreadable via JS)
-          }
-          return null;
-        })();
-        const refreshAuthHeaderValue = accessTokenForRefresh
-          ? `Bearer ${accessTokenForRefresh}`
-          : refreshTokenCookie
-            ? `Bearer ${refreshTokenCookie}`
-            : null;
-
-        const refreshRes = await api.get(
-          "/refresh-token",
-          refreshAuthHeaderValue
-            ? { headers: { Authorization: refreshAuthHeaderValue } }
-            : undefined
-        );
-
+        const refreshRes = await api.get("/refresh-token");
         const authHeader = refreshRes.headers.authorization;
-        if (!authHeader?.startsWith("Bearer ")) {
-          throw new Error("Invalid refresh response");
+        const refreshHeader = refreshRes.headers["refresh-token"];
+
+        if (refreshHeader) {
+          setSecureItem("refreshToken", refreshHeader);
         }
 
-        const newToken = authHeader.replace("Bearer ", "");
+        if (authHeader?.startsWith("Bearer ")) {
+          const newToken = authHeader.replace("Bearer ", "");
+          setAccessToken(newToken);
+          api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+          processQueue(null, newToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        }
 
-        // Save access token using inferred storage to respect existing Remember Me preference.
-        setSecureItem("accessToken", newToken);
-        api.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+        // FALLBACK: Check response body for the token
+        const bodyToken = refreshRes.data?.accessToken || refreshRes.data?.data?.accessToken || refreshRes.data?.token;
+        if (bodyToken) {
+          setAccessToken(bodyToken);
+          api.defaults.headers.common["Authorization"] = `Bearer ${bodyToken}`;
+          processQueue(null, bodyToken);
+          originalRequest.headers.Authorization = `Bearer ${bodyToken}`;
+          return api(originalRequest);
+        }
 
-        processQueue(null, newToken);
-
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return api(originalRequest);
+        throw new Error("No token in refresh response");
       } catch (refreshError) {
         processQueue(refreshError, null);
-
-        removeSecureItem("accessToken");
-        removeSecureItem("refreshToken");
-        removeSecureItem("userRole");
+        syncLogout();
 
         if (!suppressRefreshFailRedirect && window.location.pathname !== "/admin/login") {
           window.location.href = "/admin/login";
         }
-
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -216,7 +239,7 @@ api.interceptors.response.use(
 let refreshTimer = null;
 
 const startProactiveRefresh = () => {
-  const token = getSecureItem("accessToken");
+  const token = getAccessToken();
   if (!token) return;
 
   try {
@@ -233,33 +256,11 @@ const startProactiveRefresh = () => {
 
       refreshTimer = setTimeout(async () => {
         try {
-          const accessTokenForRefresh = getSecureItem("accessToken");
-          const refreshTokenCookie = (() => {
-            try {
-              const value = `; ${document.cookie}`;
-              const parts = value.split(`; refreshToken=`);
-              if (parts.length === 2) return parts.pop().split(";").shift();
-            } catch {
-              // ignore (cookie may be httpOnly and unreadable via JS)
-            }
-            return null;
-          })();
-          const refreshAuthHeaderValue = accessTokenForRefresh
-            ? `Bearer ${accessTokenForRefresh}`
-            : refreshTokenCookie
-              ? `Bearer ${refreshTokenCookie}`
-              : null;
-
-          const refreshRes = await api.get(
-            "/refresh-token",
-            refreshAuthHeaderValue
-              ? { headers: { Authorization: refreshAuthHeaderValue } }
-              : undefined
-          );
+          const refreshRes = await api.get("/refresh-token");
           const authHeader = refreshRes.headers.authorization;
           if (authHeader?.startsWith("Bearer ")) {
             const newToken = authHeader.replace("Bearer ", "");
-            setSecureItem("accessToken", newToken); // Preserves existing storage preference
+            setAccessToken(newToken);
           }
           startProactiveRefresh();
         } catch {
@@ -273,82 +274,93 @@ const startProactiveRefresh = () => {
 };
 
 export const initAuth = () => {
-  // This function is called during app bootstrap.
-  // We try to rehydrate the access token from the server-managed httpOnly refresh cookie.
-  // Returning a promise allows the app to delay protected-route redirects until auth is known.
-  return (async () => {
-    const existingToken = getSecureItem("accessToken");
+  // Use a singleton promise to prevent concurrent calls from triggering multiple refreshes
+  // (Common in React Strict Mode during bootstrap)
+  if (initPromise) return initPromise;
 
-    if (!existingToken) {
-      suppressRefreshFailRedirect = true;
-      try {
-        const refreshTokenCookie = (() => {
-          try {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; refreshToken=`);
-            if (parts.length === 2) return parts.pop().split(";").shift();
-          } catch {
-            // ignore (cookie may be httpOnly and unreadable via JS)
+  initPromise = (async () => {
+    try {
+      const existingToken = getAccessToken();
+
+      if (!existingToken) {
+        // Check if we should restore the session:
+        // 1. "Remember Me" cookie/flag exists (localStorage)
+        // 2. OR this is just a page refresh (sessionStorage has data)
+        const isRemembered = localStorage.getItem("nt_remember_me") === "true";
+        const isPageRefresh = !!getSecureItem("userRole"); // sessionStorage based
+
+        if (!isRemembered && !isPageRefresh) {
+          // New browser session AND "Remember Me" was NOT checked.
+          // Do NOT auto-refresh. Clean up potentially stale tokens.
+          cleanupAuth();
+          return;
+        }
+
+        suppressRefreshFailRedirect = true;
+        try {
+          const refreshRes = await api.get("/refresh-token");
+          const authHeader = refreshRes.headers.authorization;
+          const refreshHeader = refreshRes.headers["refresh-token"];
+
+          if (refreshHeader) {
+            setSecureItem("refreshToken", refreshHeader);
           }
-          return null;
-        })();
 
-        const refreshAuthHeaderValue = refreshTokenCookie
-          ? `Bearer ${refreshTokenCookie}`
-          : null;
-
-        const refreshRes = await api.get(
-          "/refresh-token",
-          refreshAuthHeaderValue
-            ? { headers: { Authorization: refreshAuthHeaderValue } }
-            : undefined
-        );
-        const authHeader = refreshRes.headers.authorization;
-        if (authHeader?.startsWith("Bearer ")) {
-          const newToken = authHeader.replace("Bearer ", "");
-          // Preserves the existing storage preference (local if Remember Me was checked).
-          setSecureItem("accessToken", newToken);
+          if (authHeader?.startsWith("Bearer ")) {
+            const newToken = authHeader.replace("Bearer ", "");
+            setAccessToken(newToken);
+          } else {
+            // FALLBACK: Check response body for the token
+            const bodyToken = refreshRes.data?.accessToken || refreshRes.data?.data?.accessToken || refreshRes.data?.token;
+            if (bodyToken) {
+              setAccessToken(bodyToken);
+            }
+          }
+        } catch {
+          // If refresh fails, cleanup locally (no broadcast needed during initial boot)
+          cleanupAuth();
+        } finally {
+          suppressRefreshFailRedirect = false;
         }
-      } catch {
-        // If refresh fails, cleanup and allow guards to redirect to login.
-        removeSecureItem("accessToken");
-        removeSecureItem("userRole");
-        removeSecureItem("refreshToken");
-      } finally {
-        suppressRefreshFailRedirect = false;
       }
-    }
 
-    // Hydrate role if we have an access token but no role cached yet.
-    const tokenAfterInit = getSecureItem("accessToken");
-    if (tokenAfterInit && !getSecureItem("userRole")) {
-      try {
-        const meRes = await api.get("/getme");
-        const user = meRes?.data?.user || meRes?.user || null;
-        const role = user?.role;
-        if (role) setSecureItem("userRole", role);
+      // Hydrate role if we have an access token but no role cached yet.
+      const tokenAfterInit = getAccessToken();
+      if (tokenAfterInit && !getSecureItem("userRole")) {
+        try {
+          const meRes = await api.get("/getme");
+          const user = meRes?.data?.user || meRes?.user || null;
+          const role = user?.role;
+          if (role) setSecureItem("userRole", role);
 
-        // Keep the first-login password flow consistent even when auth is restored via refresh cookie.
-        const firstTimeLogin = user?.firstTimeLogin;
-        if (typeof firstTimeLogin !== "undefined") {
-          const flag = firstTimeLogin === true || firstTimeLogin === "true" ? "true" : "false";
-          setSecureItem("firstTimeLogin", flag);
+          // Keep the first-login password flow consistent even when auth is restored via refresh cookie.
+          const firstTimeLogin = user?.firstTimeLogin;
+          if (typeof firstTimeLogin !== "undefined") {
+            const flag = firstTimeLogin === true || firstTimeLogin === "true" ? "true" : "false";
+            setSecureItem("firstTimeLogin", flag);
+          }
+        } catch {
+          // Ignore: role will be resolved again after next successful refresh/login.
         }
-      } catch {
-        // Ignore: role will be resolved again after next successful refresh/login.
       }
-    }
 
-    startProactiveRefresh();
+      startProactiveRefresh();
+    } finally {
+      // Keep the promise if it succeeded? Usually we clear it if we want to allow re-init,
+      // but for boot-up, we want it to persist. 
+      // We clear it so that if a user logs out and logs back in, initAuth can be called again if needed.
+      initPromise = null;
+    }
   })();
+
+  return initPromise;
 };
 
 export const cleanupAuth = () => {
   if (refreshTimer) clearTimeout(refreshTimer);
-  removeSecureItem("accessToken");
+  setAccessToken(null);
   removeSecureItem("refreshToken");
   removeSecureItem("userRole");
-  removeSecureItem("firstTimeLogin");
   removeSecureItem("firstTimeLogin");
 };
 
