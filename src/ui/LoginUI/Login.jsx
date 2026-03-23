@@ -45,7 +45,8 @@ function Login() {
         } else {
           // Handle Remember Me
           if (rememberMe) {
-            setSecureItem("rememberedEmail", email);
+              // Email is safe to persist when the user explicitly opts in.
+              setSecureItem("rememberedEmail", email, { storage: "local" });
           } else {
             removeSecureItem("rememberedEmail");
           }

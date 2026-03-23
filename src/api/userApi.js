@@ -5,36 +5,44 @@
  */
 
 import api from "./api";
-import { setSecureItem } from "../utils/storageUtils";
+import { setSecureItem, removeSecureItem } from "../utils/storageUtils";
 
 /* ------------------------------------------------------------------
    AUTH – Login
    POST /api/user/login
    Body: { email, password }
    Returns: { status, data: { role, firstTimeLogin } }
-   Side effects: saves accessToken, userRole, firstTimeLogin to localStorage
+ Side effects: authenticates and stores:
+              - `accessToken` session-only in the frontend
+              - `userRole` and `firstTimeLogin` in session storage (short-lived UI state)
 ------------------------------------------------------------------ */
 export const login = async (email, password, rememberMe = false) => {
-    try {
-        const response = await api.post("/user/login", { email, password });
+  // Backend does not accept `rememberMe`. Keep it as a frontend-only signal.
+  const response = await api.post("/user/login", { email, password });
 
-        // Access token is returned in the Authorization header
-        const authHeader = response.headers.authorization;
-        if (authHeader && authHeader.startsWith("Bearer ")) {
-            const token = authHeader.replace("Bearer ", "");
-            setSecureItem("accessToken", token);
-        }
+  // Access token is returned in the Authorization header
+  const authHeader = response.headers.authorization;
+  
+  // Determine storage based on Remember Me preference
+  const tokenStorage = rememberMe ? "local" : "session";
 
-        if (response.data?.status === "success") {
-            const { role, firstTimeLogin } = response.data.data;
-            setSecureItem("userRole", role);
-            setSecureItem("firstTimeLogin", firstTimeLogin ? "true" : "false");
-        }
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.replace("Bearer ", "");
+    // Avoid stale auth state across storage modes by clearing any existing items first.
+    removeSecureItem("accessToken");
+    removeSecureItem("userRole");
+    removeSecureItem("firstTimeLogin");
+    setSecureItem("accessToken", token, { storage: tokenStorage });
+  }
 
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+  if (response.data?.status === "success") {
+    const { role, firstTimeLogin } = response.data.data;
+    // Persist role and flags in the same storage as the token for consistency.
+    setSecureItem("userRole", role, { storage: tokenStorage });
+    setSecureItem("firstTimeLogin", firstTimeLogin ? "true" : "false", { storage: tokenStorage });
+  }
+
+  return response.data;
 };
 
 /* ------------------------------------------------------------------
@@ -48,12 +56,8 @@ export { initAuth, cleanupAuth } from "./api";
    Returns: { status, user: {} }
 ------------------------------------------------------------------ */
 export const getMe = async () => {
-    try {
-        const response = await api.get("/getme");
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+  const response = await api.get("/getme");
+  return response.data;
 };
 
 /* ------------------------------------------------------------------
@@ -62,12 +66,8 @@ export const getMe = async () => {
    Returns: { status, data: { user: {} } }
 ------------------------------------------------------------------ */
 export const getUserById = async (id) => {
-    try {
-        const response = await api.get(`/getUser/${id}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+  const response = await api.get(`/getUser/${id}`);
+  return response.data;
 };
 
 /* ------------------------------------------------------------------
@@ -78,12 +78,8 @@ export const getUserById = async (id) => {
    ⚠️  This endpoint is restricted to Admin role.
 ------------------------------------------------------------------ */
 export const updateUser = async (id, data) => {
-    try {
-        const response = await api.put(`/updateUser/${id}`, data);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+  const response = await api.put(`/updateUser/${id}`, data);
+  return response.data;
 };
 
 /* ------------------------------------------------------------------
@@ -93,12 +89,8 @@ export const updateUser = async (id, data) => {
    Returns: { status, message }
 ------------------------------------------------------------------ */
 export const updatePassword = async (data) => {
-    try {
-        const response = await api.patch("/update-password", data);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+  const response = await api.patch("/update-password", data);
+  return response.data;
 };
 
 /* ------------------------------------------------------------------
@@ -108,12 +100,8 @@ export const updatePassword = async (data) => {
    Returns: { status, data: { photo: "path/to/photo.jpg" } }
 ------------------------------------------------------------------ */
 export const uploadPhoto = async (formData) => {
-    try {
-        const response = await api.post("/upload-photo", formData);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+  const response = await api.post("/upload-photo", formData);
+  return response.data;
 };
 
 /* ------------------------------------------------------------------
@@ -123,12 +111,8 @@ export const uploadPhoto = async (formData) => {
    Returns: { status, message }
 ------------------------------------------------------------------ */
 export const forgotPassword = async (email) => {
-    try {
-        const response = await api.post("/forgot-password", { email });
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+  const response = await api.post("/forgot-password", { email });
+  return response.data;
 };
 
 /* ------------------------------------------------------------------
@@ -138,10 +122,6 @@ export const forgotPassword = async (email) => {
    Returns: { status, message }
 ------------------------------------------------------------------ */
 export const resetPassword = async (token, data) => {
-    try {
-        const response = await api.post(`/reset-password/${token}`, data);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+  const response = await api.post(`/reset-password/${token}`, data);
+  return response.data;
 };

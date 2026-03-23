@@ -22,8 +22,11 @@ import PageNotFound from "./pages/PageNotFound";
 import ProfileSetting from "./pages/ProfileSetting";
 import ServerError from "./pages/ServerError";
 
+import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { getSecureItem } from "./utils/storageUtils";
+import api, { initAuth } from "./api/api";
+import PropTypes from "prop-types";
 
 // simple wrapper that redirects to login if there is no access token
 const RequireAuth = ({ children }) => {
@@ -32,6 +35,10 @@ const RequireAuth = ({ children }) => {
     return <Navigate to="/admin/login" replace />;
   }
   return children;
+};
+
+RequireAuth.propTypes = {
+  children: PropTypes.node,
 };
 
 // guard that ensures first-time login flow is completed
@@ -45,10 +52,22 @@ const RequireFirstTimeCompleted = ({ children }) => {
   return children;
 };
 
-import { useEffect } from "react";
-import api from "./api/api";
+RequireFirstTimeCompleted.propTypes = {
+  children: PropTypes.node,
+};
 
 function App() {
+  const [authReady, setAuthReady] = useState(false);
+  const pathname = window.location.pathname;
+
+  // While auth state is initializing, only allow the public routes.
+  // This prevents a flash of redirects when the access token is restored via the refresh cookie.
+  const isPublicRoute =
+    pathname === "/admin/login" ||
+    pathname === "/forgot-password" ||
+    pathname === "/server-error" ||
+    pathname.startsWith("/admin/login/Reset_password/");
+
   // Proactively check server connectivity on boot.
   // This ensures the user is redirected to the server error page
   // even on the login page if the server is down.
@@ -61,6 +80,27 @@ function App() {
     // We use a slightly longer timeout (8s) for this initial check to avoid false redirects on slow networks.
     api.get("/AllNews", { timeout: 8000 }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        await initAuth();
+      } finally {
+        if (!cancelled) setAuthReady(true);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!authReady && !isPublicRoute) {
+    return null;
+  }
 
   return (
     <BrowserRouter
