@@ -2,6 +2,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 import { getSecureItem, setSecureItem, removeSecureItem } from "../utils/storageUtils";
+import { shouldRestoreSession } from "../utils/authSession";
 
 let memoryAccessToken = null;
 
@@ -283,13 +284,8 @@ export const initAuth = () => {
       const existingToken = getAccessToken();
 
       if (!existingToken) {
-        // Check if we should restore the session:
-        // 1. "Remember Me" cookie/flag exists (localStorage)
-        // 2. OR this is just a page refresh (sessionStorage has data)
-        const isRemembered = localStorage.getItem("nt_remember_me") === "true";
-        const isPageRefresh = !!getSecureItem("userRole"); // sessionStorage based
-
-        if (!isRemembered && !isPageRefresh) {
+        // Check if we should restore the session using the authSession utility
+        if (!shouldRestoreSession()) {
           // New browser session AND "Remember Me" was NOT checked.
           // Do NOT auto-refresh. Clean up potentially stale tokens.
           cleanupAuth();

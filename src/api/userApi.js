@@ -5,8 +5,8 @@
  */
 
 import api, { setAccessToken } from "./api";
-import { setSecureItem, removeSecureItem } from "../utils/storageUtils";
-
+import { getSecureItem, setSecureItem, removeSecureItem } from "../utils/storageUtils";
+import { setRememberMe, clearPersistence } from "../utils/authSession";
 /* ------------------------------------------------------------------
    AUTH – Login
    POST /api/user/login
@@ -30,7 +30,7 @@ export const login = async (email, password, rememberMe = false) => {
       : bodyToken;
     
     // Clear any stale local auth state
-    localStorage.removeItem("nt_remember_me");
+    clearPersistence();
     setAccessToken(null);
     removeSecureItem("userRole");
     removeSecureItem("firstTimeLogin");
@@ -48,12 +48,8 @@ export const login = async (email, password, rememberMe = false) => {
     setSecureItem("userRole", role, { storage: storageType });
     setSecureItem("firstTimeLogin", firstTimeLogin ? "true" : "false", { storage: storageType });
 
-    // Handle "Remember Me" persistence flag for initAuth
-    if (rememberMe) {
-      localStorage.setItem("nt_remember_me", "true");
-    } else {
-      localStorage.removeItem("nt_remember_me");
-    }
+    // Handle "Remember Me" persistence flag using custom utility
+    setRememberMe(rememberMe);
   }
 
   return response.data;
