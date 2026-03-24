@@ -2,7 +2,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 import { getSecureItem, setSecureItem, removeSecureItem } from "../utils/storageUtils";
-import { shouldRestoreSession } from "../utils/authSession";
+import { shouldRestoreSession, clearPersistence } from "../utils/authSession";
 
 let memoryAccessToken = null;
 
@@ -354,6 +354,7 @@ export const initAuth = () => {
 
 export const cleanupAuth = () => {
   if (refreshTimer) clearTimeout(refreshTimer);
+  clearPersistence();
   setAccessToken(null);
   removeSecureItem("refreshToken");
   removeSecureItem("userRole");

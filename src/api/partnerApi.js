@@ -69,7 +69,7 @@ export const createPartner = async (formData) => {
 ------------------------------------------------------------------ */
 export const updatePartner = async (id, formData) => {
     try {
-        const response = await api.put(`/UpdatePartners/${id}`, formData);
+        const response = await api.put(`/UpdatePartner/${id}`, formData);
         const result = response.data;
 
         if (result.status === "success" && result.data?.partner) {

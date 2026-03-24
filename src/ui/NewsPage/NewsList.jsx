@@ -20,7 +20,7 @@ function NewsList() {
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(8);
 
     // Data State
     const [news, setNews] = useState([]);
@@ -40,14 +40,27 @@ function NewsList() {
     const fetchNews = async () => {
         setIsLoading(true);
         try {
-            const result = await getAllNews({ page: currentPage, limit: 100 });
+            const params = { 
+                page: currentPage, 
+                limit: itemsPerPage 
+            };
+
+            // Pass filters to backend if supported
+            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
+            if (categoryFilter !== "All Categories") params.catagory = categoryFilter;
+            if (statusFilter !== "All Status") params.status = statusFilter;
+
+            const result = await getAllNews(params);
             if (result.status === "success") {
-                // Handle both nested and direct data array
                 const newsItems = result.data?.news || (Array.isArray(result.data) ? result.data : []);
                 setNews(newsItems);
-                setTotalItems(result.totalNews || result.count || newsItems.length || 0);
+                
+                // Dynamically update totalItems and itemsPerPage from backend
+                setTotalItems(result.totalNews || result.count || result.total || newsItems.length || 0);
+                if (result.limit) setItemsPerPage(result.limit);
             }
         } catch (error) {
+            console.error("Failed to fetch news:", error);
         } finally {
             setIsLoading(false);
         }
@@ -55,27 +68,17 @@ function NewsList() {
 
     useEffect(() => {
         fetchNews();
-    }, []);
+    }, [currentPage, searchTerm, categoryFilter, statusFilter]);
 
     const categories = useMemo(() => ["All Categories", ...new Set(news.map(s => s.catagory || s.category).filter(Boolean))], [news]);
     const statuses = useMemo(() => ["All Status", ...new Set(news.map(s => s.status).filter(Boolean))], [news]);
 
-    const filteredData = useMemo(() => {
-        return news.filter((item) => {
-            const title = item.title || item.articleTitle;
-            const cat = item.catagory || item.category;
-            const matchesSearch = searchTerm.length < 3 || title?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = categoryFilter === "All Categories" || cat === categoryFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesCategory && matchesStatus;
-        });
-    }, [searchTerm, categoryFilter, statusFilter, news]);
-
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    // Derived Logic
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentData = news; // Already paginated
 
     const handleExportCSV = () => {
-        exportToCSV(filteredData, "News", {
+        exportToCSV(news, "News", {
             title: "Article Title",
             catagory: "Category",
             author: "Author",
@@ -359,16 +362,13 @@ function NewsList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredData.length > 0
-                            ? (currentPage - 1) * itemsPerPage + 1
-                            : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredData.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredData.length}</span>{" "}
-                    articles
+                    of <span className="font-medium text-gray-900">{totalItems}</span> articles
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

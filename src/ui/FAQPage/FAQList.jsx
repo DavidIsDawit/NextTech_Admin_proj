@@ -19,7 +19,7 @@ function FAQList() {
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(8);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -31,20 +31,30 @@ function FAQList() {
 
     const [faqs, setFaqs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [totalItems, setTotalItems] = useState(0);
 
     const fetchFAQs = async () => {
         setIsLoading(true);
         try {
-            const params = {};
+            const params = {
+                page: currentPage,
+                limit: itemsPerPage
+            };
             if (categoryFilter !== "All Categories") params.catagory = categoryFilter;
             if (statusFilter !== "All Status") params.status = statusFilter;
+            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
 
             const response = await getAllFAQs(params);
             if (response.status === "success") {
-                setFaqs(response.data || []);
+                const faqItems = response.data || [];
+                setFaqs(faqItems);
+                
+                // Dynamically update totalItems and itemsPerPage from backend
+                setTotalItems(response.total || response.count || response.totalFaqs || faqItems.length || 0);
+                if (response.limit) setItemsPerPage(response.limit);
             }
         } catch (error) {
-            toast.error("Failed to fetch FAQs");
+            console.error("Failed to fetch FAQs:", error);
         } finally {
             setIsLoading(false);
         }
@@ -52,7 +62,7 @@ function FAQList() {
 
     useEffect(() => {
         fetchFAQs();
-    }, [categoryFilter, statusFilter]);
+    }, [currentPage, categoryFilter, statusFilter, searchTerm]);
 
     const categories = useMemo(() => {
         const base = ["All Categories"];
@@ -62,20 +72,12 @@ function FAQList() {
 
     const statuses = useMemo(() => ["All Status", ...new Set(faqs.map(s => s.status).filter(Boolean))], [faqs]);
 
-    const filteredData = useMemo(() => {
-        return faqs.filter((item) => {
-            const questionText = item.question || "";
-            const matchesSearch = questionText.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesStatus;
-        });
-    }, [searchTerm, statusFilter, faqs]);
-
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    // Derived Logic
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentData = faqs; // Already paginated
 
     const handleExportCSV = () => {
-        exportToCSV(filteredData, "FAQ", {
+        exportToCSV(faqs, "FAQ", {
             question: "Question",
             catagory: "Category",
             createdDate: "Creation Date",
@@ -85,7 +87,7 @@ function FAQList() {
 
     // Modal Handlers
     const handleAddNew = () => {
-        if (faqs.length >= 5) {
+        if (totalItems >= 5) {
             toast.error("Maximum 5 FAQs allowed");
             return;
         }
@@ -339,16 +341,13 @@ function FAQList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {faqs.length > 0
-                            ? (currentPage - 1) * itemsPerPage + 1
-                            : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, faqs.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{faqs.length}</span>{" "}
-                    FAQs
+                    of <span className="font-medium text-gray-900">{totalItems}</span> FAQs
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

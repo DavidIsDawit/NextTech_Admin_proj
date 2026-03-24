@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
@@ -20,8 +21,8 @@ function PartnerList() {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPartners, setTotalPartners] = useState(0);
-    const itemsPerPage = 10;
+    const [totalItems, setTotalItems] = useState(0);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -38,13 +39,27 @@ function PartnerList() {
     const fetchPartners = async () => {
         setIsLoading(true);
         try {
-            const params = { page: currentPage, limit: itemsPerPage, sort: 'recent' };
+            const params = { 
+                page: currentPage, 
+                limit: itemsPerPage, 
+                sort: 'recent' 
+            };
+
+            // Pass filters to backend if supported
+            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
+            if (statusFilter !== "All Status") params.status = statusFilter;
+
             const data = await getAllPartners(params);
             if (data.status === "success") {
-                setPartners(data.data || []);
-                setTotalPartners(data.totalPartners || 0);
+                const partnerItems = data.data || [];
+                setPartners(partnerItems);
+                
+                // Dynamically update totalItems and itemsPerPage from backend
+                setTotalItems(data.totalPartners || data.count || data.total || partnerItems.length || 0);
+                if (data.limit) setItemsPerPage(data.limit);
             }
         } catch (error) {
+            console.error("Failed to fetch partners:", error);
         } finally {
             setIsLoading(false);
         }
@@ -52,25 +67,16 @@ function PartnerList() {
 
     useEffect(() => {
         fetchPartners();
-    }, [currentPage]);
+    }, [currentPage, searchTerm, statusFilter]);
 
     const statuses = useMemo(() => ["All Status", ...new Set(partners.map(s => s.status).filter(Boolean))], [partners]);
 
-    const filteredData = useMemo(() => {
-        return partners.filter((item) => {
-            const name = item.partnerName || item.company || item.name || "";
-            const matchesSearch = searchTerm.length < 3 || name.toLowerCase().includes(searchTerm.toLowerCase());
-            const status = item.status || "Active";
-            const matchesStatus = statusFilter === "All Status" || status.toLowerCase() === statusFilter.toLowerCase();
-            return matchesSearch && matchesStatus;
-        });
-    }, [searchTerm, statusFilter, partners]);
-
-    const totalPages = Math.ceil(totalPartners / itemsPerPage);
-    const currentData = filteredData;
+    // Derived Logic
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentData = partners; // Already paginated
 
     const handleExportCSV = () => {
-        exportToCSV(filteredData, "Partners", {
+        exportToCSV(partners, "Partners", {
             partnerName: "Partner Name",
             createdDate: "Upload Date",
             status: "Status"
@@ -255,6 +261,13 @@ function PartnerList() {
                         <FiEye size={21} />
                     </button>
                     <button
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
+                        onClick={() => handleEdit(row)}
+                        title="Edit"
+                    >
+                        <BiEdit size={21} />
+                    </button>
+                    <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
                         onClick={() => handleDeleteClick(row)}
                         title="Delete"
@@ -353,16 +366,13 @@ function PartnerList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredData.length > 0
-                            ? (currentPage - 1) * itemsPerPage + 1
-                            : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredData.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredData.length}</span>{" "}
-                    partners
+                    of <span className="font-medium text-gray-900">{totalItems}</span> partners
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

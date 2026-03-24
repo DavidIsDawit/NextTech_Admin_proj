@@ -20,7 +20,7 @@ function TeamList() {
     const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(8);
 
     // Data State
     const [team, setTeam] = useState([]);
@@ -40,12 +40,27 @@ function TeamList() {
     const fetchTeam = async () => {
         setIsLoading(true);
         try {
-            const result = await getAllTeams({ page: currentPage, limit: 100 });
+            const params = { 
+                page: currentPage, 
+                limit: itemsPerPage 
+            };
+
+            // Pass filters if backend supports them
+            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
+            if (specialtyFilter !== "All Specialties") params.specialty = specialtyFilter;
+            if (statusFilter !== "All Status") params.status = statusFilter;
+
+            const result = await getAllTeams(params);
             if (result.status === "success") {
-                setTeam(result.data || []);
-                setTotalItems(result.totalTeams || result.data?.length || 0);
+                const data = result.data || [];
+                setTeam(data);
+                
+                // Dynamically update pagination state from backend
+                setTotalItems(result.totalTeams || result.count || result.total || data.length || 0);
+                if (result.limit) setItemsPerPage(result.limit);
             }
         } catch (error) {
+            console.error("Failed to fetch team members:", error);
         } finally {
             setIsLoading(false);
         }
@@ -53,25 +68,17 @@ function TeamList() {
 
     useEffect(() => {
         fetchTeam();
-    }, []);
+    }, [currentPage, searchTerm, specialtyFilter, statusFilter]);
 
     const specialties = useMemo(() => ["All Specialties", ...new Set(team.map(s => s.specialty).filter(Boolean))], [team]);
     const statuses = useMemo(() => ["All Status", ...new Set(team.map(s => s.status).filter(Boolean))], [team]);
 
-    const filteredData = useMemo(() => {
-        return team.filter((item) => {
-            const matchesSearch = searchTerm.length < 3 || item.name?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesSpecialty = specialtyFilter === "All Specialties" || item.specialty === specialtyFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesSpecialty && matchesStatus;
-        });
-    }, [searchTerm, specialtyFilter, statusFilter, team]);
-
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    // Derived Logic
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentData = team; // Already paginated
 
     const handleExportCSV = () => {
-        exportToCSV(filteredData, "Team", {
+        exportToCSV(team, "Team", {
             name: "Name",
             date: "Joining Date",
             specialty: "Specialty",
@@ -342,16 +349,13 @@ function TeamList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredData.length > 0
-                            ? (currentPage - 1) * itemsPerPage + 1
-                            : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredData.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredData.length}</span>{" "}
-                    members
+                    of <span className="font-medium text-gray-900">{totalItems}</span> members
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

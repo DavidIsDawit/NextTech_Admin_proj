@@ -22,11 +22,12 @@ function GalleryList() {
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(8);
 
     // Data State
     const [gallery, setGallery] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [totalItems, setTotalItems] = useState(0);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -41,17 +42,29 @@ function GalleryList() {
     const fetchGallery = async () => {
         setIsLoading(true);
         try {
-            const result = await getAllGallery({ page: currentPage, limit: 100 });
+            const params = { 
+                page: currentPage, 
+                limit: itemsPerPage 
+            };
+
+            // Pass filters to backend if supported
+            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
+            if (categoryFilter !== "All Categories") params.catagory = categoryFilter;
+            if (statusFilter !== "All Status") params.status = statusFilter;
+
+            const result = await getAllGallery(params);
             if (result.status === "success") {
-                // normalizeGallery in galleryApi.js already applies buildImageUrl
-                setGallery(result.data || []);
+                const galleryItems = result.data || [];
+                setGallery(galleryItems);
+                
+                // Dynamically update totalItems and itemsPerPage from backend
+                setTotalItems(result.total || result.count || result.totalGallery || galleryItems.length || 0);
+                if (result.limit) setItemsPerPage(result.limit);
             } else {
                 toast.error(result.message || "Failed to fetch gallery");
             }
         } catch (error) {
-            const status = error.response?.status;
-            const msg = error.response?.data?.message || error.message;
-            toast.error(`Failed to fetch gallery (${status || 'Network Error'}): ${msg}`);
+            console.error("Failed to fetch gallery:", error);
         } finally {
             setIsLoading(false);
         }
@@ -59,7 +72,7 @@ function GalleryList() {
 
     useEffect(() => {
         fetchGallery();
-    }, [currentPage]);
+    }, [currentPage, searchTerm, categoryFilter, statusFilter]);
 
     const categories = useMemo(
         () => ["All Categories", ...new Set(gallery.map((s) => s.catagory || s.category).filter(Boolean))],
@@ -70,30 +83,12 @@ function GalleryList() {
         [gallery]
     );
 
-    const filteredData = useMemo(() => {
-        const term = searchTerm.toLowerCase();
-        return gallery.filter((item) => {
-            const matchesSearch =
-                searchTerm.length < 3 ||
-                (item.catagory || item.category || "").toLowerCase().includes(term) ||
-                (item.fileType || "").toLowerCase().includes(term) ||
-                (item.status || "").toLowerCase().includes(term);
-            const matchesCategory =
-                categoryFilter === "All Categories" ||
-                (item.catagory || item.category) === categoryFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesCategory && matchesStatus;
-        });
-    }, [searchTerm, categoryFilter, statusFilter, gallery]);
-
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const currentData = filteredData.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    // Derived Logic
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentData = gallery; // Already paginated
 
     const handleExportCSV = () => {
-        exportToCSV(filteredData, "Gallery", {
+        exportToCSV(gallery, "Gallery", {
             title: "Media Title",
             fileType: "File Type",
             createdDate: "Upload Date",
@@ -424,14 +419,13 @@ function GalleryList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredData.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredData.length}</span>{" "}
-                    Media
+                    of <span className="font-medium text-gray-900">{totalItems}</span> Media
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

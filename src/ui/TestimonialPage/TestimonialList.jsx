@@ -16,13 +16,16 @@ import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers"
 import { toast } from "sonner";
 
 function TestimonialList() {
-    const [testimonials, setTestimonials] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(8);
+
+    // Data State
+    const [testimonials, setTestimonials] = useState([]);
+    const [totalItems, setTotalItems] = useState(0);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -33,20 +36,33 @@ function TestimonialList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
-    const [totalTestimonials, setTotalTestimonials] = useState(0);
 
     const fetchTestimonials = async () => {
         setIsLoading(true);
         try {
-            // Fetch a larger batch to handle client-side filtering/pagination like NewsList
-            const result = await getAllTestimonials({ limit: 100, sort: 'recent' });
+            const params = { 
+                page: currentPage, 
+                limit: itemsPerPage, 
+                sort: 'recent' 
+            };
+
+            // Add search and filter if backend supports them
+            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
+            if (specialtyFilter !== "All Specialties") params.specialty = specialtyFilter;
+            if (statusFilter !== "All Status") params.status = statusFilter;
+
+            const result = await getAllTestimonials(params);
 
             if (result.status === "success") {
                 const data = result.data?.testimonials || (Array.isArray(result.data) ? result.data : []);
                 setTestimonials(data);
-                setTotalTestimonials(result.totalCount || result.total || data.length || 0);
+                
+                // Dynamically update totalItems and itemsPerPage from backend
+                setTotalItems(result.totalCount || result.total || result.totalTestimonials || data.length || 0);
+                if (result.limit) setItemsPerPage(result.limit);
             }
         } catch (error) {
+            console.error("Failed to fetch testimonials:", error);
         } finally {
             setIsLoading(false);
         }
@@ -54,27 +70,17 @@ function TestimonialList() {
 
     useEffect(() => {
         fetchTestimonials();
-    }, []);
+    }, [currentPage, searchTerm, specialtyFilter, statusFilter]);
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specality || s.specialty || s.speciality || s.testimony))], [testimonials]);
+    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specality || s.specialty || s.testimony).filter(Boolean))], [testimonials]);
     const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], [testimonials]);
 
-    const filteredData = useMemo(() => {
-        return testimonials.filter((item) => {
-            const matchesSearch = searchTerm.length < 3 || item.name?.toLowerCase().includes(searchTerm.toLowerCase());
-            const role = item.specality || item.specialty || item.speciality || item.testimony;
-            const matchesSpecialty = specialtyFilter === "All Specialties" || role === specialtyFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesSpecialty && matchesStatus;
-        });
-    }, [searchTerm, specialtyFilter, statusFilter, testimonials]);
-
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-    const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    // Derived Logic
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentData = testimonials; // Already paginated by backend
 
     const handleExportCSV = () => {
-        exportToCSV(filteredData, "Testimonials", {
+        exportToCSV(testimonials, "Testimonials", {
             name: "Name",
             specality: "Speciality",
             testimony: "Testimony",
@@ -429,16 +435,13 @@ function TestimonialList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredData.length > 0
-                            ? (currentPage - 1) * itemsPerPage + 1
-                            : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredData.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredData.length}</span>{" "}
-                    testimonials
+                    of <span className="font-medium text-gray-900">{totalItems}</span> testimonials
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

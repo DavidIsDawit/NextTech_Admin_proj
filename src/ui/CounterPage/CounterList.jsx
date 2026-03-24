@@ -19,11 +19,11 @@ function CounterList() {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(8);
 
     const [counters, setCounters] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [totalCounters, setTotalCounters] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -38,19 +38,25 @@ function CounterList() {
         try {
             const params = {
                 page: currentPage,
+                limit: itemsPerPage,
                 sort: "recent"
             };
-            // Note: The backend getAllCounters takes query params for page and sort.
-            // Search and status filtering might not be implemented on backend yet, 
-            // but we'll apply them on the results for now if needed.
+            
+            // Pass filters to backend if supported
+            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
+            if (statusFilter !== "All Status") params.status = statusFilter;
+
             const response = await getAllCounters(params);
             if (response.status === "success") {
-                // Based on real Postman response: { data: { counters: [...] }, count: 4 }
-                setCounters(response.data?.counters || response.certificates || response.counters || []);
-                setTotalCounters(response.count || response.totalCounters || 0);
+                const counterItems = response.data?.counters || response.certificates || response.counters || [];
+                setCounters(counterItems);
+                
+                // Dynamically update totalItems and itemsPerPage from backend
+                setTotalItems(response.count || response.totalCounters || response.total || counterItems.length || 0);
+                if (response.limit) setItemsPerPage(response.limit);
             }
         } catch (error) {
-            toast.error("Failed to fetch counters");
+            console.error("Failed to fetch counters:", error);
         } finally {
             setIsLoading(false);
         }
@@ -58,22 +64,16 @@ function CounterList() {
 
     useEffect(() => {
         fetchCounters();
-    }, [currentPage]);
+    }, [currentPage, searchTerm, statusFilter]);
 
     const statuses = useMemo(() => ["All Status", ...new Set(counters.map(s => s.status).filter(Boolean))], [counters]);
 
-    const filteredData = useMemo(() => {
-        return counters.filter((item) => {
-            const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesStatus;
-        });
-    }, [searchTerm, statusFilter, counters]);
-
-    const totalPages = Math.ceil(totalCounters / itemsPerPage) || 1;
+    // Derived Logic
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentData = counters; // Already paginated
 
     const handleExportCSV = () => {
-        const dataToExport = filteredData.map(item => ({
+        const dataToExport = counters.map(item => ({
             ...item,
             value: formatNumber(item.value)
         }));
@@ -298,7 +298,7 @@ function CounterList() {
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#00A3E0]"></div>
                     </div>
                 ) : (
-                    <DynamicTable columns={columns} rows={filteredData} />
+                    <DynamicTable columns={columns} rows={counters} />
                 )}
             </div>
 
@@ -306,16 +306,13 @@ function CounterList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {totalCounters > 0
-                            ? (currentPage - 1) * itemsPerPage + 1
-                            : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, totalCounters)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{totalCounters}</span>{" "}
-                    counters
+                    of <span className="font-medium text-gray-900">{totalItems}</span> counters
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

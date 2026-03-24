@@ -25,7 +25,7 @@ function PortfolioList() {
     const [sectorFilter, setSectorFilter] = useState("All Sectors");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(8);
 
     // Data State
     const [portfolios, setPortfolios] = useState([]);
@@ -45,23 +45,28 @@ function PortfolioList() {
     const fetchPortfolios = async () => {
         setIsLoading(true);
         try {
-            const result = await getAllPortfolios({
+            const params = {
                 page: currentPage,
                 limit: itemsPerPage,
                 sort: "latest"
-            });
-            const portfolios = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
+            };
 
-            // Backend in some cases might not return status: success for list
-            if (result.status === "success" || portfolios.length >= 0) {
-                const total = result.total || result.totalPortfolios || result.data?.total || portfolios.length;
-                setPortfolios(portfolios);
-                setTotalItems(total);
+            // Pass filters to backend if supported
+            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
+            if (sectorFilter !== "All Sectors") params.sector = sectorFilter;
+            if (statusFilter !== "All Status") params.status = statusFilter;
+
+            const result = await getAllPortfolios(params);
+            if (result.status === "success" || Array.isArray(result.data)) {
+                const portfolioItems = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
+                setPortfolios(portfolioItems);
+                
+                // Dynamically update totalItems and itemsPerPage from backend
+                setTotalItems(result.total || result.totalPortfolios || result.count || result.data?.total || portfolioItems.length || 0);
+                if (result.limit) setItemsPerPage(result.limit);
             }
         } catch (error) {
-            const status = error.response?.status;
-            const msg = error.response?.data?.message || error.message;
-            toast.error(`Failed to load portfolios (${status || 'Network Error'}): ${msg}`);
+            console.error("Failed to fetch portfolios:", error);
         } finally {
             setIsLoading(false);
         }
@@ -69,24 +74,17 @@ function PortfolioList() {
 
     useEffect(() => {
         fetchPortfolios();
-    }, [currentPage]);
+    }, [currentPage, searchTerm, sectorFilter, statusFilter]);
 
     const sectors = useMemo(() => ["All Sectors", ...new Set(portfolios.map(s => s.sector).filter(Boolean))], [portfolios]);
     const statuses = useMemo(() => ["All Status", ...new Set(portfolios.map(s => s.status).filter(Boolean))], [portfolios]);
 
-    const filteredData = useMemo(() => {
-        return portfolios.filter((item) => {
-            const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesSector = sectorFilter === "All Sectors" || item.sector === sectorFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesSector && matchesStatus;
-        });
-    }, [searchTerm, sectorFilter, statusFilter, portfolios]);
-
+    // Derived Logic
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentData = portfolios; // Already paginated
 
     const handleExportCSV = () => {
-        exportToCSV(filteredData, "Portfolios", {
+        exportToCSV(portfolios, "Portfolios", {
             title: "Project Title",
             client: "Client",
             sector: "Sector",
@@ -392,7 +390,7 @@ function PortfolioList() {
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
                     </div>
                 ) : (
-                    <DynamicTable columns={columns} rows={filteredData} />
+                    <DynamicTable columns={columns} rows={portfolios} />
                 )}
             </div>
 

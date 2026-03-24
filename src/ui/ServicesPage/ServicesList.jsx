@@ -20,7 +20,7 @@ function Services() {
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const [itemsPerPage, setItemsPerPage] = useState(8);
 
     // Data State
     const [services, setServices] = useState([]);
@@ -40,12 +40,27 @@ function Services() {
     const fetchServices = async () => {
         setIsLoading(true);
         try {
-            const result = await getAllServices({ page: currentPage, limit: 100 }); // Fetch more for local filtering or adjust pagination
+            const params = { 
+                page: currentPage, 
+                limit: itemsPerPage 
+            };
+
+            // Pass filters to backend if supported
+            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
+            if (categoryFilter !== "All Categories") params.catagory = categoryFilter;
+            if (statusFilter !== "All Status") params.status = statusFilter;
+
+            const result = await getAllServices(params);
             if (result.status === "success") {
-                setServices(result.data.services || []);
-                setTotalItems(result.total || result.data.services?.length || 0);
+                const serviceItems = result.data?.services || (Array.isArray(result.data) ? result.data : []);
+                setServices(serviceItems);
+                
+                // Dynamically update totalItems and itemsPerPage from backend
+                setTotalItems(result.total || result.count || result.totalServices || serviceItems.length || 0);
+                if (result.limit) setItemsPerPage(result.limit);
             }
         } catch (error) {
+            console.error("Failed to fetch services:", error);
         } finally {
             setIsLoading(false);
         }
@@ -53,40 +68,17 @@ function Services() {
 
     useEffect(() => {
         fetchServices();
-    }, []);
+    }, [currentPage, searchTerm, categoryFilter, statusFilter]);
 
     const categories = useMemo(() => ["All Categories", ...new Set(services.map(s => s.catagory || s.category).filter(Boolean))], [services]);
     const statuses = useMemo(() => ["All Status", ...new Set(services.map(s => s.status).filter(Boolean))], [services]);
 
-    // Filter Logic
-    const filteredServices = useMemo(() => {
-        return services.filter((service) => {
-            const matchesSearch = searchTerm.length < 3 || service.title
-                ?.toLowerCase()
-                .includes(searchTerm.toLowerCase());
-            const matchesCategory =
-                categoryFilter === "All Categories" ||
-                (service.catagory || service.category) === categoryFilter;
-            const matchesStatus =
-                statusFilter === "All Status" || service.status === statusFilter;
-
-            return matchesSearch && matchesCategory && matchesStatus;
-        });
-    }, [searchTerm, categoryFilter, statusFilter, services]);
-
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
-    const currentServices = filteredServices.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
-    };
+    // Derived Logic
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    const currentServices = services; // Already paginated
 
     const handleExportCSV = () => {
-        exportToCSV(filteredServices, "Services", {
+        exportToCSV(services, "Services", {
             title: "Service Title",
             category: "Category",
             status: "Status",
@@ -398,14 +390,21 @@ function Services() {
             {/* Pagination */}
             <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
-                    Showing <span className="font-medium text-gray-900">{filteredServices.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span>-
-                    <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filteredServices.length)}</span> of <span className="font-medium text-gray-900">{filteredServices.length}</span> services
+                    Showing{" "}
+                    <span className="font-medium text-gray-900">
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                    </span>
+                    -
+                    <span className="font-medium text-gray-900">
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                    </span>{" "}
+                    of <span className="font-medium text-gray-900">{totalItems}</span> services
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
                         currentPage={currentPage}
                         totalPages={totalPages}
-                        onPageChange={handlePageChange}
+                        onPageChange={(p) => setCurrentPage(p)}
                     />
                 </div>
             </div>
