@@ -76,9 +76,10 @@ export function TrafficChart({ data }) {
             label={{
               value: "Days",
               position: "insideBottom",
-              offset: -10,
+              offset: -20,
               fill: "#6b7280",
-              fontSize: 12
+              fontWeight: 'bold',
+              fontSize: 15
             }}
           />
           <YAxis
@@ -88,6 +89,17 @@ export function TrafficChart({ data }) {
             allowDecimals={false}
             tickFormatter={(value) => new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(value)}
             tick={{ fill: "#6b7280", fontSize: 12 }}
+             label={{
+              value: "Traffic",
+              position: "insideMiddle",
+              dx: -20,           // more left padding
+              dy: 5,             // slight vertical adjustment
+              angle: -90,
+              offset: 10,
+              fill: "#6b7280",
+              fontWeight: 'bold',
+              fontSize: 15             
+            }}
           />
           <ChartTooltip
             cursor={false}

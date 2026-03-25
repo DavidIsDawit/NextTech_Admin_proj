@@ -1,7 +1,7 @@
 /* =====================
    COOKIE HELPERS
 ===================== */
-const setCookie = (name, value, days = 7) => {
+const setCookie = (name, value, days = 30) => {
     let expires = "";
     if (days) {
         const date = new Date();
@@ -155,7 +155,7 @@ export const getSecureItem = (key) => {
  */
 export const removeSecureItem = (key) => {
     const obfuscatedKey = getObfuscatedKey(key);
-    
+
     if (key === 'refreshToken') {
         eraseCookie(obfuscatedKey);
     }
