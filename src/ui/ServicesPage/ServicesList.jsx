@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
@@ -41,23 +41,15 @@ function Services() {
         setIsLoading(true);
         try {
             const params = { 
-                page: currentPage, 
-                limit: itemsPerPage 
+                page: 1, 
+                limit: 1000 
             };
-
-            // Pass filters to backend if supported
-            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
-            if (categoryFilter !== "All Categories") params.catagory = categoryFilter;
-            if (statusFilter !== "All Status") params.status = statusFilter;
 
             const result = await getAllServices(params);
             if (result.status === "success") {
                 const serviceItems = result.data?.services || (Array.isArray(result.data) ? result.data : []);
                 setServices(serviceItems);
-                
-                // Dynamically update totalItems and itemsPerPage from backend
-                setTotalItems(result.total || result.count || result.totalServices || serviceItems.length || 0);
-                if (result.limit) setItemsPerPage(result.limit);
+                setTotalItems(serviceItems.length);
             }
         } catch (error) {
             console.error("Failed to fetch services:", error);
@@ -68,17 +60,32 @@ function Services() {
 
     useEffect(() => {
         fetchServices();
-    }, [currentPage, searchTerm, categoryFilter, statusFilter]);
+    }, []);
 
     const categories = useMemo(() => ["All Categories", ...new Set(services.map(s => s.catagory || s.category).filter(Boolean))], [services]);
     const statuses = useMemo(() => ["All Status", ...new Set(services.map(s => s.status).filter(Boolean))], [services]);
 
-    // Derived Logic
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    const currentServices = services; // Already paginated
+    // Frontend Filtering Logic
+    const filteredServices = useMemo(() => {
+        return services.filter((item) => {
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
+                item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.description?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesCategory = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
+            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+            return matchesSearch && matchesCategory && matchesStatus;
+        });
+    }, [services, searchTerm, categoryFilter, statusFilter]);
+
+    // Client-side Pagination Logic
+    const totalPages = Math.ceil(filteredServices.length / itemsPerPage) || 1;
+    const currentServices = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredServices.slice(start, start + itemsPerPage);
+    }, [filteredServices, currentPage, itemsPerPage]);
 
     const handleExportCSV = () => {
-        exportToCSV(services, "Services", {
+        exportToCSV(filteredServices, "Services", {
             title: "Service Title",
             category: "Category",
             status: "Status",
@@ -260,12 +267,6 @@ function Services() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        title="View"
-                    >
-                        <FiEye size={21} />
-                    </button>
-                    <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                         onClick={() => handleEdit(row)}
                         title="Edit"
                     >
@@ -282,6 +283,7 @@ function Services() {
             ),
         },
     ];
+
 
     return (
         <div className="p-0 md:px-5  lg:px-2 2xl:px-5 space-y-1">
@@ -392,13 +394,13 @@ function Services() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {filteredServices.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                        {Math.min(currentPage * itemsPerPage, filteredServices.length)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{totalItems}</span> services
+                    of <span className="font-medium text-gray-900">{filteredServices.length}</span> services
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

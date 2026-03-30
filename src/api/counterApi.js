@@ -11,9 +11,9 @@ import api from "./api";
    GET /api/getAllCounters?page=1&sort=recent
    Returns: { status, data: { counters: [] }, count }
 ------------------------------------------------------------------ */
-export const getAllCounters = async ({ page = 1, sort = "recent" } = {}) => {
+export const getAllCounters = async (params = { page: 1, sort: "recent" }) => {
     try {
-        const response = await api.get("/getAllCounters", { params: { page, sort } });
+        const response = await api.get("/getAllCounters", { params });
         return response.data;
     } catch (error) {
         throw error;

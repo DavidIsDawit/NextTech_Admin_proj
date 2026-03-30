@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
@@ -46,24 +46,16 @@ function PortfolioList() {
         setIsLoading(true);
         try {
             const params = {
-                page: currentPage,
-                limit: itemsPerPage,
+                page: 1,
+                limit: 1000,
                 sort: "latest"
             };
-
-            // Pass filters to backend if supported
-            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
-            if (sectorFilter !== "All Sectors") params.sector = sectorFilter;
-            if (statusFilter !== "All Status") params.status = statusFilter;
 
             const result = await getAllPortfolios(params);
             if (result.status === "success" || Array.isArray(result.data)) {
                 const portfolioItems = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
                 setPortfolios(portfolioItems);
-                
-                // Dynamically update totalItems and itemsPerPage from backend
-                setTotalItems(result.total || result.totalPortfolios || result.count || result.data?.total || portfolioItems.length || 0);
-                if (result.limit) setItemsPerPage(result.limit);
+                setTotalItems(portfolioItems.length);
             }
         } catch (error) {
             console.error("Failed to fetch portfolios:", error);
@@ -74,17 +66,32 @@ function PortfolioList() {
 
     useEffect(() => {
         fetchPortfolios();
-    }, [currentPage, searchTerm, sectorFilter, statusFilter]);
+    }, []);
 
     const sectors = useMemo(() => ["All Sectors", ...new Set(portfolios.map(s => s.sector).filter(Boolean))], [portfolios]);
     const statuses = useMemo(() => ["All Status", ...new Set(portfolios.map(s => s.status).filter(Boolean))], [portfolios]);
 
-    // Derived Logic
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    const currentData = portfolios; // Already paginated
+    // Frontend Filtering Logic
+    const filteredPortfolios = useMemo(() => {
+        return portfolios.filter((item) => {
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
+                item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.client?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSector = sectorFilter === "All Sectors" || item.sector === sectorFilter;
+            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+            return matchesSearch && matchesSector && matchesStatus;
+        });
+    }, [portfolios, searchTerm, sectorFilter, statusFilter]);
+
+    // Client-side Pagination Logic
+    const totalPages = Math.ceil(filteredPortfolios.length / itemsPerPage) || 1;
+    const currentData = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredPortfolios.slice(start, start + itemsPerPage);
+    }, [filteredPortfolios, currentPage, itemsPerPage]);
 
     const handleExportCSV = () => {
-        exportToCSV(portfolios, "Portfolios", {
+        exportToCSV(filteredPortfolios, "Portfolios", {
             title: "Project Title",
             client: "Client",
             sector: "Sector",
@@ -291,12 +298,6 @@ function PortfolioList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        title="View"
-                    >
-                        <FiEye size={21} />
-                    </button>
-                    <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                         onClick={() => handleEdit(row)}
                         title="Edit"
                     >
@@ -313,6 +314,7 @@ function PortfolioList() {
             ),
         },
     ];
+
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
@@ -398,13 +400,13 @@ function PortfolioList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {filteredPortfolios.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                        {Math.min(currentPage * itemsPerPage, filteredPortfolios.length)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{totalItems}</span> portfolios
+                    of <span className="font-medium text-gray-900">{filteredPortfolios.length}</span> portfolios
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

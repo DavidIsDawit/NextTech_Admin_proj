@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
@@ -40,23 +40,16 @@ function CertificateList() {
         setIsLoading(true);
         try {
             const params = {
-                page: currentPage,
-                limit: itemsPerPage,
-                sort: 'recent' // Default according to Postman docs
+                page: 1,
+                limit: 1000,
+                sort: 'recent'
             };
-
-            // Pass filters to backend if supported
-            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
-            if (statusFilter !== "All Status") params.status = statusFilter;
 
             const data = await getAllCertificates(params);
             if (data.status === "success") {
                 const certificateItems = data.certificates || [];
                 setCertificates(certificateItems);
-                
-                // Dynamically update totalItems and itemsPerPage from backend
-                setTotalItems(data.totalCertificates || data.count || data.total || certificateItems.length || 0);
-                if (data.limit) setItemsPerPage(data.limit);
+                setTotalItems(certificateItems.length);
             }
         } catch (error) {
             console.error("Failed to fetch certificates:", error);
@@ -67,16 +60,29 @@ function CertificateList() {
 
     useEffect(() => {
         fetchCertificates();
-    }, [currentPage, searchTerm, statusFilter]);
+    }, []);
 
     const statuses = useMemo(() => ["All Status", ...new Set(certificates.map(s => s.status).filter(Boolean))], [certificates]);
 
-    // Derived Logic
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    const currentData = certificates; // Already paginated
+    // Frontend Filtering Logic
+    const filteredCertificates = useMemo(() => {
+        return certificates.filter((item) => {
+            const searchStr = (item.title || item.certificateName || "").toLowerCase();
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || searchStr.includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        });
+    }, [certificates, searchTerm, statusFilter]);
+
+    // Client-side Pagination Logic
+    const totalPages = Math.ceil(filteredCertificates.length / itemsPerPage) || 1;
+    const currentData = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredCertificates.slice(start, start + itemsPerPage);
+    }, [filteredCertificates, currentPage, itemsPerPage]);
 
     const handleExportCSV = () => {
-        exportToCSV(certificates, "Certificates", {
+        exportToCSV(filteredCertificates, "Certificates", {
             title: "Certificate Title",
             issueDate: "Issue Date",
             status: "Status"
@@ -294,13 +300,6 @@ function CertificateList() {
                     <div className="flex items-center space-x-3">
                         <button
                             className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                            onClick={() => window.open(buildImageUrl(row.certificateImage), '_blank')}
-                            title="View"
-                        >
-                            <FiEye size={21} />
-                        </button>
-                        <button
-                            className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                             onClick={() => handleEdit(row)}
                             title="Edit"
                         >
@@ -319,6 +318,7 @@ function CertificateList() {
         },
 
     ];
+
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
@@ -407,13 +407,13 @@ function CertificateList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {filteredCertificates.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                        {Math.min(currentPage * itemsPerPage, filteredCertificates.length)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{totalItems}</span> certificates
+                    of <span className="font-medium text-gray-900">{filteredCertificates.length}</span> certificates
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

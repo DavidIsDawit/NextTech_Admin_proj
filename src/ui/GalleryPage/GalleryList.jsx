@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FiPlus, FiEye, FiTrash2, FiPlay } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiPlay } from "react-icons/fi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
@@ -43,23 +43,15 @@ function GalleryList() {
         setIsLoading(true);
         try {
             const params = { 
-                page: currentPage, 
-                limit: itemsPerPage 
+                page: 1, 
+                limit: 1000 
             };
-
-            // Pass filters to backend if supported
-            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
-            if (categoryFilter !== "All Categories") params.catagory = categoryFilter;
-            if (statusFilter !== "All Status") params.status = statusFilter;
 
             const result = await getAllGallery(params);
             if (result.status === "success") {
                 const galleryItems = result.data || [];
                 setGallery(galleryItems);
-                
-                // Dynamically update totalItems and itemsPerPage from backend
-                setTotalItems(result.total || result.count || result.totalGallery || galleryItems.length || 0);
-                if (result.limit) setItemsPerPage(result.limit);
+                setTotalItems(galleryItems.length);
             } else {
                 toast.error(result.message || "Failed to fetch gallery");
             }
@@ -72,7 +64,7 @@ function GalleryList() {
 
     useEffect(() => {
         fetchGallery();
-    }, [currentPage, searchTerm, categoryFilter, statusFilter]);
+    }, []);
 
     const categories = useMemo(
         () => ["All Categories", ...new Set(gallery.map((s) => s.catagory || s.category).filter(Boolean))],
@@ -83,12 +75,27 @@ function GalleryList() {
         [gallery]
     );
 
-    // Derived Logic
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    const currentData = gallery; // Already paginated
+    // Frontend Filtering Logic
+    const filteredGallery = useMemo(() => {
+        return gallery.filter((item) => {
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
+                item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.fileType?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesCategory = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
+            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+            return matchesSearch && matchesCategory && matchesStatus;
+        });
+    }, [gallery, searchTerm, categoryFilter, statusFilter]);
+
+    // Client-side Pagination Logic
+    const totalPages = Math.ceil(filteredGallery.length / itemsPerPage) || 1;
+    const currentData = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredGallery.slice(start, start + itemsPerPage);
+    }, [filteredGallery, currentPage, itemsPerPage]);
 
     const handleExportCSV = () => {
-        exportToCSV(gallery, "Gallery", {
+        exportToCSV(filteredGallery, "Gallery", {
             title: "Media Title",
             fileType: "File Type",
             createdDate: "Upload Date",
@@ -193,7 +200,7 @@ function GalleryList() {
     const handleDeleteConfirm = async () => {
         setIsDeleting(true);
         try {
-            const id = selectedItem?._id || selectedItem?.id;
+            const id = selectedItem?._id || selectedItem?._id;
             const result = await deleteGallery(id);
 
             if (result.status === "success") {
@@ -294,13 +301,6 @@ function GalleryList() {
             label: "Actions",
             render: (_, row) => (
                 <div className="flex items-center space-x-3">
-                    <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        title="View"
-                    >
-                        <FiEye size={21} />
-                    </button>
-
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
                         onClick={() => handleDeleteClick(row)}
@@ -419,13 +419,13 @@ function GalleryList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {filteredGallery.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                        {Math.min(currentPage * itemsPerPage, filteredGallery.length)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{totalItems}</span> Media
+                    of <span className="font-medium text-gray-900">{filteredGallery.length}</span> Media
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

@@ -1,11 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
-import Pagination from "../Pagination";
 import Badge from "../Badge";
 import { toast } from "sonner";
 import { getAllFAQs, createFAQ, updateFAQ, deleteFAQ } from "../../api/faqApi";
@@ -19,7 +18,7 @@ function FAQList() {
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [itemsPerPage] = useState(1000);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -37,21 +36,15 @@ function FAQList() {
         setIsLoading(true);
         try {
             const params = {
-                page: currentPage,
+                page: 1,
                 limit: itemsPerPage
             };
-            if (categoryFilter !== "All Categories") params.catagory = categoryFilter;
-            if (statusFilter !== "All Status") params.status = statusFilter;
-            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
 
             const response = await getAllFAQs(params);
             if (response.status === "success") {
                 const faqItems = response.data || [];
                 setFaqs(faqItems);
-                
-                // Dynamically update totalItems and itemsPerPage from backend
-                setTotalItems(response.total || response.count || response.totalFaqs || faqItems.length || 0);
-                if (response.limit) setItemsPerPage(response.limit);
+                setTotalItems(faqItems.length);
             }
         } catch (error) {
             console.error("Failed to fetch FAQs:", error);
@@ -62,7 +55,7 @@ function FAQList() {
 
     useEffect(() => {
         fetchFAQs();
-    }, [currentPage, categoryFilter, statusFilter, searchTerm]);
+    }, []);
 
     const categories = useMemo(() => {
         const base = ["All Categories"];
@@ -72,12 +65,20 @@ function FAQList() {
 
     const statuses = useMemo(() => ["All Status", ...new Set(faqs.map(s => s.status).filter(Boolean))], [faqs]);
 
-    // Derived Logic
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    const currentData = faqs; // Already paginated
+    // Frontend Filtering Logic
+    const filteredFAQs = useMemo(() => {
+        return faqs.filter((item) => {
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
+                item.question?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.answer?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesCategory = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
+            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+            return matchesSearch && matchesCategory && matchesStatus;
+        });
+    }, [faqs, searchTerm, categoryFilter, statusFilter]);
 
     const handleExportCSV = () => {
-        exportToCSV(faqs, "FAQ", {
+        exportToCSV(filteredFAQs, "FAQ", {
             question: "Question",
             catagory: "Category",
             createdDate: "Creation Date",
@@ -207,12 +208,6 @@ function FAQList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        title="View"
-                    >
-                        <FiEye size={21} />
-                    </button>
-                    <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                         onClick={() => handleEdit(row)}
                         title="Edit"
                     >
@@ -222,6 +217,7 @@ function FAQList() {
             ),
         },
     ];
+
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
@@ -258,7 +254,6 @@ function FAQList() {
                         value={searchTerm}
                         onChange={(val) => {
                             setSearchTerm(val);
-                            setCurrentPage(1);
                         }}
                         placeholder="Search FAQs..."
                     />
@@ -270,7 +265,6 @@ function FAQList() {
                             value={categoryFilter}
                             onChange={(val) => {
                                 setCategoryFilter(val);
-                                setCurrentPage(1);
                             }}
                             defaultOption="All Categories"
                         />
@@ -283,7 +277,6 @@ function FAQList() {
                             value={statusFilter}
                             onChange={(val) => {
                                 setStatusFilter(val);
-                                setCurrentPage(1);
                             }}
                             defaultOption="All Status"
                         />
@@ -333,7 +326,7 @@ function FAQList() {
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#00A3E0]"></div>
                     </div>
                 ) : (
-                    <DynamicTable columns={columns} rows={currentData} />
+                    <DynamicTable columns={columns} rows={filteredFAQs} />
                 )}
             </div>
 
@@ -341,20 +334,9 @@ function FAQList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
-                    </span>
-                    -
-                    <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                        {filteredFAQs.length}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{totalItems}</span> FAQs
-                </div>
-                <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={(p) => setCurrentPage(p)}
-                    />
+                    FAQs
                 </div>
             </div>
 

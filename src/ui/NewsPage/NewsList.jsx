@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
@@ -41,23 +41,15 @@ function NewsList() {
         setIsLoading(true);
         try {
             const params = { 
-                page: currentPage, 
-                limit: itemsPerPage 
+                page: 1, 
+                limit: 1000 
             };
-
-            // Pass filters to backend if supported
-            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
-            if (categoryFilter !== "All Categories") params.catagory = categoryFilter;
-            if (statusFilter !== "All Status") params.status = statusFilter;
 
             const result = await getAllNews(params);
             if (result.status === "success") {
                 const newsItems = result.data?.news || (Array.isArray(result.data) ? result.data : []);
                 setNews(newsItems);
-                
-                // Dynamically update totalItems and itemsPerPage from backend
-                setTotalItems(result.totalNews || result.count || result.total || newsItems.length || 0);
-                if (result.limit) setItemsPerPage(result.limit);
+                setTotalItems(newsItems.length);
             }
         } catch (error) {
             console.error("Failed to fetch news:", error);
@@ -68,17 +60,32 @@ function NewsList() {
 
     useEffect(() => {
         fetchNews();
-    }, [currentPage, searchTerm, categoryFilter, statusFilter]);
+    }, []);
 
     const categories = useMemo(() => ["All Categories", ...new Set(news.map(s => s.catagory || s.category).filter(Boolean))], [news]);
     const statuses = useMemo(() => ["All Status", ...new Set(news.map(s => s.status).filter(Boolean))], [news]);
 
-    // Derived Logic
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    const currentData = news; // Already paginated
+    // Frontend Filtering Logic
+    const filteredNews = useMemo(() => {
+        return news.filter((item) => {
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
+                item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.author?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesCategory = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
+            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+            return matchesSearch && matchesCategory && matchesStatus;
+        });
+    }, [news, searchTerm, categoryFilter, statusFilter]);
+
+    // Client-side Pagination Logic
+    const totalPages = Math.ceil(filteredNews.length / itemsPerPage) || 1;
+    const currentData = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredNews.slice(start, start + itemsPerPage);
+    }, [filteredNews, currentPage, itemsPerPage]);
 
     const handleExportCSV = () => {
-        exportToCSV(news, "News", {
+        exportToCSV(filteredNews, "News", {
             title: "Article Title",
             catagory: "Category",
             author: "Author",
@@ -253,12 +260,6 @@ function NewsList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        title="View"
-                    >
-                        <FiEye size={21} />
-                    </button>
-                    <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                         onClick={() => handleEdit(row)}
                         title="Edit"
                     >
@@ -275,6 +276,7 @@ function NewsList() {
             ),
         },
     ];
+
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
@@ -362,13 +364,13 @@ function NewsList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {filteredNews.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                        {Math.min(currentPage * itemsPerPage, filteredNews.length)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{totalItems}</span> articles
+                    of <span className="font-medium text-gray-900">{filteredNews.length}</span> articles
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
