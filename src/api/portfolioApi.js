@@ -26,12 +26,17 @@ export const getAllPortfolios = async ({ page = 1, limit = 10, sort = "latest" }
         const result = response.data;
 
         // Flexible response mapping: handles both wrapped and flat array responses
-        let portfoliosList = result.portfolios
-            || result.data?.portfolios
-            || (Array.isArray(result.data) ? result.data : []);
+        let portfoliosList = [];
+        if (Array.isArray(result)) {
+            portfoliosList = result;
+        } else if (result && typeof result === 'object') {
+            portfoliosList = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
+        }
 
-        if (Array.isArray(portfoliosList)) {
+        if (Array.isArray(portfoliosList) && portfoliosList.length > 0) {
             const normalized = portfoliosList.map(normalizePortfolio);
+            if (Array.isArray(result)) return normalized;
+            
             if (result.portfolios) result.portfolios = normalized;
             else if (result.data?.portfolios) result.data.portfolios = normalized;
             else if (Array.isArray(result.data)) result.data = normalized;

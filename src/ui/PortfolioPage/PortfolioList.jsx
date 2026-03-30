@@ -52,11 +52,16 @@ function PortfolioList() {
             };
 
             const result = await getAllPortfolios(params);
-            if (result.status === "success" || Array.isArray(result.data)) {
-                const portfolioItems = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
-                setPortfolios(portfolioItems);
-                setTotalItems(portfolioItems.length);
+            
+            let portfolioItems = [];
+            if (Array.isArray(result)) {
+                portfolioItems = result;
+            } else if (result && typeof result === "object") {
+                portfolioItems = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
             }
+            
+            setPortfolios(portfolioItems);
+            setTotalItems(result?.totalPortfolios || portfolioItems.length);
         } catch (error) {
             console.error("Failed to fetch portfolios:", error);
         } finally {
