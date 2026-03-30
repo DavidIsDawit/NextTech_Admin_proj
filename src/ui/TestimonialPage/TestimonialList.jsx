@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
@@ -41,25 +41,17 @@ function TestimonialList() {
         setIsLoading(true);
         try {
             const params = { 
-                page: currentPage, 
-                limit: itemsPerPage, 
+                page: 1, 
+                limit: 1000, 
                 sort: 'recent' 
             };
-
-            // Add search and filter if backend supports them
-            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
-            if (specialtyFilter !== "All Specialties") params.specialty = specialtyFilter;
-            if (statusFilter !== "All Status") params.status = statusFilter;
 
             const result = await getAllTestimonials(params);
 
             if (result.status === "success") {
                 const data = result.data?.testimonials || (Array.isArray(result.data) ? result.data : []);
                 setTestimonials(data);
-                
-                // Dynamically update totalItems and itemsPerPage from backend
-                setTotalItems(result.totalCount || result.total || result.totalTestimonials || data.length || 0);
-                if (result.limit) setItemsPerPage(result.limit);
+                setTotalItems(data.length);
             }
         } catch (error) {
             console.error("Failed to fetch testimonials:", error);
@@ -70,17 +62,32 @@ function TestimonialList() {
 
     useEffect(() => {
         fetchTestimonials();
-    }, [currentPage, searchTerm, specialtyFilter, statusFilter]);
+    }, []);
 
     const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specality || s.specialty || s.testimony).filter(Boolean))], [testimonials]);
     const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], [testimonials]);
 
-    // Derived Logic
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    const currentData = testimonials; // Already paginated by backend
+    // Frontend Filtering Logic
+    const filteredTestimonials = useMemo(() => {
+        return testimonials.filter((item) => {
+            const searchStr = (item.name || "").toLowerCase();
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || searchStr.includes(searchTerm.toLowerCase());
+            const role = item.specality || item.specialty || item.testimony || "";
+            const matchesSpecialty = specialtyFilter === "All Specialties" || role === specialtyFilter;
+            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+            return matchesSearch && matchesSpecialty && matchesStatus;
+        });
+    }, [testimonials, searchTerm, specialtyFilter, statusFilter]);
+
+    // Client-side Pagination Logic
+    const totalPages = Math.ceil(filteredTestimonials.length / itemsPerPage) || 1;
+    const currentData = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredTestimonials.slice(start, start + itemsPerPage);
+    }, [filteredTestimonials, currentPage, itemsPerPage]);
 
     const handleExportCSV = () => {
-        exportToCSV(testimonials, "Testimonials", {
+        exportToCSV(filteredTestimonials, "Testimonials", {
             name: "Name",
             specality: "Speciality",
             testimony: "Testimony",
@@ -312,12 +319,6 @@ function TestimonialList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        title="View"
-                    >
-                        <FiEye size={21} />
-                    </button>
-                    <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                         onClick={() => handleEdit(row)}
                         title="Edit"
                     >
@@ -334,6 +335,7 @@ function TestimonialList() {
             ),
         },
     ];
+
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
@@ -435,13 +437,13 @@ function TestimonialList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {filteredTestimonials.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                        {Math.min(currentPage * itemsPerPage, filteredTestimonials.length)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{totalItems}</span> testimonials
+                    of <span className="font-medium text-gray-900">{filteredTestimonials.length}</span> testimonials
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination

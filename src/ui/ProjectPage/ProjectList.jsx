@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
@@ -35,7 +35,8 @@ function ProjectList() {
 
     const filteredData = useMemo(() => {
         return ProjectsData.filter((item) => {
-            const matchesSearch = item.projectName?.toLowerCase().includes(searchTerm.toLowerCase());
+            const searchStr = (item.projectName || item.client || item.sector || "").toLowerCase();
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || searchStr.includes(searchTerm.toLowerCase());
             const matchesSector = sectorFilter === "All Sectors" || item.sector === sectorFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesSector && matchesStatus;
@@ -134,12 +135,6 @@ function ProjectList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        title="View"
-                    >
-                        <FiEye size={21} />
-                    </button>
-                    <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                         onClick={() => handleEdit(row)}
                         title="Edit"
                     >
@@ -156,6 +151,7 @@ function ProjectList() {
             ),
         },
     ];
+
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">

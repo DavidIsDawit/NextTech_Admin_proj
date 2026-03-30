@@ -1,12 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import { toast } from "sonner";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
 import DynamicSearch from "../DynamicSearch";
-import Pagination from "../Pagination";
 import Badge from "../Badge";
 import { getAllCounters, createCounter, updateCounter, deleteCounter } from "../../api/counterApi";
 import { exportToCSV } from "../../utils/csvExport";
@@ -19,7 +18,7 @@ function CounterList() {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [itemsPerPage] = useState(1000);
 
     const [counters, setCounters] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -37,23 +36,16 @@ function CounterList() {
         setIsLoading(true);
         try {
             const params = {
-                page: currentPage,
+                page: 1,
                 limit: itemsPerPage,
                 sort: "recent"
             };
             
-            // Pass filters to backend if supported
-            if (searchTerm && searchTerm.length >= 3) params.search = searchTerm;
-            if (statusFilter !== "All Status") params.status = statusFilter;
-
             const response = await getAllCounters(params);
             if (response.status === "success") {
                 const counterItems = response.data?.counters || response.certificates || response.counters || [];
                 setCounters(counterItems);
-                
-                // Dynamically update totalItems and itemsPerPage from backend
-                setTotalItems(response.count || response.totalCounters || response.total || counterItems.length || 0);
-                if (response.limit) setItemsPerPage(response.limit);
+                setTotalItems(counterItems.length);
             }
         } catch (error) {
             console.error("Failed to fetch counters:", error);
@@ -64,16 +56,21 @@ function CounterList() {
 
     useEffect(() => {
         fetchCounters();
-    }, [currentPage, searchTerm, statusFilter]);
+    }, []);
 
     const statuses = useMemo(() => ["All Status", ...new Set(counters.map(s => s.status).filter(Boolean))], [counters]);
 
-    // Derived Logic
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    const currentData = counters; // Already paginated
+    // Frontend Filtering Logic
+    const filteredCounters = useMemo(() => {
+        return counters.filter((item) => {
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || item.name?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        });
+    }, [counters, searchTerm, statusFilter]);
 
     const handleExportCSV = () => {
-        const dataToExport = counters.map(item => ({
+        const dataToExport = filteredCounters.map(item => ({
             ...item,
             value: formatNumber(item.value)
         }));
@@ -192,12 +189,6 @@ function CounterList() {
                 <div className="flex items-center space-x-3">
                     <button
                         className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-                        title="View"
-                    >
-                        <FiEye size={21} />
-                    </button>
-                    <button
-                        className="p-1 text-gray-400 hover:text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors"
                         onClick={() => handleEdit(row)}
                         title="Edit"
                     >
@@ -207,6 +198,7 @@ function CounterList() {
             ),
         },
     ];
+
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
@@ -239,7 +231,6 @@ function CounterList() {
                         value={searchTerm}
                         onChange={(val) => {
                             setSearchTerm(val);
-                            setCurrentPage(1);
                         }}
                         placeholder="Search counters..."
                     />
@@ -271,7 +262,6 @@ function CounterList() {
                             value={statusFilter}
                             onChange={(val) => {
                                 setStatusFilter(val);
-                                setCurrentPage(1);
                             }}
                             defaultOption="All Status"
                         />
@@ -298,7 +288,7 @@ function CounterList() {
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#00A3E0]"></div>
                     </div>
                 ) : (
-                    <DynamicTable columns={columns} rows={counters} />
+                    <DynamicTable columns={columns} rows={filteredCounters} />
                 )}
             </div>
 
@@ -306,20 +296,9 @@ function CounterList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
-                    </span>
-                    -
-                    <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, totalItems)}
+                        {filteredCounters.length}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{totalItems}</span> counters
-                </div>
-                <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={(p) => setCurrentPage(p)}
-                    />
+                    counters
                 </div>
             </div>
 
