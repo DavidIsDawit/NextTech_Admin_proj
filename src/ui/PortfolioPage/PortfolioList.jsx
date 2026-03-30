@@ -79,9 +79,8 @@ function PortfolioList() {
     // Frontend Filtering Logic
     const filteredPortfolios = useMemo(() => {
         return portfolios.filter((item) => {
-            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
-                item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.client?.toLowerCase().includes(searchTerm.toLowerCase());
+            const searchStr = (item.title || item.client || item.sector || item.catagory || "").toLowerCase();
+            const matchesSearch = !searchTerm || searchTerm.length < 3 || searchStr.includes(searchTerm.toLowerCase());
             const matchesSector = sectorFilter === "All Sectors" || item.sector === sectorFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesSector && matchesStatus;
@@ -397,7 +396,7 @@ function PortfolioList() {
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
                     </div>
                 ) : (
-                    <DynamicTable columns={columns} rows={portfolios} />
+                    <DynamicTable columns={columns} rows={currentData} />
                 )}
             </div>
 
