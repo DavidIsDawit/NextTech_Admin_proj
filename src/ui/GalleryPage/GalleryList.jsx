@@ -79,8 +79,8 @@ function GalleryList() {
     const filteredGallery = useMemo(() => {
         return gallery.filter((item) => {
             const matchesSearch = !searchTerm || searchTerm.length < 3 || 
-                item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.fileType?.toLowerCase().includes(searchTerm.toLowerCase());
+                item.fileType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (item.catagory || item.category)?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesCategory = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
             const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
             return matchesSearch && matchesCategory && matchesStatus;
@@ -96,7 +96,6 @@ function GalleryList() {
 
     const handleExportCSV = () => {
         exportToCSV(filteredGallery, "Gallery", {
-            title: "Media Title",
             fileType: "File Type",
             createdDate: "Upload Date",
             catagory: "Category",
@@ -244,16 +243,6 @@ function GalleryList() {
                                 </div>
                             </div>
                         )}
-                </div>
-            ),
-        },
-        {
-            key: "title",
-            label: "Media Title",
-            className: "max-w-[200px] truncate",
-            render: (value) => (
-                <div className="truncate" title={value || "—"}>
-                    {value || "—"}
                 </div>
             ),
         },
@@ -455,7 +444,7 @@ function GalleryList() {
                 onOpenChange={setIsDeleteModalOpen}
                 onConfirm={handleDeleteConfirm}
                 entityName="Media"
-                itemName={selectedItem?.title}
+                itemName={selectedItem?.catagory || selectedItem?.category || "Media Item"}
                 image={selectedItem?.coverImage}
                 isDeleting={isDeleting}
             />
