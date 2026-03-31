@@ -46,22 +46,23 @@ function PortfolioList() {
         setIsLoading(true);
         try {
             const params = {
-                page: 1,
-                limit: 1000,
+                page: currentPage,
+                limit: itemsPerPage,
                 sort: "latest"
             };
 
             const result = await getAllPortfolios(params);
-            
+
             let portfolioItems = [];
             if (Array.isArray(result)) {
                 portfolioItems = result;
             } else if (result && typeof result === "object") {
                 portfolioItems = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
             }
-            
+
             setPortfolios(portfolioItems);
-            setTotalItems(result?.totalPortfolios || portfolioItems.length);
+            // If the backend returns paginated data (like totalPortfolios), use it.
+            setTotalItems(result?.totalPortfolios || result?.data?.totalPortfolios || portfolioItems.length);
         } catch (error) {
             console.error("Failed to fetch portfolios:", error);
         } finally {
@@ -69,14 +70,16 @@ function PortfolioList() {
         }
     };
 
+    // Refetch when currentPage changes
     useEffect(() => {
         fetchPortfolios();
-    }, []);
+    }, [currentPage, itemsPerPage]);
 
     const sectors = useMemo(() => ["All Sectors", ...new Set(portfolios.map(s => s.sector).filter(Boolean))], [portfolios]);
     const statuses = useMemo(() => ["All Status", ...new Set(portfolios.map(s => s.status).filter(Boolean))], [portfolios]);
 
-    // Frontend Filtering Logic
+    // Apply frontend filtering on the CURRENT page's data for now.
+    // If backend supports search/filter, params should be updated in fetchPortfolios.
     const filteredPortfolios = useMemo(() => {
         return portfolios.filter((item) => {
             const searchStr = (item.title || item.client || item.sector || item.catagory || "").toLowerCase();
@@ -87,12 +90,11 @@ function PortfolioList() {
         });
     }, [portfolios, searchTerm, sectorFilter, statusFilter]);
 
-    // Client-side Pagination Logic
-    const totalPages = Math.ceil(filteredPortfolios.length / itemsPerPage) || 1;
-    const currentData = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredPortfolios.slice(start, start + itemsPerPage);
-    }, [filteredPortfolios, currentPage, itemsPerPage]);
+    // Use totalItems from server for total pages so all pages show in Pagination
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    
+    // We already sliced from the server, so currentData is just filteredPortfolios
+    const currentData = filteredPortfolios;
 
     const handleExportCSV = () => {
         exportToCSV(filteredPortfolios, "Portfolios", {
