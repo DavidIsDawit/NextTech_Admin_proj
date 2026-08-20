@@ -1,17 +1,18 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/ui/select';
 import { Upload, X } from 'lucide-react';
 import { buildImageUrl } from '@/api/api';
+
+const getFileType = (file) => {
+    const mimeType = file?.type?.split('/')[1]?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(mimeType)) return mimeType;
+
+    const extension = file?.name?.split('.').pop()?.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension) ? extension : '';
+};
 
 /**
  * MediaForm - Form component for Media/Gallery entity
@@ -62,14 +63,10 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
         onChange?.({ ...formData, [name]: value });
     };
 
-    const handleSelectChange = (name, value) => {
-        onChange?.({ ...formData, [name]: value });
-    };
-
     const handleCoverImageChange = (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            onChange?.({ ...formData, coverImage: file });
+            onChange?.({ ...formData, coverImage: file, fileType: getFileType(file) });
             const reader = new FileReader();
             reader.onloadend = () => {
                 setCoverImagePreview(reader.result);
@@ -115,7 +112,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                             <div className="flex flex-col items-center mb-6">
                                 <img
                                     src={coverImagePreview}
-                                    alt="Cover preview"
+                                    alt=""
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
                                 />
                             </div>
@@ -136,7 +133,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                     id="media-coverImage"
                     name="coverImage"
                     type="file"
-                    accept="image/*,video/*"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
                     onChange={handleCoverImageChange}
                     className="hidden"
                 />
@@ -145,13 +142,48 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
-            {/* Images Gallery Upload */}
+            {/* Title */}
             <div className="space-y-2">
-                <Label className={errors.images ? 'text-red-500' : ''}>
-                    Gallery Images <span className="text-red-500">*</span>
+                <Label htmlFor="title" className={errors.title ? 'text-red-500' : ''}>
+                    Title <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                    id="title"
+                    name="title"
+                    value={formData.title || ''}
+                    onChange={handleChange}
+                    placeholder="Enter title"
+                    className={errors.title ? 'border-red-500' : ''}
+                />
+                {errors.title && (
+                    <p className="text-sm text-red-500">{errors.title}</p>
+                )}
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+                <Label htmlFor="description" className={errors.description ? 'text-red-500' : ''}>
+                    Description <span className="text-red-500">*</span>
+                </Label>
+                <textarea
+                    id="description"
+                    name="description"
+                    value={formData.description || ''}
+                    onChange={handleChange}
+                    placeholder="Enter description"
+                    className={`w-full rounded-md border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#136ECA] ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
+                    rows={3}
+                />
+                {errors.description && (
+                    <p className="text-sm text-red-500">{errors.description}</p>
+                )}
+            </div>
+            <div className="space-y-2">
+                <Label>
+                    Gallery Images
                 </Label>
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative border-[#136ECA]"
                     onClick={() => document.getElementById('media-gallery').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -165,7 +197,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                                         <div key={idx} className={`relative group ${imagesPreview.length === 1 ? "w-48" : "aspect-square"}`}>
                                             <img
                                                 src={preview}
-                                                alt={`Gallery ${idx + 1}`}
+                                                alt=""
                                                 className={`rounded-lg border border-gray-200 shadow-sm ${imagesPreview.length === 1 ? "w-full h-auto object-contain" : "h-full w-full object-cover"}`}
                                                 onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                                             />
@@ -197,7 +229,7 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                         </div>
                     </div>
                 </div>
-                <Input
+                <input
                     id="media-gallery"
                     name="images"
                     type="file"
@@ -206,9 +238,6 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                     onChange={handleImagesChange}
                     className="hidden"
                 />
-                {errors.images && (
-                    <p className="text-sm text-red-500">{errors.images}</p>
-                )}
             </div>
 
             {/* Category */}
@@ -216,54 +245,23 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
                 <Label htmlFor="catagory" className={errors.catagory ? 'text-red-500' : ''}>
                     Category <span className="text-red-500">*</span>
                 </Label>
-                <Select
+                <Input
+                    id="catagory"
+                    name="catagory"
                     value={formData.catagory || ''}
-                    onValueChange={(value) => handleSelectChange('catagory', value)}
-                >
-                    <SelectTrigger className={errors.catagory ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="projects">Projects</SelectItem>
-                        <SelectItem value="events">Events</SelectItem>
-                        <SelectItem value="team">Team</SelectItem>
-                        <SelectItem value="office">Office</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                </Select>
+                    onChange={handleChange}
+                    placeholder="Enter a category"
+                    className={errors.catagory ? 'border-red-500' : ''}
+                />
                 {errors.catagory && (
                     <p className="text-sm text-red-500">{errors.catagory}</p>
                 )}
             </div>
 
-            {/* File Type */}
-            <div className="space-y-2">
-                <Label htmlFor="fileType" className={errors.fileType ? 'text-red-500' : ''}>
-                    File Type <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                    value={formData.fileType || ''}
-                    onValueChange={(value) => handleSelectChange('fileType', value)}
-                >
-                    <SelectTrigger className={errors.fileType ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select file type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="image">Image</SelectItem>
-                        <SelectItem value="video">Video</SelectItem>
-                        <SelectItem value="mixed">Mixed</SelectItem>
-                    </SelectContent>
-                </Select>
-                {errors.fileType && (
-                    <p className="text-sm text-red-500">{errors.fileType}</p>
-                )}
-            </div>
-
-
             {/* Status */}
             <div className="space-y-2">
                 <Label className={errors.status ? 'text-red-500' : ''}>
-                    Status <span className="text-red-500">*</span>
+                    Status
                 </Label>
                 <RadioGroup
                     value={formData.status}

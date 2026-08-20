@@ -75,10 +75,18 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
 
     return (
         <div className="space-y-4">
+            {errors.general && (
+                <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg border border-red-200">
+                    {errors.general}
+                </div>
+            )}
             {/* Certificate Upload */}
             <div className="space-y-2">
+                <Label className={(errors.certificate || errors.certificateImage) ? 'text-red-500' : ''}>
+                    Certificate Image <span className="text-red-500">*</span>
+                </Label>
                 <div
-                    className="border-2 border-dashed border-[#136ECA] rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative"
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative ${(errors.certificate || errors.certificateImage) ? 'border-red-500 bg-red-50' : 'border-[#00adef]'}`}
                     onClick={() => document.getElementById('certificate-file').click()}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
@@ -89,7 +97,6 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                                 <img
                                     src={filePreview}
                                     alt="Preview"
-                                    crossOrigin="anonymous"
                                     className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
                                     onError={(e) => {
                                         e.target.src = "/upload-placeholder.png";
@@ -120,8 +127,8 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                     onChange={handleFileChange}
                     className="hidden"
                 />
-                {errors.certificate && (
-                    <p className="text-sm text-red-500">{errors.certificate}</p>
+                {(errors.certificate || errors.certificateImage) && (
+                    <p className="text-sm text-red-500">{errors.certificate || errors.certificateImage}</p>
                 )}
                 {imageError && (
                     <p className="text-sm text-yellow-600">Existing image not available. Please choose a new file.</p>
@@ -130,49 +137,75 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
 
             {/* Title */}
             <div className="space-y-2">
-                <Label htmlFor="title" className={errors.title ? 'text-red-500' : ''}>
-                    Certificate Title <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="title">Certificate Title <span className="text-red-500">*</span></Label>
                 <Input
                     id="title"
                     name="title"
                     placeholder="e.g., ISO 9001:2015 Quality Management"
                     value={formData.title || ''}
                     onChange={handleChange}
-                    className={errors.title ? 'border-red-500' : ''}
+                    className={(errors.title || errors.certificateName) ? 'border-red-500' : ''}
                 />
-                {errors.title && (
-                    <p className="text-sm text-red-500">{errors.title}</p>
+                {(errors.title || errors.certificateName) && (
+                    <p className="text-sm text-red-500">{errors.title || errors.certificateName}</p>
                 )}
             </div>
 
             {/* Issued By */}
             <div className="space-y-2">
-                <Label htmlFor="issuedBy" className={errors.issuedBy ? 'text-red-500' : ''}>
-                    Issued By <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="issuedBy">Issued By <span className="text-red-500">*</span></Label>
                 <Input
                     id="issuedBy"
                     name="issuedBy"
                     placeholder="Organization or issuer name"
                     value={formData.issuedBy || ''}
                     onChange={handleChange}
-                    className={errors.issuedBy ? 'border-red-500' : ''}
+                    className={(errors.issuedBy || errors.certificateFrom) ? 'border-red-500' : ''}
                 />
-                {errors.issuedBy && (
-                    <p className="text-sm text-red-500">{errors.issuedBy}</p>
+                {(errors.issuedBy || errors.certificateFrom) && (
+                    <p className="text-sm text-red-500">{errors.issuedBy || errors.certificateFrom}</p>
+                )}
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+                <Label htmlFor="description">Description  <span className="text-red-500">*</span></Label>
+                <Input
+                    id="description"
+                    name="description"
+                    placeholder="Enter certificate description"
+                    value={formData.description || ''}
+                    onChange={handleChange}
+                    className={(errors.description || errors.certificateDescription) ? 'border-red-500' : ''}
+                />
+                {(errors.description || errors.certificateDescription) && (
+                    <p className="text-sm text-red-500">{errors.description || errors.certificateDescription}</p>
+                )}
+            </div>
+
+            {/* Certificate Type */}
+            <div className="space-y-2">
+                <Label htmlFor="certificateType">Certificate Type</Label>
+                <Input
+                    id="certificateType"
+                    name="certificateType"
+                    placeholder="e.g., Technical, Safety"
+                    value={formData.certificateType || ''}
+                    onChange={handleChange}
+                    className={errors.certificateType ? 'border-red-500' : ''}
+                />
+                {errors.certificateType && (
+                    <p className="text-sm text-red-500">{errors.certificateType}</p>
                 )}
             </div>
 
             {/* Project */}
             <div className="space-y-2">
-                <Label htmlFor="project" className={errors.project ? 'text-red-500' : ''}>
-                    Project
-                </Label>
+                <Label htmlFor="project">Project (Optional)</Label>
                 <Input
                     id="project"
                     name="project"
-                    placeholder="Associated project (Optional)"
+                    placeholder="Associated project name"
                     value={formData.project || ''}
                     onChange={handleChange}
                     className={errors.project ? 'border-red-500' : ''}
@@ -182,63 +215,41 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
-            {/* Catagory */}
+            {/* Category */}
             <div className="space-y-2">
-                <Label htmlFor="catagory" className={errors.catagory ? 'text-red-500' : ''}>
-                    Catagory <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="catagory">Category <span className="text-red-500">*</span> </Label>
                 <Input
                     id="catagory"
                     name="catagory"
-                    placeholder="e.g., Engineering, Safety, etc."
+                    placeholder="e.g., Technology"
                     value={formData.catagory || ''}
                     onChange={handleChange}
-                    className={errors.catagory ? 'border-red-500' : ''}
+                    className={(errors.catagory || errors.category) ? 'border-red-500' : ''}
                 />
-                {errors.catagory && (
-                    <p className="text-sm text-red-500">{errors.catagory}</p>
-                )}
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Input
-                    id="description"
-                    name="description"
-                    placeholder="Enter certificate description"
-                    value={formData.description || ''}
-                    onChange={handleChange}
-                    className={errors.description ? 'border-red-500' : ''}
-                />
-                {errors.description && (
-                    <p className="text-sm text-red-500">{errors.description}</p>
+                {(errors.catagory || errors.category) && (
+                    <p className="text-sm text-red-500">{errors.catagory || errors.category}</p>
                 )}
             </div>
 
             {/* Issue Date */}
             <div className="space-y-2">
-                <Label htmlFor="issueDate" className={errors.issueDate ? 'text-red-500' : ''}>
-                    Issue Date <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="issueDate">Issue Date</Label>
                 <Input
                     id="issueDate"
                     name="issueDate"
                     type="date"
                     value={formData.issueDate ? new Date(formData.issueDate).toISOString().split('T')[0] : ''}
                     onChange={handleChange}
-                    className={errors.issueDate ? 'border-red-500' : ''}
+                    className={(errors.issueDate || errors.IssueDate) ? 'border-red-500' : ''}
                 />
-                {errors.issueDate && (
-                    <p className="text-sm text-red-500">{errors.issueDate}</p>
+                {(errors.issueDate || errors.IssueDate) && (
+                    <p className="text-sm text-red-500">{errors.issueDate || errors.IssueDate}</p>
                 )}
             </div>
 
             {/* Status */}
             <div className="space-y-2">
-                <Label className={errors.status ? 'text-red-500' : ''}>
-                    Status <span className="text-red-500">*</span>
-                </Label>
+                <Label>Status</Label>
                 <RadioGroup
                     value={formData.status || 'Active'}
                     onValueChange={handleStatusChange}
@@ -249,8 +260,8 @@ export function CertificateForm({ formData = {}, onChange, errors = {} }) {
                         <Label htmlFor="cert-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Expired" id="cert-inactive" />
-                        <Label htmlFor="cert-inactive" className="font-normal cursor-pointer">Expired</Label>
+                        <RadioGroupItem value="InActive" id="cert-inactive" />
+                        <Label htmlFor="cert-inactive" className="font-normal cursor-pointer">InActive</Label>
                     </div>
                 </RadioGroup>
                 {errors.status && (

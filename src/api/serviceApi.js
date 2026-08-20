@@ -94,3 +94,75 @@ export const deleteService = async (id) => {
         throw error;
     }
 };
+
+/**
+ * Search services by query.
+ * @param {string} query
+ */
+export const searchServices = async (title) => {
+    try {
+        const response = await api.get("/service/search", { params: { title} });
+        const result = response.data;
+
+        if (result.status === "success" && Array.isArray(result.data)) {
+            result.data = result.data.map(normalizeService);
+        } else if (result.status === "success" && result.data?.services) {
+            result.data.services = result.data.services.map(normalizeService);
+        }
+
+        return result;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getCategories = async () => {
+    const response = await api.get("/services/categories");
+
+    const result = response.data;
+
+    return {
+        status: result.status,
+        data: result.categories,
+        total: result.totalCategories,
+    };
+};
+
+
+export const getStatuses = async () => {
+    const response = await api.get("/statuses");
+
+    const result = response.data;
+    
+    return { status: result.status, 
+        data: result.statuses, 
+        total: result.totalStatuses, };
+};
+
+
+
+export const filterServicesByStatus = async (status) => {
+    const { data } = await api.get("/filter/status", {
+        params: { status },
+    });
+
+    return {
+        status: data.status,
+        data: data.services.map(normalizeService),
+        total: data.totalServices,
+    };
+};
+
+export const filterServicesByCategory = async (category) => {
+    const { data } = await api.get("/services/filter", {
+        params: { category },
+    });   
+
+    return {
+        status: data.status,
+        data: data.services.map(normalizeService),
+        total: data.totalServices,
+    };
+};
+
+

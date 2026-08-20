@@ -60,7 +60,7 @@ export function TrafficChart({ data }) {
       <ChartContainer config={chartConfig} className="h-full w-full">
         <AreaChart
           data={chartData}
-          margin={{ top: 10, right: 20, left: 0, bottom: 20 }}
+          margin={{ top: 10, right: 20, left: 0, bottom: 30 }}
         >
           <CartesianGrid
             vertical={false}
@@ -76,7 +76,7 @@ export function TrafficChart({ data }) {
             label={{
               value: "Days",
               position: "insideBottom",
-              offset: -20,
+              offset: -25,
               fill: "#6b7280",
               fontWeight: 'bold',
               fontSize: 15

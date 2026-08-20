@@ -6,6 +6,7 @@ function Badge({ children, type }) {
         active: "bg-green-100 text-green-700",
         published: "bg-green-100 text-green-700",
         Inactive: "bg-red-100 text-red-700",
+        InActive: "bg-red-100 text-red-700",
         inactive: "bg-red-100 text-red-700",
         archived: "bg-red-100 text-red-700",
         disable: "bg-red-100 text-red-700",

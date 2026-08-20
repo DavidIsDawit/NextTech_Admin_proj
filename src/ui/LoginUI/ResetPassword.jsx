@@ -21,28 +21,18 @@ function ResetPassword() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!newPassword || !confirmPassword) {
-            toast.error("Both password fields are required");
-            return;
-        }
-        if (newPassword !== confirmPassword) {
-            toast.error("Passwords do not match");
-            return;
-        }
-        if (newPassword.length < 8) {
-            toast.error("Password must be at least 8 characters");
-            return;
-        }
+
 
         setLoading(true);
         try {
             const res = await resetPassword(token, { newPassword, confirmPassword });
             if (res.status === "success") {
                 setSuccess(true);
-                toast.success("Password reset successfully!");
+                const msg = res?.message || res?.data?.message;
+                if (msg) toast.success(msg);
                 setTimeout(() => navigate("/admin/login"), 3000);
             } else {
-                toast.error(res.message || "Failed to reset password");
+                if (res.message) toast.error(res.message);
             }
         } catch (error) {
             const message = error.response?.data?.message || "Something went wrong";
@@ -143,7 +133,7 @@ function ResetPassword() {
                                 disabled={loading}
                                 className="bg-[#00A8E8] hover:bg-[#0092c9] text-white font-medium py-3 px-4 rounded-xl shadow-md transition-colors mt-2"
                             >
-                                {loading ? "Resetting..." : "Reset Password"}
+                                {loading ? "Resetting..." : "Update Password"}
                             </Button>
                         </form>
                     ) : (

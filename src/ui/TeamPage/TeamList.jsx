@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -11,21 +12,31 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { TeamForm } from "../forms/TeamForm";
-import { getAllTeams, createTeamMember, updateTeamMember, deleteTeamMember } from "../../api/teamApi";
+import { getAllTeams, createTeamMember, updateTeamMember, deleteTeamMember, searchTeams, filterTeamsBySpecialty, getSpecialties, getStatuses, filterTeamsByStatus } from "../../api/teamApi";
 import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 import { toast } from "sonner";
 
 function TeamList() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [specialties, setSpecialties] = useState([]);
+    const [statuses, setStatuses] = useState([]);
     const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
     const [statusFilter, setStatusFilter] = useState("All Status");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    const setCurrentPage = (page) => {
+        setSearchParams((prev) => {
+            prev.set("page", page);
+            return prev;
+        });
+    };
+    const itemsPerPage = 8;
 
     // Data State
     const [team, setTeam] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -36,19 +47,61 @@ function TeamList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
+
+    // Compare form data for isChanged (handles File objects)
+    const getComparableData = (data) => {
+        const clone = { ...data };
+        Object.keys(clone).forEach(key => {
+            if (clone[key] instanceof File) clone[key] = '__file__';
+        });
+        return JSON.stringify(clone);
+    };
+
+    // Debounced search
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const fetchTeam = async () => {
+        const search = debouncedSearchTerm.trim();
+        if (search.length > 0 && search.length < 3) {
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const params = { 
-                page: 1, 
-                limit: 1000 
-            };
+            let result;
+            const params = { page: currentPage, limit: itemsPerPage };
+            if (search.length >= 3) {
+                result = await searchTeams(search, params);
+            } else if (specialtyFilter !== "All Specialties") {
+                result = await filterTeamsBySpecialty(specialtyFilter, params);
+            } else if (statusFilter !== "All Status") {
+                result = await filterTeamsByStatus(statusFilter, params);
+            } else {
+                result = await getAllTeams(params);
+            }
 
-            const result = await getAllTeams(params);
-            if (result.status === "success" && Array.isArray(result.data)) {
-                setTeam(result.data);
-                setTotalItems(result.data.length);
+            if (result && result.status === "success" && Array.isArray(result.data)) {
+                const teamItems = result.data;
+                const isClientSideSliced = teamItems.length > itemsPerPage;
+                const total = isClientSideSliced
+                    ? teamItems.length
+                    : (result.totalTeams ?? result.total ?? teamItems.length);
+
+                setTotalItems(total);
+
+                if (isClientSideSliced) {
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    setTeam(teamItems.slice(startIndex, startIndex + itemsPerPage));
+                } else {
+                    setTeam(teamItems);
+                }
+
+                setTotalPages(Math.ceil(total / itemsPerPage) || 1);
             }
         } catch (error) {
             console.error("Failed to fetch team members:", error);
@@ -59,36 +112,50 @@ function TeamList() {
 
     useEffect(() => {
         fetchTeam();
+    }, [currentPage, debouncedSearchTerm, specialtyFilter, statusFilter]);
+
+    useEffect(() => {
+        const fetchSpecialties = async () => {
+            const result = await getSpecialties();
+            if (result.status === "success") {
+                setSpecialties(result.data);
+            }
+        }; fetchSpecialties();
     }, []);
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(team.map(s => s.specialty).filter(Boolean))], [team]);
-    const statuses = useMemo(() => ["All Status", ...new Set(team.map(s => s.status).filter(Boolean))], [team]);
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            const result = await getStatuses();
+            if (result.status === "success") {
+                setStatuses(result.data);
+            }
+        }; fetchStatuses();
+    }, []);
 
-    // Frontend Filtering Logic
-    const filteredTeams = useMemo(() => {
-        return team.filter((item) => {
-            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
-                item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.specialty?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesSpecialty = specialtyFilter === "All Specialties" || item.specialty === specialtyFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesSpecialty && matchesStatus;
-        });
-    }, [team, searchTerm, specialtyFilter, statusFilter]);
+    const currentData = team;
+    // const currentData = filteredTeams;
 
-    // Client-side Pagination Logic
-    const totalPages = Math.ceil(filteredTeams.length / itemsPerPage) || 1;
-    const currentData = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredTeams.slice(start, start + itemsPerPage);
-    }, [filteredTeams, currentPage, itemsPerPage]);
-
+    // const handleExportCSV = () => {
+    //     exportToCSV(team, "Team", {
+    //         name: "Name",
+    //         date: "Joining Date",
+    //         specialty: "Specialty",
+    //         status: "Status"
+    //     });
+    // };
     const handleExportCSV = () => {
-        exportToCSV(filteredTeams, "Team", {
+        const exportData = team.map((member) => ({
+            name: member.name,
+            date: member.createdDate || member.date,
+            specialty: member.specialty,
+            status: member.status,
+        }));
+
+        exportToCSV(exportData, "Team", {
             name: "Name",
             date: "Joining Date",
             specialty: "Specialty",
-            status: "Status"
+            status: "Status",
         });
     };
 
@@ -109,7 +176,9 @@ function TeamList() {
     const handleEdit = (item) => {
         setFormType('edit');
         setSelectedItem(item);
-        setFormData({ ...item });
+        const editData = { ...item };
+        setFormData(editData);
+        initialFormDataRef.current = getComparableData(editData);
         setErrors({});
         setIsFormModalOpen(true);
     };
@@ -123,16 +192,7 @@ function TeamList() {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
 
-        // Frontend Validation
-        const newErrors = {};
-        if (formType === 'add' && !formData.image) newErrors.image = "Team member image is required";
-        if (!formData.name) newErrors.name = "Name is required";
-        if (!formData.specialty) newErrors.specialty = "Specialty is required";
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
+        // Frontend validation removed; relying on backend.
 
         setIsSubmitting(true);
         try {
@@ -149,11 +209,13 @@ function TeamList() {
 
 
             if (formType === 'add') {
-                await createTeamMember(data);
-                toast.success("Team member added successfully!");
+                const res = await createTeamMember(data);
+                const msg = res?.message || res?.data?.message;
+                if (msg) toast.success(msg);
             } else {
-                await updateTeamMember(selectedItem._id || selectedItem.id, data);
-                toast.success("Team member updated successfully!");
+                const res = await updateTeamMember(selectedItem._id || selectedItem.id, data);
+                const msg = res?.message || res?.data?.message;
+                if (msg) toast.success(msg);
             }
             await fetchTeam();
             setIsFormModalOpen(false);
@@ -165,7 +227,7 @@ function TeamList() {
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             } else {
-                toast.error(extractErrorMessage(error, "Failed to save team member"));
+                if (error?.response?.data?.message) toast.error(error.response.data.message);
             }
         } finally {
             setIsSubmitting(false);
@@ -175,7 +237,9 @@ function TeamList() {
     const handleDeleteConfirm = async () => {
         setIsDeleting(true);
         try {
-            await deleteTeamMember(selectedItem._id || selectedItem.id);
+            const res = await deleteTeamMember(selectedItem._id || selectedItem.id);
+            const msg = res?.message || res?.data?.message;
+            if (msg) toast.success(msg);
             await fetchTeam();
             setIsDeleteModalOpen(false);
         } catch (error) {
@@ -193,7 +257,7 @@ function TeamList() {
                 <div className="flex-shrink-0 h-14 w-14">
                     <img
                         src={value}
-                        alt={row.name}
+                        alt=""
                         className="h-full w-full rounded object-cover"
                     />
                 </div>
@@ -280,7 +344,7 @@ function TeamList() {
                 </div>
                 {specialties.length > 1 && (
                     <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                        <DynamicDropdown
+                        {/* <DynamicDropdown
                             options={specialties.filter((s) => s !== "All Specialties")}
                             value={specialtyFilter}
                             onChange={(val) => {
@@ -288,6 +352,15 @@ function TeamList() {
                                 setCurrentPage(1);
                             }}
                             defaultOption="All Specialties"
+                        /> */}
+                        <DynamicDropdown
+                            options={specialties}
+                            value={specialtyFilter}
+                            defaultOption="All Specialties"
+                            onChange={(val) => {
+                                setSpecialtyFilter(val);
+                                setCurrentPage(1);
+                            }}
                         />
                     </div>
                 )}
@@ -350,13 +423,13 @@ function TeamList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredTeams.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredTeams.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredTeams.length}</span> members
+                    of <span className="font-medium text-gray-900">{totalItems}</span> members
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
@@ -374,9 +447,11 @@ function TeamList() {
                 title={formType === 'add' ? 'Add Team Member' : 'Edit Team Member'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Member' : 'Save Changes'}
+                submitLabel={formType === 'add' ? 'Add Member' : 'Update Member'}
                 size="md"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || getComparableData(formData) !== initialFormDataRef.current}
             >
                 <TeamForm
                     formData={formData}

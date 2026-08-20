@@ -50,14 +50,14 @@ function ServerError() {
                         Try Again
                     </Button>
 
-                    <Button
+                    {/* <Button
                         variant="ghost"
                         onClick={handleGoHome}
                         className="text-[#6C757D] hover:text-[#2C3E50] hover:bg-gray-50 font-medium py-4 flex items-center justify-center gap-2"
                     >
                         <Home className="w-4 h-4" />
                         Back to Dashboard
-                    </Button>
+                    </Button> */}
                 </div>
 
                 <div className="mt-10 pt-6 border-t border-gray-100">

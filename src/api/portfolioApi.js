@@ -26,17 +26,12 @@ export const getAllPortfolios = async ({ page = 1, limit = 10, sort = "latest" }
         const result = response.data;
 
         // Flexible response mapping: handles both wrapped and flat array responses
-        let portfoliosList = [];
-        if (Array.isArray(result)) {
-            portfoliosList = result;
-        } else if (result && typeof result === 'object') {
-            portfoliosList = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
-        }
+        let portfoliosList = result.portfolios
+            || result.data?.portfolios
+            || (Array.isArray(result.data) ? result.data : []);
 
-        if (Array.isArray(portfoliosList) && portfoliosList.length > 0) {
+        if (Array.isArray(portfoliosList)) {
             const normalized = portfoliosList.map(normalizePortfolio);
-            if (Array.isArray(result)) return normalized;
-            
             if (result.portfolios) result.portfolios = normalized;
             else if (result.data?.portfolios) result.data.portfolios = normalized;
             else if (Array.isArray(result.data)) result.data = normalized;
@@ -99,3 +94,73 @@ export const deletePortfolio = async (id) => {
         throw error;
     }
 };
+
+/** Search portfolios. */
+export const searchPortfolios = async (title) => {
+    try {
+        const response = await api.get("/portfolio/search", { params: { title } });
+        const result = response.data;
+
+        if (result.status === "success" && Array.isArray(result.data)) {
+            result.data = result.data.map(normalizePortfolio);
+        } else if (result.status === "success" && result.data?.portfolios) {
+            result.data.portfolios = result.data.portfolios.map(normalizePortfolio);
+        }
+
+        return result;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getSectors = async () => {
+    const response = await api.get("/portfolios/sectors");
+
+    const result = response.data;
+
+    return {
+        status: result.status,
+        data: result.sectors,
+        total: result.totalSectors,
+    };
+};
+
+
+export const getStatuses = async () => {
+    const response = await api.get("/portfolios/statuses");
+
+    const result = response.data;
+    
+    return { status: result.status, 
+        data: result.statuses, 
+        total: result.totalStatuses, };
+};
+
+
+export const filterPortfoliosByStatus = async (status) => {
+    const { data } = await api.get("/portfolios/filter-by-status", {
+        params: { status },
+    });
+
+    return {
+        status: data.status,
+        data: data.portfolios.map(normalizePortfolio),
+        total: data.totalPortfolios,
+    };
+};
+
+export const filterPortfoliosBySectors = async (sector) => {
+    const { data } = await api.get("/portfolios/filter-by-sector", {
+        params: { sector },
+    });
+
+    return {
+        status: data.status,
+        data: data.portfolios.map(normalizePortfolio),
+        total: data.totalPortfolios,
+    };
+};
+
+
+
+

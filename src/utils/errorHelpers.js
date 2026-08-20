@@ -66,7 +66,6 @@ export const mapBackendErrors = (error) => {
         mappedErrors[cleanField] = cleanMsg;
 
         // Targeted redirects: handle known backend field name → frontend field name mismatches.
-        // These are ONE-WAY mappings, not a fan-out, to avoid showing errors on unrelated fields.
         const cleanFieldLower = cleanField.toLowerCase();
 
         // Backend "certificateName" → CertificateForm uses "title"
@@ -143,18 +142,89 @@ export const mapBackendErrors = (error) => {
         }
     };
 
+    // Helper to clean prefixes from error messages
+    const cleanErrorMsg = (msg) => {
+        if (typeof msg !== 'string') return '';
+        return msg.replace(/^(Invalid input data|Validation failed|.*validation failed):\s*/i, '').trim();
+    };
+
+    // Helper to extract field name from an error segment
+    const getFieldFromSegment = (segment) => {
+        const lowerSegment = segment.toLowerCase();
+        
+        // 1. Check for Path `fieldName` pattern
+        const pathMatch = segment.match(/Path\s+`([^`]+)`/i);
+        if (pathMatch) {
+            return pathMatch[1].trim();
+        }
+
+        // 2. Check for explicit "fieldname: message" pattern
+        const fieldColonMatch = segment.match(/^([^:]+):\s*(.*)$/);
+        if (fieldColonMatch) {
+            const possibleField = fieldColonMatch[1].trim();
+            if (/^[a-zA-Z0-9_]+$/.test(possibleField)) {
+                return possibleField;
+            }
+        }
+
+        // 3. Fallback to keyword matching in the segment
+        const fieldsToCheck = [
+            'title', 'description', 'descriptionOne', 'descriptionTwo', 'discriptionThree', 'discriptionFour',
+            'subdescriptionOne', 'subDescription', 'answer', 'question', 'catagory', 'category', 'status',
+            'author', 'tags', 'happenedOn', 'date', 'happingDate', 'issueDate', 'issuedBy', 'issuedby',
+            'name', 'partnerName', 'photo', 'image', 'images', 'imageCover', 'coverImage', 'thumbnail', 'thumbinal',
+            'certificate', 'certificateImage', 'certificateName', 'projectName', 'certificateFrom', 'issuedBy',
+            'specialty', 'speciality', 'specality', 'role', 'position', 'review', 'testimony', 'client', 'sector',
+            'resultOne', 'requirement', 'requirements'
+        ];
+
+        for (const f of fieldsToCheck) {
+            const fLower = f.toLowerCase();
+            const regex = new RegExp(`\\b${fLower}\\b`, 'i');
+            if (regex.test(lowerSegment)) {
+                return f;
+            }
+        }
+
+        return null;
+    };
+
+    // Helper to map an error segment or raw error string to a target field
+    const mapSegmentToField = (field, mainMessage) => {
+        const cleanMsg = cleanErrorMsg(mainMessage);
+        // Split by comma, or by dot(s) followed by a space
+        const segments = cleanMsg.split(/(?:,\s+|\.{1,2}\s+)/).map(s => s.trim()).filter(Boolean);
+
+        const matchedSegment = segments.find(seg => {
+            const segField = getFieldFromSegment(seg);
+            return segField && segField.toLowerCase() === field.toLowerCase();
+        });
+
+        if (matchedSegment) {
+            addError(field, matchedSegment);
+        } else {
+            const substringSegment = segments.find(seg => 
+                seg.toLowerCase().includes(field.toLowerCase())
+            );
+            if (substringSegment) {
+                addError(field, substringSegment);
+            } else {
+                addError(field, mainMessage || `${field} is required.`);
+            }
+        }
+    };
+
     // 1. Handle Object format: { field1: "msg", ... }
     if (rawErrors && typeof rawErrors === 'object' && !Array.isArray(rawErrors)) {
         Object.entries(rawErrors).forEach(([field, msg]) => addError(field, msg));
     }
 
     // 2. Handle Array format
-    if (Array.isArray(rawErrors)) {
+    else if (Array.isArray(rawErrors)) {
         rawErrors.forEach(err => {
             if (typeof err === 'string') {
                 // Backend sends fields as array of strings like ['title']
-                // Use the main message as the error message for that field
-                addError(err, data.message || `${err} already exists.`);
+                mapSegmentToField(err, data.message);
             } else {
                 const field = err.path || err.param || err.field || err.name;
                 const msg = err.msg || err.message || String(err);
@@ -166,7 +236,7 @@ export const mapBackendErrors = (error) => {
     // 3. Handle String format or fallback to data.message
     const strError = (typeof rawErrors === 'string' ? rawErrors : '') || (typeof data.message === 'string' ? data.message : '');
 
-    if (strError) {
+    if (strError && Object.keys(mappedErrors).length === 0) {
         const lowerMsg = strError.toLowerCase();
 
         // 3a. Parse 'Duplicate fields: fieldName' format (sent by this backend)
@@ -200,28 +270,22 @@ export const mapBackendErrors = (error) => {
             }
         }
 
-        // 3b. Try to parse Mongoose-style multi-field error strings
-        // Example: "News validation failed: title: Path `title` is required., happenedOn: Path `happenedOn` is required."
-        // We look for patterns like "fieldname: Path `fieldname` ..." or just "fieldname: message"
-        const segments = strError.split(/,\s+(?=[a-zA-Z0-9_]+:)/); // Split by comma-space if followed by "field:"
+        // 3c. Try to parse segments from multi-field error strings
+        const cleanMsg = cleanErrorMsg(strError);
+        // Split by comma, or by dot(s) followed by a space
+        const segments = cleanMsg.split(/(?:,\s+|\.{1,2}\s+)/).map(s => s.trim()).filter(Boolean);
 
         let foundSpecific = false;
         segments.forEach(segment => {
-            // Clean the segment from "Validation failed: " prefix if it's the first one
-            const cleanSegment = segment.replace(/.*validation failed:\s*/i, '').trim();
-
-            // Match "field: message"
-            const match = cleanSegment.match(/^([^:]+):\s*(.*)$/);
-            if (match) {
-                const field = match[1].trim();
-                const msg = match[2].trim();
-                addError(field, msg);
+            const field = getFieldFromSegment(segment);
+            if (field) {
+                addError(field, segment);
                 foundSpecific = true;
             }
         });
 
         if (!foundSpecific) {
-            // 3b. Fallback to existing keyword-based detection if splitting didn't yield results
+            // 3d. Fallback to existing keyword-based detection if splitting didn't yield results
             const pathMatches = [...strError.matchAll(/Path\s+`([^`]+)`[^.]*\./g)];
 
             if (pathMatches.length > 0) {
@@ -235,7 +299,10 @@ export const mapBackendErrors = (error) => {
                 if (matchesAny(['title', 'project name'])) addError('title', strError);
                 if (matchesAny(['question'])) addError('question', strError);
                 if (matchesAny(['answer'])) addError('answer', strError);
-                if (matchesAny(['categor'])) addError('category', strError);
+                if (matchesAny(['categor'])) {
+                    addError('category', strError);
+                    addError('catagory', strError);
+                }
                 if (matchesAny(['name', 'author'])) {
                     addError('name', strError);
                     addError('title', strError);

@@ -16,15 +16,16 @@ import { Button } from "@/ui/button"
 // ];
 
 const gamenuItems = [
-  { title: "Services", path: "/admin/services", icon: "/images/Services.png" },
+  { title: "Dashboard", path: "/", icon: Dashboard },
+  { title: "Certificates", path: "/admin/certificates", icon: "/images/certificate.png" },
+  { title: "Counter", path: "/admin/counters", icon: "/images/Counter.png" },
+  { title: "FAQ", path: "/admin/faqs", icon: "/images/FAQ.png" },
+  { title: "Gallery", path: "/admin/gallery", icon: "/images/Gallary.png" },
+  { title: "News", path: "/admin/news", icon: "/images/News.png" },
   { title: "Partner Management", path: "/admin/partners", icon: "/images/partner.png" },
   { title: "Portfolio", path: "/admin/projects", icon: "/images/Project.png" },
-  { title: "Gallery", path: "/admin/gallery", icon: "/images/Gallary.png" },
-  { title: "Certificates", path: "/admin/certificates", icon: "/images/certificate.png" },
+  { title: "Services", path: "/admin/services", icon: "/images/Services.png" },
   { title: "Team Management", path: "/admin/teams", icon: "/images/team_page.jpg" },
-  { title: "News", path: "/admin/news", icon: "/images/News.png" },
-  { title: "FAQ", path: "/admin/faqs", icon: "/images/FAQ.png" },
-  { title: "Counter", path: "/admin/counters", icon: "/images/Counter.png" },
   { title: "Testimonial", path: "/admin/testimonials", icon: "/images/Testimonial.png" },
 ];
 
@@ -50,12 +51,12 @@ const AdminSidebar = () => {
   const navigate = useNavigate();
 
   const role = getUserRole();
-  const isSuperAdmin = role === "Admin";
-  const isGAEng = role === "GaUser" || isSuperAdmin;
-  const isGASoft = role === "SoftUser" || isSuperAdmin;
+  const isSuperAdmin = role?.toLowerCase() === "admin";
+  const isGAEng = role?.toLowerCase() === "gauser" || isSuperAdmin;
+  const isGASoft = role?.toLowerCase() === "softuser" || isSuperAdmin;
 
   const userManagementItems = [
-    { title: "Users", path: "/admin/users", icon: Users },
+    { title: "User List", path: "/admin/users", icon: Users },
   ];
 
 
@@ -71,6 +72,7 @@ const AdminSidebar = () => {
     removeSecureItem("refreshToken");
     removeSecureItem("userRole");
     removeSecureItem("firstTimeLogin");
+    removeSecureItem("rememberedEmail");
 
     // Trigger cross-tab logout sync
     syncLogout();
@@ -147,7 +149,7 @@ const AdminSidebar = () => {
         {/* 🔹 Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-1">
           {/* Dashboard */}
-
+{/* 
           <NavLink to="/" end
             onClick={() => setMobileOpen(false)}>
             {({ isActive }) => (
@@ -167,7 +169,7 @@ const AdminSidebar = () => {
                 Dashboard
               </div>
             )}
-          </NavLink>
+          </NavLink> */}
 
           {gamenuItems.map((item) => (
             <NavLink
@@ -195,6 +197,39 @@ const AdminSidebar = () => {
               )}
             </NavLink>
           ))}
+
+          {isSuperAdmin && (
+            <div className=" mt-4 border-t border-[#1A2332]">
+              {/* <div className="px-3 mb-2 text-xs font-semibold text-[#6C757D] uppercase tracking-wider">
+                Admin
+              </div> */}
+              {userManagementItems.map((item) => (
+                <NavLink
+                  key={item.title}
+                  to={item.path}
+                  end
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    `group flex gap-4 items-center px-3 py-2 rounded-lg text-sm lg:text-base font-medium transition-colors ${
+                      isActive
+                        ? "border-l-[#136ECA] border-l-4 text-white"
+                        : "text-[#9CA3AF] hover:bg-[#1A2332] hover:text-white"
+                    }`
+                  }
+                >
+                  {({ isActive }) => {
+                    const Icon = item.icon;
+                    return (
+                      <>
+                        <Icon className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 2xl:h-7 2xl:w-7 ${isActive ? 'text-white' : 'text-[#9CA3AF] group-hover:text-white'}`} />
+                        {item.title}
+                      </>
+                    );
+                  }}
+                </NavLink>
+              ))}
+            </div>
+          )}
         </nav>
 
         {/* Logout Button */}

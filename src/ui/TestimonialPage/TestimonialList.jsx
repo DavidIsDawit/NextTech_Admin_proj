@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -11,21 +12,31 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { TestimonialForm } from "../forms/TestimonialForm";
-import { getAllTestimonials, createTestimonial, updateTestimonial, deleteTestimonial } from "../../api/api_testimonial";
+import { getAllTestimonials, createTestimonial, updateTestimonial, deleteTestimonial, searchTestimonials, filterTestimonialsBySpecialty, getSpecialties, getStatuses, filterTestimonialsByStatus } from "../../api/api_testimonial";
 import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 import { toast } from "sonner";
 
 function TestimonialList() {
     const [isLoading, setIsLoading] = useState(false);
+    const [specialties, setSpecialties] = useState([]);
+    const [statuses, setStatuses] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
     const [statusFilter, setStatusFilter] = useState("All Status");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    const setCurrentPage = (page) => {
+        setSearchParams((prev) => {
+            prev.set("page", page);
+            return prev;
+        });
+    };
+    const itemsPerPage = 8;
 
     // Data State
     const [testimonials, setTestimonials] = useState([]);
     const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -36,22 +47,61 @@ function TestimonialList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
+
+    // Compare form data for isChanged (handles File objects)
+    const getComparableData = (data) => {
+        const clone = { ...data };
+        Object.keys(clone).forEach(key => {
+            if (clone[key] instanceof File) clone[key] = '__file__';
+        });
+        return JSON.stringify(clone);
+    };
+
+    // Debounced search
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const fetchTestimonials = async () => {
+        const search = debouncedSearchTerm.trim();
+        if (search.length > 0 && search.length < 3) {
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const params = { 
-                page: 1, 
-                limit: 1000, 
-                sort: 'recent' 
-            };
+            let result;
+            const params = { page: currentPage, limit: itemsPerPage, sort: 'recent' };
+            if (search.length >= 3) {
+                result = await searchTestimonials(search, params);
+            } else if (specialtyFilter !== "All Specialties") {
+                result = await filterTestimonialsBySpecialty(specialtyFilter, params);
+            } else if (statusFilter !== "All Status") {
+                result = await filterTestimonialsByStatus(statusFilter, params);
+            } else {
+                result = await getAllTestimonials(params);
+            }
 
-            const result = await getAllTestimonials(params);
+            if (result && result.status === "success" && Array.isArray(result.data)) {
+                const testimonialItems = result.data;
+                const isClientSideSliced = testimonialItems.length > itemsPerPage;
+                const total = isClientSideSliced
+                    ? testimonialItems.length
+                    : (Number.isFinite(result.total) ? result.total : testimonialItems.length);
 
-            if (result.status === "success") {
-                const data = result.data?.testimonials || (Array.isArray(result.data) ? result.data : []);
-                setTestimonials(data);
-                setTotalItems(data.length);
+                setTotalItems(total);
+
+                if (isClientSideSliced) {
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    setTestimonials(testimonialItems.slice(startIndex, startIndex + itemsPerPage));
+                } else {
+                    setTestimonials(testimonialItems);
+                }
+
+                setTotalPages(Math.ceil(total / itemsPerPage) || 1);
             }
         } catch (error) {
             console.error("Failed to fetch testimonials:", error);
@@ -62,32 +112,41 @@ function TestimonialList() {
 
     useEffect(() => {
         fetchTestimonials();
+    }, [currentPage, debouncedSearchTerm, specialtyFilter, statusFilter]);
+
+    useEffect(() => {
+        const fetchSpecialties = async () => {
+            const result = await getSpecialties();
+            if (result.status === "success") {
+                setSpecialties(result.data);
+            }
+        }; fetchSpecialties();
     }, []);
 
-    const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specality || s.specialty || s.testimony).filter(Boolean))], [testimonials]);
-    const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], [testimonials]);
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            const result = await getStatuses();
+            if (result.status === "success") {
+                setStatuses(result.data);
+            }
+        }; fetchStatuses();
+    }, []);
+    // const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specality || s.specialty || s.testimony).filter(Boolean))], [testimonials]);
+    // const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], [testimonials]);
 
-    // Frontend Filtering Logic
-    const filteredTestimonials = useMemo(() => {
-        return testimonials.filter((item) => {
-            const searchStr = (item.name || "").toLowerCase();
-            const matchesSearch = !searchTerm || searchTerm.length < 3 || searchStr.includes(searchTerm.toLowerCase());
-            const role = item.specality || item.specialty || item.testimony || "";
-            const matchesSpecialty = specialtyFilter === "All Specialties" || role === specialtyFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesSpecialty && matchesStatus;
-        });
-    }, [testimonials, searchTerm, specialtyFilter, statusFilter]);
-
-    // Client-side Pagination Logic
-    const totalPages = Math.ceil(filteredTestimonials.length / itemsPerPage) || 1;
-    const currentData = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredTestimonials.slice(start, start + itemsPerPage);
-    }, [filteredTestimonials, currentPage, itemsPerPage]);
+    // Server-side pagination: testimonials already contains only the current page items
+    // const filteredTestimonials = testimonials.filter(item => {
+    //     const itemSpecialty = item.specality || item.specialty || item.testimony;
+    //     const specialtyMatch = specialtyFilter === "All Specialties" || itemSpecialty === specialtyFilter;
+    //     const statusMatch = statusFilter === "All Status" || item.status === statusFilter;
+    //     return specialtyMatch && statusMatch;
+    // });
+    // const currentData = filteredTestimonials;
+    const currentData = testimonials.filter(item =>
+        statusFilter === "All Status" || item.status === statusFilter);
 
     const handleExportCSV = () => {
-        exportToCSV(filteredTestimonials, "Testimonials", {
+        exportToCSV(testimonials, "Testimonials", {
             name: "Name",
             specality: "Speciality",
             testimony: "Testimony",
@@ -104,9 +163,8 @@ function TestimonialList() {
             testimony: '',
             specality: '',
             review: '',
-            date: '',
             status: 'Active',
-            rate: 5,
+            rate: null,
             file: null
         });
         setErrors({});
@@ -116,7 +174,12 @@ function TestimonialList() {
     const handleEdit = (item) => {
         setFormType('edit');
         setSelectedItem(item);
-        setFormData({ ...item });
+        const editData = {
+            ...item,
+            rate: item?.rate ?? item?.rating ?? null,
+        };
+        setFormData(editData);
+        initialFormDataRef.current = getComparableData(editData);
         setErrors({});
         setIsFormModalOpen(true);
     };
@@ -124,31 +187,6 @@ function TestimonialList() {
     const handleDeleteClick = (item) => {
         setSelectedItem(item);
         setIsDeleteModalOpen(true);
-    };
-
-    const validateForm = () => {
-        const newErrors = {};
-        if (!formData.name?.trim()) newErrors.name = "Name is required";
-
-        const testimonyValue = formData.testimony || formData.review || formData.message;
-        if (!testimonyValue?.trim()) {
-            newErrors.testimony = "Testimony is required";
-        }
-
-        if (!formData.speciality?.trim() && !formData.specialty?.trim() && !formData.specality?.trim()) {
-            newErrors.specality = "Speciality is required";
-        }
-
-        if (!formData.date) {
-            newErrors.date = "Date is required";
-        }
-
-        if (!formData.rate || formData.rate < 1 || formData.rate > 5) {
-            newErrors.rate = "Rating must be an integer between 1 and 5";
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
     };
 
     const handleFormChange = (updatedData) => {
@@ -184,11 +222,27 @@ function TestimonialList() {
     const handleFormSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
 
-        // Client-side validation
-        if (!validateForm()) {
+        const testimonyValue = formData.testimony || formData.review || '';
+        const imageValue = formData.file || formData.image;
+        const validationErrors = {};
+
+        if (!imageValue) validationErrors.image = 'Testimonial image is required.';
+        if (!formData.name?.trim()) validationErrors.name = 'Name is required.';
+        if (!(formData.specality || formData.specialty || formData.speciality)?.trim()) {
+            validationErrors.specality = 'Speciality is required.';
+        }
+        if (!testimonyValue.trim()) validationErrors.testimony = 'Testimony is required.';
+        if (!formData.date) validationErrors.date = 'Date is required.';
+        if (formData.rate === null || formData.rate === undefined || formData.rate === '' || Number(formData.rate) <= 0) {
+            validationErrors.rate = 'Rating is required.';
+        }
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
             return;
         }
 
+        setErrors({});
         setIsSubmitting(true);
         try {
             const data = new FormData();
@@ -198,7 +252,6 @@ function TestimonialList() {
             if (formData.name) data.append('name', formData.name);
 
             // testimony and review are aliases — backend field is 'testimony'
-            const testimonyValue = formData.testimony || formData.review || '';
             if (testimonyValue) data.append('testimony', testimonyValue);
 
             if (formData.rate !== null && formData.rate !== undefined) data.append('rate', formData.rate);
@@ -223,11 +276,13 @@ function TestimonialList() {
             }
 
             if (formType === 'add') {
-                await createTestimonial(data);
-                toast.success("Testimonial added successfully!");
+                const res = await createTestimonial(data);
+                const msg = res?.message || res?.data?.message;
+                if (msg) toast.success(msg);
             } else {
-                await updateTestimonial(selectedItem._id || selectedItem.id, data);
-                toast.success("Testimonial updated successfully!");
+                const res = await updateTestimonial(selectedItem._id || selectedItem.id, data);
+                const msg = res?.message || res?.data?.message;
+                if (msg) toast.success(msg);
             }
             await fetchTestimonials();
             setIsFormModalOpen(false);
@@ -239,7 +294,7 @@ function TestimonialList() {
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             } else {
-                toast.error(extractErrorMessage(error, "Failed to save testimonial"));
+                if (error?.response?.data?.message) toast.error(error.response.data.message);
             }
         } finally {
             setIsSubmitting(false);
@@ -249,7 +304,9 @@ function TestimonialList() {
     const handleDeleteConfirm = async () => {
         setIsDeleting(true);
         try {
-            await deleteTestimonial(selectedItem._id || selectedItem.id);
+            const res = await deleteTestimonial(selectedItem._id || selectedItem.id);
+            const msg = res?.message || res?.data?.message;
+            if (msg) toast.success(msg);
             await fetchTestimonials();
             setIsDeleteModalOpen(false);
         } catch (error) {
@@ -267,7 +324,7 @@ function TestimonialList() {
                 <div className="flex-shrink-0 h-14 w-14 rounded overflow-hidden bg-gray-100">
                     <img
                         src={value || "/upload-placeholder.png"}
-                        alt={row.name || "Testimonial"}
+                        alt=""
                         className="h-full w-full object-cover"
                         onError={(e) => {
                             e.target.src = "/upload-placeholder.png";
@@ -373,7 +430,7 @@ function TestimonialList() {
                 </div>
                 {specialties.length > 1 && (
                     <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                        <DynamicDropdown
+                        {/* <DynamicDropdown
                             options={specialties.filter((s) => s !== "All Specialties")}
                             value={specialtyFilter}
                             onChange={(val) => {
@@ -381,7 +438,15 @@ function TestimonialList() {
                                 setCurrentPage(1);
                             }}
                             defaultOption="All Specialties"
-                        />
+                        /> */}
+                        <DynamicDropdown
+                            options={specialties}
+                            value={specialtyFilter}
+                            defaultOption="All Specialties"
+                            onChange={(val) => {
+                                setSpecialtyFilter(val);
+                                setCurrentPage(1);
+                            }} />
                     </div>
                 )}
                 {statuses.length > 1 && (
@@ -430,20 +495,26 @@ function TestimonialList() {
             </div>
 
             <div>
-                <DynamicTable columns={columns} rows={currentData} />
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
+                    </div>
+                ) : (
+                    <DynamicTable columns={columns} rows={currentData} />
+                )}
             </div>
 
             <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredTestimonials.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredTestimonials.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredTestimonials.length}</span> testimonials
+                    of <span className="font-medium text-gray-900">{totalItems}</span> testimonials
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
@@ -461,9 +532,11 @@ function TestimonialList() {
                 title={formType === 'add' ? 'Add New Testimonial' : 'Edit Testimonial'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Testimonial' : 'Save Changes'}
+                submitLabel={formType === 'add' ? 'Add Testimonial' : 'Update Testimonial'}
                 size="lg"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || getComparableData(formData) !== initialFormDataRef.current}
             >
                 <TestimonialForm
                     formData={formData}

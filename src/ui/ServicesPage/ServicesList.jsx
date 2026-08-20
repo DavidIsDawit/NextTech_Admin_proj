@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -11,21 +12,31 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { ServiceForm } from "../forms/ServiceForm";
-import { getAllServices, createService, updateService, deleteService } from "../../api/serviceApi";
+import { getAllServices, createService, updateService, deleteService, searchServices, filterServicesByCategory, filterServicesByStatus, getStatuses, getCategories } from "../../api/serviceApi";
 import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 import { toast } from "sonner";
 
 function Services() {
     const [searchTerm, setSearchTerm] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
+    const [categories, setCategories] = useState([]);
+    const [statuses, setStatuses] = useState([]);
     const [statusFilter, setStatusFilter] = useState("All Status");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    const setCurrentPage = (page) => {
+        setSearchParams((prev) => {
+            prev.set("page", page);
+            return prev;
+        });
+    };
+    const itemsPerPage = 8;
 
     // Data State
     const [services, setServices] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -36,20 +47,65 @@ function Services() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
+
+    // Compare form data for isChanged (handles File objects)
+    const getComparableData = (data) => {
+        const clone = { ...data };
+        Object.keys(clone).forEach(key => {
+            if (clone[key] instanceof File) clone[key] = '__file__';
+            if (Array.isArray(clone[key])) {
+                clone[key] = clone[key].map(item => item instanceof File ? '__file__' : item);
+            }
+        });
+        return JSON.stringify(clone);
+    };
+
+    // Debounced search
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const fetchServices = async () => {
+        const search = debouncedSearchTerm.trim();
+        if (search.length > 0 && search.length < 3) {
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const params = { 
-                page: 1, 
-                limit: 1000 
-            };
+            let result;
+            const params = { page: currentPage, limit: itemsPerPage };
+            if (search.length >= 3) {
+                result = await searchServices(search, params);
+            } else if (categoryFilter !== "All Categories") {
+                result = await filterServicesByCategory(categoryFilter, params);
+            } else if (statusFilter !== "All Status") {
+                result = await filterServicesByStatus(statusFilter, params);
+            } else {
+                result = await getAllServices(params);
+            }
+            if (result && result.status === "success") {
+                const servicesArray = Array.isArray(result.data)
+                    ? result.data
+                    : result.data?.services || [];
+                const isClientSideSliced = servicesArray.length > itemsPerPage;
+                const total = isClientSideSliced
+                    ? servicesArray.length
+                    : (result.total ?? result.data?.total ?? servicesArray.length);
 
-            const result = await getAllServices(params);
-            if (result.status === "success") {
-                const serviceItems = result.data?.services || (Array.isArray(result.data) ? result.data : []);
-                setServices(serviceItems);
-                setTotalItems(serviceItems.length);
+                setTotalItems(total);
+
+                if (isClientSideSliced) {
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    setServices(servicesArray.slice(startIndex, startIndex + itemsPerPage));
+                } else {
+                    setServices(servicesArray);
+                }
+
+                setTotalPages(Math.ceil(total / itemsPerPage) || 1);
             }
         } catch (error) {
             console.error("Failed to fetch services:", error);
@@ -60,32 +116,49 @@ function Services() {
 
     useEffect(() => {
         fetchServices();
+    }, [currentPage, debouncedSearchTerm, categoryFilter, statusFilter]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const result = await getCategories();
+            if (result.status === "success") {
+                setCategories(result.data);
+            }
+        }; fetchCategories();
     }, []);
 
-    const categories = useMemo(() => ["All Categories", ...new Set(services.map(s => s.catagory || s.category).filter(Boolean))], [services]);
-    const statuses = useMemo(() => ["All Status", ...new Set(services.map(s => s.status).filter(Boolean))], [services]);
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            const result = await getStatuses();
+            if (result.status === "success") {
+                setStatuses(result.data);
+            }
+        }; fetchStatuses();
+    }, []);
 
-    // Frontend Filtering Logic
-    const filteredServices = useMemo(() => {
-        return services.filter((item) => {
-            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
-                item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.description?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesCategory && matchesStatus;
-        });
-    }, [services, searchTerm, categoryFilter, statusFilter]);
+    // const categories = useMemo(() => ["All Categories", ...new Set(services.map(s => s.catagory || s.category).filter(Boolean))], [services]);
+    // const statuses = useMemo(() => ["All Status", ...new Set(services.map(s => s.status).filter(Boolean))], [services]);
 
-    // Client-side Pagination Logic
-    const totalPages = Math.ceil(filteredServices.length / itemsPerPage) || 1;
-    const currentServices = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredServices.slice(start, start + itemsPerPage);
-    }, [filteredServices, currentPage, itemsPerPage]);
+    // // Server-side pagination: services already contains only the current page items
+    // const filteredServices = services.filter(item => {
+    //     const categoryMatch = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
+    //     const statusMatch = statusFilter === "All Status" || item.status === statusFilter;
+    //     return categoryMatch && statusMatch;
+    // });
+    // const currentServices = filteredServices;
+
+    const currentServices = services.filter(item =>
+        statusFilter === "All Status" || item.status === statusFilter);
 
     const handleExportCSV = () => {
-        exportToCSV(filteredServices, "Services", {
+        const exportData = services.map((service) => ({
+            title: service.title,
+            category: service.category || service.catagory,
+            description: service.description || service.shortDescription,
+            status: service.status,
+        }));
+
+        exportToCSV(exportData, "Services", {
             title: "Service Title",
             category: "Category",
             status: "Status",
@@ -101,7 +174,7 @@ function Services() {
             catagory: '',
             description: '',
             headLine: '',
-            status: 'Active',
+            status: 'active',
             imageCover: null,
             images: [],
             subTitleOne: '',
@@ -116,7 +189,9 @@ function Services() {
     const handleEdit = (item) => {
         setFormType('edit');
         setSelectedItem(item);
-        setFormData({ ...item });
+        const editData = { ...item };
+        setFormData(editData);
+        initialFormDataRef.current = getComparableData(editData);
         setErrors({});
         setIsFormModalOpen(true);
     };
@@ -130,18 +205,7 @@ function Services() {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
 
-        // Frontend Validation
-        const newErrors = {};
-        if (formType === 'add' && !formData.imageCover) newErrors.imageCover = "Cover image is required";
-        if (!formData.title) newErrors.title = "Service title is required";
-        if (!formData.catagory) newErrors.catagory = "Category is required";
-        if (!formData.description) newErrors.description = "Service description is required";
-        if (!formData.headLine) newErrors.headLine = "Headline is required";
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
+        // Frontend validation removed; relying on backend.
 
         setIsSubmitting(true);
         try {
@@ -165,20 +229,22 @@ function Services() {
             if (formType === 'add') {
                 const res = await createService(data);
                 if (res.status === "success") {
-                    toast.success("Service created successfully!");
+                    const msg = res?.message || res?.data?.message;
+                    if (msg) toast.success(msg);
                     await fetchServices();
                     setIsFormModalOpen(false);
                 } else {
-                    toast.error(res.message || "Failed to create service");
+                    if (res.message) toast.error(res.message);
                 }
             } else {
                 const res = await updateService(selectedItem._id || selectedItem.id, data);
                 if (res.status === "success") {
-                    toast.success("Service updated successfully!");
+                    const msg = res?.message || res?.data?.message;
+                    if (msg) toast.success(msg);
                     await fetchServices();
                     setIsFormModalOpen(false);
                 } else {
-                    toast.error(res.message || "Failed to update service");
+                    if (res.message) toast.error(res.message);
                 }
             }
         } catch (error) {
@@ -186,7 +252,7 @@ function Services() {
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             } else {
-                toast.error(extractErrorMessage(error, "Failed to save service"));
+                if (error?.response?.data?.message) toast.error(error.response.data.message);
             }
         } finally {
             setIsSubmitting(false);
@@ -196,7 +262,9 @@ function Services() {
     const handleDeleteConfirm = async () => {
         setIsDeleting(true);
         try {
-            await deleteService(selectedItem._id || selectedItem.id);
+            const res = await deleteService(selectedItem._id || selectedItem.id);
+            const msg = res?.message || res?.data?.message;
+            if (msg) toast.success(msg);
             await fetchServices();
             setIsDeleteModalOpen(false);
         } catch (error) {
@@ -215,7 +283,7 @@ function Services() {
                 <div className="flex-shrink-0 h-14 w-14">
                     <img
                         src={value || row.thumbnail}
-                        alt={row.title}
+                        alt=""
                         className="h-full w-full rounded object-cover"
                     />
                 </div>
@@ -322,7 +390,7 @@ function Services() {
                 </div>
                 {categories.length > 1 && (
                     <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                        <DynamicDropdown
+                        {/* <DynamicDropdown
                             options={categories.filter((s) => s !== "All Categories")}
                             value={categoryFilter}
                             onChange={(val) => {
@@ -330,7 +398,15 @@ function Services() {
                                 setCurrentPage(1);
                             }}
                             defaultOption="All Categories"
-                        />
+                        /> */}
+                        <DynamicDropdown
+                            options={categories}
+                            value={categoryFilter}
+                            defaultOption="All Categories"
+                            onChange={(val) => {
+                                setCategoryFilter(val);
+                                setCurrentPage(1);
+                            }} />
                     </div>
                 )}
                 {statuses.length > 1 && (
@@ -394,13 +470,13 @@ function Services() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredServices.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredServices.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredServices.length}</span> services
+                    of <span className="font-medium text-gray-900">{totalItems}</span> services
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
@@ -418,9 +494,11 @@ function Services() {
                 title={formType === 'add' ? 'Add New Service' : 'Edit Service'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Service' : 'Save Changes'}
+                submitLabel={formType === 'add' ? 'Add Service' : 'Update Service'}
                 size="md"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || getComparableData(formData) !== initialFormDataRef.current}
             >
                 <ServiceForm
                     formData={formData}

@@ -96,3 +96,77 @@ export const deleteNews = async (id) => {
         throw error;
     }
 };
+
+/**
+ * Search news.
+ */
+export const searchNews = async (title) => {
+    try {
+        const response = await api.get("/news/search", { params: { title } });
+        const result = response.data;
+
+        if (result.status === "success" && Array.isArray(result.data)) {
+            result.data = result.data.map(normalizeNews);
+        } else if (result.status === "success" && result.data?.news) {
+            result.data.news = result.data.news.map(normalizeNews);
+        }
+
+        return result;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getCategories = async () => {
+    const response = await api.get("/news/categories");
+
+    const result = response.data;
+
+    return {
+        status: result.status,
+        data: result.categories,
+        total: result.totalCategories,
+    };
+};
+
+
+export const getStatuses = async () => {
+    const response = await api.get("/news/statuses");
+
+    const result = response.data;
+
+    return {
+        status: result.status,
+        data: result.statuses,
+        total: result.totalStatuses,
+    };
+};
+
+
+
+export const filterNewsByStatus = async (status) => {
+    const { data } = await api.get("/filter/status", {
+        params: { status },
+    });
+
+    return {
+        status: data.status,
+        data: data.news.map(normalizeService),
+        total: data.totalnews,
+    };
+};
+
+export const filterNewsByCategory = async (catagory) => {
+    const { data } = await api.get("/news/filter-by-category", {
+        params: { catagory },
+    });
+
+    return {
+        status: data.status,
+        data: data.news.map(normalizeNews),
+        total: data.totalNews,
+    };
+};
+
+
+

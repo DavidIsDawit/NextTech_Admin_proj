@@ -9,6 +9,11 @@ import { buildImageUrl } from '@/api/api';
 
 export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
     const [preview, setPreview] = useState(null);
+    const [hoverRating, setHoverRating] = useState(null);
+
+    const currentRateValue = Number(formData.rate ?? formData.rating ?? 0);
+    const currentRate = Number.isFinite(currentRateValue) ? currentRateValue : null;
+    const displayRate = hoverRating ?? currentRate ?? 0;
 
     useEffect(() => {
         if (formData.file instanceof File) {
@@ -20,6 +25,33 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
             setPreview(buildImageUrl(formData.thumbnail));
         }
     }, [formData.image, formData.thumbnail, formData.file]);
+
+    const getStarValue = (event, index) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const relativeX = event.clientX - rect.left;
+        const fraction = Math.max(0.1, Math.min(0.9, Number((relativeX / rect.width * 0.9).toFixed(1))));
+
+        if (fraction >= 0.9) {
+            return Number(index + 1);
+        }
+
+        return Number(Math.min(5, Math.max(0.1, index + fraction)).toFixed(1));
+    };
+
+    const handleRateMouseMove = (event, index) => {
+        const nextValue = getStarValue(event, index);
+        setHoverRating(nextValue);
+    };
+
+    const handleRateMouseLeave = () => {
+        setHoverRating(null);
+    };
+
+    const handleRateClick = (event, index) => {
+        const nextValue = getStarValue(event, index);
+        onChange?.({ ...formData, rate: nextValue });
+        setHoverRating(nextValue);
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -151,10 +183,51 @@ export function TestimonialForm({ formData = {}, onChange, errors = {} }) {
                 )}
             </div>
 
+            {/* Rating - between date and status */}
+            <div className="space-y-2">
+                <Label className={errors.rate ? 'text-red-500' : ''}>
+                    Rating <span className="text-red-500">*</span>
+                </Label>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex items-center gap-1 text-2xl select-none">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                            const fillLevel = Math.max(0, Math.min(1, displayRate - (star - 1)));
+                            const isFilled = fillLevel >= 1;
+                            const isPartial = fillLevel > 0 && fillLevel < 1;
+
+                            return (
+                                <button
+                                    key={star}
+                                    type="button"
+                                    onMouseMove={(event) => handleRateMouseMove(event, star - 1)}
+                                    onMouseLeave={handleRateMouseLeave}
+                                    onClick={(event) => handleRateClick(event, star - 1)}
+                                    className="transition transform hover:scale-110 focus:outline-none"
+                                    aria-label={`Rate ${star} star`}
+                                >
+                                    <span
+                                        className={`${isFilled ? 'text-amber-400' : isPartial ? 'text-amber-300' : 'text-slate-300'} ${fillLevel > 0 ? 'drop-shadow-sm' : ''}`}
+                                    >
+                                        ★
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div className="text-sm font-medium text-slate-700">
+                        {currentRate === null ? '—' : (Number.isInteger(displayRate) ? displayRate.toFixed(0) : displayRate.toFixed(1))} / 5
+                    </div>
+                </div>
+                {errors.rate && (
+                    <p className="text-sm text-red-500">{errors.rate}</p>
+                )}
+            </div>
+
             {/* Status */}
             <div className="space-y-2">
                 <Label className={errors.status ? 'text-red-500' : ''}>
-                    Status <span className="text-red-500">*</span>
+                    Status 
+                    {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <RadioGroup
                     value={formData.status}

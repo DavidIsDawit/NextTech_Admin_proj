@@ -67,6 +67,9 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
         <div className="space-y-4">
             {/* Partner File Upload */}
             <div className="space-y-2">
+                <Label className={errors.partnerImage ? 'text-red-500' : ''}>
+                    Partner Image <span className="text-red-500">*</span>
+                </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.partnerImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('partnerImage').click()}
@@ -133,7 +136,8 @@ export function PartnerForm({ formData = {}, onChange, errors = {} }) {
             {/* Status */}
             <div className="space-y-2">
                 <Label className={errors.status ? 'text-red-500' : ''}>
-                    Status <span className="text-red-500">*</span>
+                    Status 
+                    {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <RadioGroup
                     value={formData.status}

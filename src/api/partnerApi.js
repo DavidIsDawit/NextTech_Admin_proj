@@ -95,3 +95,46 @@ export const deletePartner = async (id) => {
         throw error;
     }
 };
+
+/* ------------------------------------------------------------------
+   SEARCH
+   GET /api/searchPartners
+------------------------------------------------------------------ */
+export const searchPartners = async (name) => {
+    try {
+        const response = await api.get("/partner/search", { params: { name } });
+        const result = response.data;
+
+        if (result.status === "success" && Array.isArray(result.data)) {
+            result.data = result.data.map(normalizePartner);
+        } else if (result.status === "success" && result.data?.partners) {
+            result.data.partners = result.data.partners.map(normalizePartner);
+        }
+
+        return result;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getStatuses = async () => {
+    const response = await api.get("/partners/statuses");
+
+    const result = response.data;
+    
+    return { status: result.status, 
+        data: result.statuses, 
+        total: result.totalStatuses, };
+};
+
+export const filterPartnersByStatus = async (status) => {
+    const { data } = await api.get("/partners/filter", {
+        params: { status },
+    });
+
+    return {
+        status: data.status,
+        data: data.partners.map(normalizePartner),
+        total: data.totalPartners,
+    };
+};

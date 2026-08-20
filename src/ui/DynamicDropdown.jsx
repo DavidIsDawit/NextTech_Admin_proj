@@ -1,19 +1,46 @@
 import PropTypes from 'prop-types';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/ui/select';
 
 function DynamicDropdown({ options, value, onChange, defaultOption }) {
+    const cleanDefaultOption = typeof defaultOption === 'string' ? defaultOption.trim() : '';
+    const normalizedOptions = Array.from(
+        new Set(
+            (options || [])
+                .filter((option) => typeof option === 'string' && option.trim() !== '')
+                .filter((option) => option !== cleanDefaultOption)
+        )
+    );
+
+    const selectOptions = cleanDefaultOption
+        ? [cleanDefaultOption, ...normalizedOptions]
+        : normalizedOptions;
+
+    const selectedValue = typeof value === 'string' && value.trim() !== '' ? value : undefined;
+
     return (
-        <select
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="block w-full pl-3 pr-10 py-3 text-base border border-gray-300 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+        <Select
+            value={selectedValue}
+            onValueChange={onChange}
         >
-            {defaultOption && <option value={defaultOption}>{defaultOption}</option>}
-            {options.map((option) => (
-                <option key={option} value={option}>
-                    {option}
-                </option>
-            ))}
-        </select>
+            <SelectTrigger
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-3 text-base text-left shadow-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 sm:text-sm"
+            >
+                <SelectValue placeholder={cleanDefaultOption || 'Select an option'} />
+            </SelectTrigger>
+            <SelectContent className="max-h-40 overflow-y-auto">
+                {selectOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                        {option}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
     );
 }
 

@@ -85,3 +85,84 @@ export const deleteTeamMember = async (id) => {
         throw error;
     }
 };
+
+/**
+ * Search team members.
+ */
+// export const searchTeams = async (name) => {
+//     try {
+//         const response = await api.get("/team/search", { params: { name} });
+//         const result = response.data;
+
+//         if (result.status === "success" && Array.isArray(result.data)) {
+//             result.data = result.teams.map(normalizeTeam);
+//         } else if (result.status === "success" && result.data?.teams) {
+//             result.data.teams = result.data.teams.map(normalizeTeam);
+//         }
+
+//         return result;
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+export const searchTeams = async (name) => {
+    const response = await api.get("/team/search", {
+        params: { name }
+    });
+
+    const result = response.data;
+
+    return {
+        status: result.status,
+        data: result.data.teams.map(normalizeTeam),
+        total: result.results
+    };
+};
+export const getSpecialties = async () => {
+    const response = await api.get("/team/specialties");
+
+    const result = response.data;
+
+    return {
+        status: result.status,
+        data: result.specialties,
+        total: result.totalSpecialties,
+    };
+};
+export const getStatuses = async () => {
+    const response = await api.get("/team/statuses");
+
+    const result = response.data;
+    
+    return { status: result.status, 
+        data: result.statuses, 
+        total: result.totalStatuses, };
+};
+
+
+
+export const filterTeamsByStatus = async (status) => {
+    const { data } = await api.get("/team/filter-by-status", {
+        params: { status },
+    });
+
+    return {
+        status: data.status,
+        data: data.team.map(normalizeTeam),
+        total: data.totalTeamMembers,
+    };
+};
+
+export const filterTeamsBySpecialty = async (specialty) => {
+    const { data } = await api.get("/team/filter-by-specialty", {
+        params: { specialty },
+    });
+
+    return {
+        status: data.status,
+        data: data.team.map(normalizeTeam),
+        total: data.totalTeamMembers,
+    };
+};
+
+
