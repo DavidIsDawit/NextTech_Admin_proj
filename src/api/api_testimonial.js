@@ -114,10 +114,10 @@ export const deleteTestimonial = async (id) => {
 //     throw error;
 //   }
 // };
-export const searchTestimonials = async (name) => {
+export const searchTestimonials = async (name, params = {}) => {
   try {
     const response = await api.get("/testimonial/search", {
-      params: { name },
+      params: { name, ...params },
     });
 
     const result = response.data;
@@ -172,9 +172,9 @@ export const getStatuses = async () => {
 
 
 
-export const filterTestimonialsByStatus = async (status) => {
+export const filterTestimonialsByStatus = async (status, params = {}) => {
     const { data } = await api.get("/testimonials/filter-by-status", {
-        params: { status },
+        params: { status, ...params },
     });
 
     const list = data.testimonials || data.testimonial || data.data || [];
@@ -196,9 +196,9 @@ export const filterTestimonialsByStatus = async (status) => {
 //         total: data.totalCount,
 //     };
 // };
-export const filterTestimonialsBySpecialty = async (specialty) => {
+export const filterTestimonialsBySpecialty = async (specialty, params = {}) => {
     const { data } = await api.get("/testimonials/filter-by-specialty", {
-        params: { specialty },
+        params: { specialty, ...params },
     });   
 
     const list = data.testimonials || data.testimonial || data.data || [];

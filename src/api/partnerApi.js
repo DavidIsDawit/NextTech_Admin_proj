@@ -100,9 +100,9 @@ export const deletePartner = async (id) => {
    SEARCH
    GET /api/searchPartners
 ------------------------------------------------------------------ */
-export const searchPartners = async (name) => {
+export const searchPartners = async (name, params = {}) => {
     try {
-        const response = await api.get("/partner/search", { params: { name } });
+        const response = await api.get("/partner/search", { params: { name, ...params } });
         const result = response.data;
 
         if (result.status === "success" && Array.isArray(result.data)) {
@@ -127,9 +127,9 @@ export const getStatuses = async () => {
         total: result.totalStatuses, };
 };
 
-export const filterPartnersByStatus = async (status) => {
+export const filterPartnersByStatus = async (status, params = {}) => {
     const { data } = await api.get("/partners/filter", {
-        params: { status },
+        params: { status, ...params },
     });
 
     return {

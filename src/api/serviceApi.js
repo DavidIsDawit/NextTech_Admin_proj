@@ -99,9 +99,9 @@ export const deleteService = async (id) => {
  * Search services by query.
  * @param {string} query
  */
-export const searchServices = async (title) => {
+export const searchServices = async (title, params = {}) => {
     try {
-        const response = await api.get("/service/search", { params: { title} });
+        const response = await api.get("/service/search", { params: { title, ...params } });
         const result = response.data;
 
         if (result.status === "success" && Array.isArray(result.data)) {
@@ -141,9 +141,9 @@ export const getStatuses = async () => {
 
 
 
-export const filterServicesByStatus = async (status) => {
+export const filterServicesByStatus = async (status, params = {}) => {
     const { data } = await api.get("/filter/status", {
-        params: { status },
+        params: { status, ...params },
     });
 
     return {
@@ -153,9 +153,9 @@ export const filterServicesByStatus = async (status) => {
     };
 };
 
-export const filterServicesByCategory = async (category) => {
+export const filterServicesByCategory = async (category, params = {}) => {
     const { data } = await api.get("/services/filter", {
-        params: { category },
+        params: { category, ...params },
     });   
 
     return {

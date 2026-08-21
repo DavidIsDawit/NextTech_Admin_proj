@@ -189,8 +189,8 @@ export const getAllUsers = async (params = {}) => {
    SEARCH – users
    GET /api/searchUsers
 ------------------------------------------------------------------ */
-export const searchUsers = async (name) => {
-  const response = await api.get("/users/search", { params: { name } });
+export const searchUsers = async (name, params = {}) => {
+  const response = await api.get("/users/search", { params: { name, ...params } });
   const data = response.data;
   if (data?.users) {
     data.users = data.users.map(normalizeUser);
@@ -206,8 +206,8 @@ export const searchUsers = async (name) => {
    FILTER – users by role
    GET /api/filterUsersByRole
 ------------------------------------------------------------------ */
-export const filterUsersByRole = async (role) => {
-  const response = await api.get("/users/filter", { params: { role } });
+export const filterUsersByRole = async (role, params = {}) => {
+  const response = await api.get("/users/filter", { params: { role, ...params } });
   const data = response.data;
   if (data?.users) {
     data.users = data.users.map(normalizeUser);

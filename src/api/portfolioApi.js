@@ -96,9 +96,9 @@ export const deletePortfolio = async (id) => {
 };
 
 /** Search portfolios. */
-export const searchPortfolios = async (title) => {
+export const searchPortfolios = async (title, params = {}) => {
     try {
-        const response = await api.get("/portfolio/search", { params: { title } });
+        const response = await api.get("/portfolio/search", { params: { title, ...params } });
         const result = response.data;
 
         if (result.status === "success" && Array.isArray(result.data)) {
@@ -137,9 +137,9 @@ export const getStatuses = async () => {
 };
 
 
-export const filterPortfoliosByStatus = async (status) => {
+export const filterPortfoliosByStatus = async (status, params = {}) => {
     const { data } = await api.get("/portfolios/filter-by-status", {
-        params: { status },
+        params: { status, ...params },
     });
 
     return {
@@ -149,9 +149,9 @@ export const filterPortfoliosByStatus = async (status) => {
     };
 };
 
-export const filterPortfoliosBySectors = async (sector) => {
+export const filterPortfoliosBySectors = async (sector, params = {}) => {
     const { data } = await api.get("/portfolios/filter-by-sector", {
-        params: { sector },
+        params: { sector, ...params },
     });
 
     return {

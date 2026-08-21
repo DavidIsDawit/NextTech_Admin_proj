@@ -100,9 +100,9 @@ export const deleteNews = async (id) => {
 /**
  * Search news.
  */
-export const searchNews = async (title) => {
+export const searchNews = async (title, params = {}) => {
     try {
-        const response = await api.get("/news/search", { params: { title } });
+        const response = await api.get("/news/search", { params: { title, ...params } });
         const result = response.data;
 
         if (result.status === "success" && Array.isArray(result.data)) {
@@ -144,21 +144,21 @@ export const getStatuses = async () => {
 
 
 
-export const filterNewsByStatus = async (status) => {
+export const filterNewsByStatus = async (status, params = {}) => {
     const { data } = await api.get("/filter/status", {
-        params: { status },
+        params: { status, ...params },
     });
 
     return {
         status: data.status,
-        data: data.news.map(normalizeService),
+        data: data.news.map(normalizeNews),
         total: data.totalnews,
     };
 };
 
-export const filterNewsByCategory = async (catagory) => {
+export const filterNewsByCategory = async (catagory, params = {}) => {
     const { data } = await api.get("/news/filter-by-category", {
-        params: { catagory },
+        params: { catagory, ...params },
     });
 
     return {
