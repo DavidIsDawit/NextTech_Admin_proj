@@ -105,9 +105,9 @@ export const deleteTeamMember = async (id) => {
 //         throw error;
 //     }
 // };
-export const searchTeams = async (name) => {
+export const searchTeams = async (name, params = {}) => {
     const response = await api.get("/team/search", {
-        params: { name }
+        params: { name, ...params }
     });
 
     const result = response.data;
@@ -141,9 +141,9 @@ export const getStatuses = async () => {
 
 
 
-export const filterTeamsByStatus = async (status) => {
+export const filterTeamsByStatus = async (status, params = {}) => {
     const { data } = await api.get("/team/filter-by-status", {
-        params: { status },
+        params: { status, ...params },
     });
 
     return {
@@ -153,9 +153,9 @@ export const filterTeamsByStatus = async (status) => {
     };
 };
 
-export const filterTeamsBySpecialty = async (specialty) => {
+export const filterTeamsBySpecialty = async (specialty, params = {}) => {
     const { data } = await api.get("/team/filter-by-specialty", {
-        params: { specialty },
+        params: { specialty, ...params },
     });
 
     return {
