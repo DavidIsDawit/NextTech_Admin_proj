@@ -125,6 +125,7 @@ function PortfolioList() {
         }
     };
 
+    // Refetch when currentPage changes
     useEffect(() => {
         fetchPortfolios();
     }, [currentPage, debouncedSearchTerm, sectorFilter, statusFilter]);
