@@ -126,9 +126,22 @@ api.interceptors.response.use(
     const originalRequest = err.config;
 
     const isServerError = err.response?.status >= 500;
+    const isNetworkError = !err.response && (err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK' || err.message?.includes('timeout'));
 
-    // ONLY redirect to /server-error if the backend explicitly returns a 5xx status code
-    if (isServerError) {
+    // Retry logic for 5xx and network/timeout errors (handles Render cold starts)
+    if (isServerError || isNetworkError) {
+      const retryCount = originalRequest._retryCount || 0;
+      const maxRetries = 2;
+
+      if (retryCount < maxRetries) {
+        originalRequest._retryCount = retryCount + 1;
+        // Exponential backoff: 2s, 4s
+        const delay = Math.pow(2, retryCount + 1) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return api(originalRequest);
+      }
+
+      // All retries exhausted → redirect to server error page
       if (window.location.pathname !== "/server-error") {
         window.location.href = "/server-error";
       }

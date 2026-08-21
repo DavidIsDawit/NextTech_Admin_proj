@@ -4,13 +4,6 @@ import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { Textarea } from '@/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/ui/select';
 import { Upload, X } from 'lucide-react';
 import { buildImageUrl } from '@/api/api';
 
@@ -61,10 +54,6 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        onChange?.({ ...formData, [name]: value });
-    };
-
-    const handleSelectChange = (name, value) => {
         onChange?.({ ...formData, [name]: value });
     };
 
@@ -246,21 +235,14 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                 <Label htmlFor="catagory" className={errors.catagory ? 'text-red-500' : ''}>
                     Category <span className="text-red-500">*</span>
                 </Label>
-                <Select
+                <Input
+                    id="catagory"
+                    name="catagory"
+                    placeholder="e.g., Company News, Industry News, Press Release..."
                     value={formData.catagory || ''}
-                    onValueChange={(value) => handleSelectChange('catagory', value)}
-                >
-                    <SelectTrigger className={errors.catagory ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Company News" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="company-news">Company News</SelectItem>
-                        <SelectItem value="industry-news">Industry News</SelectItem>
-                        <SelectItem value="press-release">Press Release</SelectItem>
-                        <SelectItem value="blog">Blog</SelectItem>
-                        <SelectItem value="announcement">Announcement</SelectItem>
-                    </SelectContent>
-                </Select>
+                    onChange={handleChange}
+                    className={errors.catagory ? 'border-red-500' : ''}
+                />
                 {errors.catagory && (
                     <p className="text-sm text-red-500">{errors.catagory}</p>
                 )}
