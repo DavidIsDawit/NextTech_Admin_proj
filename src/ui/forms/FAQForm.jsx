@@ -4,13 +4,6 @@ import { Label } from '@/ui/label';
 import { Input } from '@/ui/input';
 import { Textarea } from '@/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/ui/radio-group';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/ui/select';
 
 export function FAQForm({ formData, setFormData, errors = {} }) {
     const handleChange = (e) => {
@@ -68,20 +61,14 @@ export function FAQForm({ formData, setFormData, errors = {} }) {
                 <Label htmlFor="category" className={errors.category ? 'text-red-500' : ''}>
                     Category <span className="text-red-500">*</span>
                 </Label>
-                <Select
-                    value={formData.category}
-                    onValueChange={(value) => handleSelectChange('category', value)}
-                >
-                    <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="general">General</SelectItem>
-                        <SelectItem value="account">Account</SelectItem>
-                        <SelectItem value="billing">Billing</SelectItem>
-                        <SelectItem value="technical">Technical Support</SelectItem>
-                    </SelectContent>
-                </Select>
+                <Input
+                    id="category"
+                    name="category"
+                    placeholder="e.g., General, Account, Billing, Technical Support..."
+                    value={formData.category || ''}
+                    onChange={handleChange}
+                    className={errors.category ? 'border-red-500' : ''}
+                />
                 {errors.category && (
                     <p className="text-sm text-red-500">{errors.category}</p>
                 )}

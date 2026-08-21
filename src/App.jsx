@@ -61,7 +61,17 @@ function App() {
     // If we're already on the server-error page, don't ping again
     // (the user will manually retry via the "Try Again" button)
     if (window.location.pathname !== "/server-error") {
-      api.get("/AllNews", { timeout: 3000 }).catch(() => { });
+      api.get("/AllNews", { timeout: 15000, _retryCount: 2 }).catch((err) => {
+        // Only redirect to server-error for genuine connectivity failures,
+        // not for auth errors or business logic errors
+        const status = err?.response?.status;
+        const isNetworkDown = !err?.response && (err?.code === 'ECONNABORTED' || err?.code === 'ERR_NETWORK');
+        if (isNetworkDown || (status && status >= 500)) {
+          if (window.location.pathname !== "/server-error") {
+            window.location.href = "/server-error";
+          }
+        }
+      });
     }
 
     // Initialize Auth (hydrate tokens if session exists)
