@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -29,6 +29,7 @@ function ProjectList() {
     const [formData, setFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const initialFormDataRef = useRef(null);
 
     const sectors = useMemo(() => ["All Sectors", ...new Set(ProjectsData.map(s => s.sector))], []);
     const statuses = useMemo(() => ["All Status", ...new Set(ProjectsData.map(s => s.status))], []);
@@ -59,6 +60,7 @@ function ProjectList() {
     const handleAddNew = () => {
         setFormType('add');
         setFormData({ status: 'active' });
+        initialFormDataRef.current = null;
         setIsFormModalOpen(true);
     };
 
@@ -66,6 +68,7 @@ function ProjectList() {
         setFormType('edit');
         setSelectedItem(item);
         setFormData({ ...item });
+        initialFormDataRef.current = JSON.stringify({ ...item });
         setIsFormModalOpen(true);
     };
 
@@ -75,10 +78,20 @@ function ProjectList() {
     };
 
     const handleFormSubmit = (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+
+        if (formType === 'edit') {
+            const hasChanged = JSON.stringify(formData) !== initialFormDataRef.current;
+            if (!hasChanged) {
+                toast.info("No changes detected.");
+                return;
+            }
+        }
+
         setIsSubmitting(true);
         // Simulate API call
         setTimeout(() => {
-            toast.success(`Project ${formType === 'add' ? 'added' : 'updated'} successfully!`);
+            // toast.success(`Project ${formType === 'add' ? 'added' : 'updated'} successfully!`); // TODO: Use backend message when API is integrated
             setIsSubmitting(false);
             setIsFormModalOpen(false);
         }, 1000);
@@ -266,6 +279,8 @@ function ProjectList() {
                 isSubmitting={isSubmitting}
                 submitLabel={formType === 'add' ? 'Add Project' : 'Save Changes'}
                 size="xl"
+                formType={formType}
+                isChanged={formType === 'add' || JSON.stringify(formData) !== initialFormDataRef.current}
             >
                 <ProjectForm
                     formData={formData}

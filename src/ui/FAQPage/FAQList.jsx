@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -27,6 +27,7 @@ function FAQList() {
     const [formType, setFormType] = useState('add'); // 'add' or 'edit'
     const [formData, setFormData] = useState({});
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
 
     const [faqs, setFaqs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -88,15 +89,12 @@ function FAQList() {
 
     // Modal Handlers
     const handleAddNew = () => {
-        if (totalItems >= 5) {
-            toast.error("Maximum 5 FAQs allowed");
-            return;
-        }
+
         setFormType('add');
         setFormData({
             question: '',
             answer: '',
-            category: 'general',
+            category: '',
             status: 'draft'
         });
         setErrors({});
@@ -108,12 +106,14 @@ function FAQList() {
         setSelectedItem(item);
         setErrors({});
         // Map backend 'catagory' to frontend 'category' for form
-        setFormData({
+        const editData = {
             ...item,
             category: item.catagory || item.category || 'general',
             question: item.question || '',
             answer: item.answer || ''
-        });
+        };
+        setFormData(editData);
+        initialFormDataRef.current = JSON.stringify(editData);
         setIsFormModalOpen(true);
     };
 
@@ -121,16 +121,7 @@ function FAQList() {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
 
-        // Frontend Validation
-        const newErrors = {};
-        if (!formData.question) newErrors.question = "Question is required";
-        if (!formData.answer) newErrors.answer = "Answer is required";
-        if (!formData.category && !formData.catagory) newErrors.catagory = "Category is required";
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
+        // Frontend validation removed; relying on backend.
 
         setIsSubmitting(true);
         try {
@@ -150,12 +141,13 @@ function FAQList() {
             }
 
             if (response.status === "success") {
-                toast.success(`FAQ ${formType === 'add' ? 'added' : 'updated'} successfully!`);
+                const msg = response?.message || response?.data?.message;
+                if (msg) toast.success(msg);
                 setIsFormModalOpen(false);
                 fetchFAQs();
             } else {
                 // If backend returns status failure but 200 OK
-                const msg = response.message || "Failed to save FAQ";
+                const msg = response.message || response?.data?.message || "Failed to save FAQ";
                 toast.error(msg);
                 // Try to extract errors if present in non-throwing case
                 const manualMapped = mapBackendErrors({ response: { data: response } });
@@ -322,8 +314,8 @@ function FAQList() {
 
             <div>
                 {isLoading ? (
-                    <div className="flex justify-center py-10">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#00A3E0]"></div>
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
                     </div>
                 ) : (
                     <DynamicTable columns={columns} rows={filteredFAQs} />
@@ -347,9 +339,11 @@ function FAQList() {
                 title={formType === 'add' ? 'Add New FAQ' : 'Edit FAQ'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add FAQ' : 'Save Changes'}
+                submitLabel={formType === 'add' ? 'Add FAQ' : 'Update FAQ'}
                 size="lg"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || JSON.stringify(formData) !== initialFormDataRef.current}
             >
                 <FAQForm
                     formData={formData}

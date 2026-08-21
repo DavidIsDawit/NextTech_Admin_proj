@@ -1,9 +1,9 @@
 // src/components/ViewProfile.jsx  (or wherever it lives)
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import api, { buildImageUrl } from "../../api/api";
-import { setSecureItem, getSecureItem } from "../../utils/storageUtils";
-import { updatePassword, getMe, getUserById, uploadPhoto, cleanupAuth, updateUser } from "../../api/userApi";
+import { buildImageUrl } from "../../api/api";
+import { setSecureItem } from "../../utils/storageUtils";
+import { updatePassword, getMe, getUserById, uploadPhoto, updateUser } from "../../api/userApi";
 import { mapBackendErrors } from "../../utils/errorHelpers";
 // static profile picture lives in public/images; reference via root URL
 import { LuBuilding2 } from "react-icons/lu";
@@ -11,6 +11,8 @@ import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Textarea } from "@/ui/textarea";
+import defaultAvatar from "/images/default-avatar.png";
+
 import {
   Select,
   SelectContent,
@@ -47,13 +49,18 @@ function ProfileSetting() {
     department: "",
     location: "",
     bio: "",
-    photo: "",
+    photo: defaultAvatar,
   });
   const [errors, setErrors] = useState({});
 
   const [isLoading, setIsLoading] = useState(true);
   const [tempPhotoFile, setTempPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+
+  // State to track the original loaded data for dirty-check (must be state, not ref,
+  // so useMemo properly recomputes after a successful save updates the baseline)
+  const [initialFormData, setInitialFormData] = useState(null);
+  const [photoError, setPhotoError] = useState("");
 
   // Cleanup object URLs to avoid memory leaks
   useEffect(() => {
@@ -66,13 +73,19 @@ function ProfileSetting() {
 
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
+  // Compute whether form has changed compared to the initial snapshot
+  const isProfileChanged = useMemo(() => {
+    if (!initialFormData) return false;
+    const editableFields = ['name', 'email', 'phoneNumber', 'employeId', 'department', 'location', 'bio', 'role'];
+    return editableFields.some(key => (formData[key] ?? '') !== (initialFormData[key] ?? ''));
+  }, [formData, initialFormData]);
+
   const handleUpdateProfile = async () => {
-    if (!formData.userId) {
-      toast.error("User ID not found");
-      return;
-    }
+    if (!isProfileChanged) return;
 
     setIsUpdatingProfile(true);
+    setErrors({});
+
     try {
       const payload = {
         name: formData.name,
@@ -82,24 +95,34 @@ function ProfileSetting() {
         bio: formData.bio,
         employeId: formData.employeId,
         department: formData.department,
-        role: formData.role
+        role: formData.role,
       };
-      if (passwordData.new) {
-        payload.password = passwordData.new;
-      }
 
       const response = await updateUser(formData.userId, payload);
-      if (response.status === "success" || response.status === 200) {
-        toast.success("Profile updated successfully!");
-        window.dispatchEvent(new CustomEvent('userProfileUpdated'));
+
+      // Update the baseline so the button goes disabled again after a successful save
+      setInitialFormData({ ...formData });
+
+      // Show backend success message strictly
+      const successMsg = response?.data?.message || response?.message;
+      if (successMsg) {
+        toast.success(successMsg);
       }
+
+      navigate("/");
+
+      window.dispatchEvent(new CustomEvent("userProfileUpdated"));
     } catch (error) {
-      console.error("Profile update error:", error);
       const backendErrors = mapBackendErrors(error);
+
       if (Object.keys(backendErrors).length > 0) {
         setErrors(backendErrors);
-      } else {
-        toast.error(error.response?.data?.message || "Failed to update profile");
+      }
+
+      // Show ONLY the backend error message
+      const backendMessage = error?.response?.data?.message;
+      if (backendMessage) {
+        toast.error(backendMessage);
       }
     } finally {
       setIsUpdatingProfile(false);
@@ -147,7 +170,7 @@ function ProfileSetting() {
         const user = findUser(fullResponse);
 
         if (user) {
-          setFormData({
+          const loadedData = {
             name: user.name || user.fullName || "",
             role: user.role || "",
             email: user.email || "",
@@ -157,9 +180,12 @@ function ProfileSetting() {
             department: user.department || "",
             location: user.location || "",
             bio: user.bio || "",
-            photo: user.photo || "",
+            photo: user.photo || defaultAvatar,
             userId: user._id || user.id || "",
-          });
+          };
+          setFormData(loadedData);
+          // Capture initial snapshot for dirty-check (as state so useMemo reacts to it)
+          setInitialFormData({ ...loadedData });
         }
       } catch (error) {
       } finally {
@@ -171,18 +197,16 @@ function ProfileSetting() {
   }, []);
 
   const [passwordData, setPasswordData] = useState({
-    current: "",
     new: "",
     confirm: "",
   });
 
   const [showPasswords, setShowPasswords] = useState({
-    current: false,
     new: false,
     confirm: false,
   });
 
-  const [passwordStrength, setPasswordStrength] = useState(0); // 0-100 for bar
+  const [passwordStrength, setPasswordStrength] = useState(0); // 0=none, 1=Weak, 2=Strong, 3=Very Strong
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -198,54 +222,110 @@ function ProfileSetting() {
     const { name, value } = e.target;
     setPasswordData((prev) => ({ ...prev, [name]: value }));
 
-    // Simple strength simulation (you can improve with zxcvbn later)
+    // Clear the error for this field as user types
+    if (errors[name]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+
+    // Password strength: 1=Weak, 2=Strong, 3=Very Strong
     if (name === "new") {
-      let strength = 0;
-      if (value.length > 5) strength += 30;
-      if (value.length > 8) strength += 20;
-      if (/[A-Z]/.test(value)) strength += 15;
-      if (/[0-9]/.test(value)) strength += 15;
-      if (/[^A-Za-z0-9]/.test(value)) strength += 20;
-      setPasswordStrength(Math.min(strength, 100));
+      if (!value) {
+        setPasswordStrength(0);
+      } else {
+        const hasUpper = /[A-Z]/.test(value);
+        const hasLower = /[a-z]/.test(value);
+        const hasNumber = /[0-9]/.test(value);
+        const hasSpecial = /[^A-Za-z0-9]/.test(value);
+
+        // Count how many character types are present
+        const typeCount = [hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
+
+        if (value.length >= 8 && hasUpper && hasLower && hasNumber && hasSpecial) {
+          setPasswordStrength(3); // Very Strong
+        } else if (value.length >= 8 && (hasUpper || hasLower) && hasNumber) {
+          setPasswordStrength(2); // Strong
+        } else {
+          setPasswordStrength(1); // Weak — under 8 chars or only one type
+        }
+      }
     }
   };
 
 
   const handleUpdatePassword = async () => {
+    // --- Client-side validation: check ALL fields at once ---
+    const validationErrors = {};
+
+
+    if (!passwordData.new.trim()) {
+      validationErrors.new = "New password is required.";
+    } else if (passwordData.new.length < 8) {
+      validationErrors.new = "Password must be at least 8 characters.";
+    } else if (!/[a-zA-Z]/.test(passwordData.new) || !/[0-9]/.test(passwordData.new)) {
+      validationErrors.new = "Password must contain both letters and numbers.";
+    }
+
+    if (!passwordData.confirm.trim()) {
+      validationErrors.confirm = "Please confirm your new password.";
+    } else if (passwordData.new && passwordData.confirm !== passwordData.new) {
+      validationErrors.confirm = "Passwords do not match.";
+    }
+
+    // If any client-side errors, show them all at once and stop
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     setErrors({});
-    if (passwordData.new !== passwordData.confirm) {
-      toast.error("Passwords do not match!");
-      setErrors({ confirm: "Passwords do not match" });
-      return;
-    }
-    if (passwordData.new.length < 8) {
-      toast.error("New password must be at least 8 characters.");
-      setErrors({ new: "Must be at least 8 characters" });
-      return;
-    }
 
     try {
       const response = await updatePassword({
         newPassword: passwordData.new,
-        confirmPassword: passwordData.confirm
+        password: passwordData.new,
+        confirmPassword: passwordData.confirm,
+        passwordConfirm: passwordData.confirm
       });
       if (response.status === "success" || response.status === 200) {
-        toast.success("Password updated successfully!");
+        // Backend success — strictly show backend message
+        const successMsg = response?.data?.message || response?.message;
+        if (successMsg) {
+          toast.success(successMsg);
+        }
+        navigate("/");
         setSecureItem("firstTimeLogin", "false");
-        setPasswordData({ current: "", new: "", confirm: "" });
+        setPasswordData({ new: "", confirm: "" });
         setPasswordStrength(0);
       }
     } catch (error) {
-      const responseData = error?.response?.data;
-
       const backendErrors = mapBackendErrors(error);
+      const msg = error?.response?.data?.message;
 
       if (Object.keys(backendErrors).length > 0) {
+        // Map backend keys to our state keys
+        if (backendErrors.passwordConfirm) backendErrors.confirm = backendErrors.passwordConfirm;
+        if (backendErrors.password) backendErrors.new = backendErrors.password;
         setErrors(backendErrors);
-      } else {
-        const msg = error.response?.data?.message || error.message || "Update failed";
-        toast.error(msg);
+      } else if (msg) {
+        // Fallback: parse the message to highlight the right field
+        const lowerMsg = msg.toLowerCase();
+        const fallbackErrors = {};
+        if (lowerMsg.includes('confirm') || lowerMsg.includes('match')) {
+          fallbackErrors.confirm = msg;
+        }
+        // If no specific field was matched, default to new password field
+        if (Object.keys(fallbackErrors).length === 0) {
+          fallbackErrors.new = msg;
+        }
+        setErrors(fallbackErrors);
       }
+
+      // Always show the backend error as a toast so it's visible
+      if (msg) toast.error(msg, { id: 'password-error-toast' });
     }
   };
 
@@ -253,8 +333,9 @@ function ProfileSetting() {
     const file = e.target.files[0];
     if (!file) return;
 
+    setPhotoError("");
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("File size must be less than 2MB");
+      setPhotoError("File size must be less than 2MB");
       return;
     }
 
@@ -278,18 +359,22 @@ function ProfileSetting() {
     formDataUpload.append("photo", tempPhotoFile);
 
     setIsLoading(true);
+    setPhotoError("");
     try {
       const response = await uploadPhoto(formDataUpload);
       if (response.status === "success") {
-        toast.success("Photo updated successfully!");
+        const successMsg = response?.data?.message || response?.message;
+        if (successMsg) {
+          toast.success(successMsg);
+        }
         setFormData((prev) => ({ ...prev, photo: response.data?.photo || response.photo }));
-        handleCancelPhoto(); // Clear temp state
-        // Dispatch custom event to notify other components (like AdminHeader)
+        handleCancelPhoto();
         window.dispatchEvent(new CustomEvent('userProfileUpdated'));
       }
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to upload photo";
-      toast.error(msg);
+      const msg = error?.response?.data?.message;
+      if (msg) toast.error(msg);
+      else setPhotoError("Photo upload failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -309,16 +394,21 @@ function ProfileSetting() {
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
                 {/* Avatar with camera overlay */}
                 <div className="relative group">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-blue-500 flex items-center justify-center relative">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden border-4 border-white shadow-xl  flex items-center justify-center relative">
                     {(photoPreview || formData.photo) ? (
                       <img
-                        src={
-                          photoPreview
-                            ? photoPreview
-                            : formData.photo
-                              ? buildImageUrl(formData.photo)
-                              : defaultAvatar
-                        }
+                        // src={
+                        //   photoPreview
+                        //     ? photoPreview
+                        //     : formData.photo
+                        //       ? buildImageUrl(formData.photo)
+                        //       : defaultAvatar
+                        // }
+
+                        src={photoPreview || (formData.photo === defaultAvatar
+                          ? defaultAvatar
+                          : buildImageUrl(formData.photo))}
+
                         alt={formData.name || "User"}
                         className="w-full h-full object-cover object-top"
                         onError={(e) => {
@@ -387,65 +477,85 @@ function ProfileSetting() {
                   </Button>
                 </div>
               )}
+              {photoError && (
+                <p className="text-sm text-red-500 mt-2">{photoError}</p>
+              )}
             </div>
 
             {/* Form Sections */}
             <div className="flex flex-col space-y-2 py-2 bg-white shadow-md">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 m-10">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#64748B]">Full Name</Label>
+                  <Label className="text-sm font-semibold text-[#64748B]">Full Name <span className="text-red-500">*</span></Label>
                   <InputWithIcon
                     icon={FiUser}
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
+                    className={errors.name ? "border-red-500" : "border-[#D1D5DB] bg-[#F9FAFB] border"}
                   />
+                  {errors.name && (
+                    <p className="text-sm text-red-500">{errors.name}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#64748B]">Designation/Role</Label>
+                  <Label className="text-sm font-semibold text-[#64748B]">Designation/Role <span className="text-red-500">*</span></Label>
                   <InputWithIcon
                     icon={FiBriefcase}
                     name="role"
                     value={formData.role}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
+                    className={errors.role ? "border-red-500" : "border-[#D1D5DB] bg-[#F9FAFB] border"}
+                    disabled
                   />
+                  {errors.role && (
+                    <p className="text-sm text-red-500">{errors.role}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#64748B]">Email Address</Label>
+                  <Label className="text-sm font-semibold text-[#64748B]">Email Address <span className="text-red-500">*</span></Label>
                   <InputWithIcon
                     icon={FiMail}
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
+                    className={errors.email ? "border-red-500" : "border-[#D1D5DB] bg-[#F9FAFB] border"}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-500">{errors.email}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#64748B]">Phone Number</Label>
+                  <Label className="text-sm font-semibold text-[#64748B]">Phone Number <span className="text-red-500">*</span></Label>
                   <InputWithIcon
                     icon={FiPhone}
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
+                    className={errors.phoneNumber ? "border-red-500" : "border-[#D1D5DB] bg-[#F9FAFB] border"}
                   />
+                  {errors.phoneNumber && (
+                    <p className="text-sm text-red-500">{errors.phoneNumber}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#64748B]">Employee ID</Label>
+                  <Label className="text-sm font-semibold text-[#64748B]">Employee ID <span className="text-red-500">*</span></Label>
                   <InputWithIcon
                     icon={FiHash}
                     name="employeId"
                     value={formData.employeId}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
+                    className={errors.employeId ? "border-red-500" : "border-[#D1D5DB] bg-[#F9FAFB] border"}
+                    
                   />
+                  {errors.employeId && (
+                    <p className="text-sm text-red-500">{errors.employeId}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -461,7 +571,7 @@ function ProfileSetting() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#64748B]">Department</Label>
+                  <Label className="text-sm font-semibold text-[#64748B]">Department <span className="text-red-500">*</span></Label>
                   <div className="relative bg-[#F9FAFB]">
                     <div className="absolute  left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">
                       <LuBuilding2 className="w-4 h-4  " />
@@ -485,14 +595,17 @@ function ProfileSetting() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#64748B]">Location</Label>
+                  <Label className="text-sm font-semibold text-[#64748B]">Location <span className="text-red-500">*</span></Label>
                   <InputWithIcon
                     icon={FiMapPin}
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="border-[#D1D5DB] bg-[#F9FAFB] border"
+                    className={errors.location ? "border-red-500" : "border-[#D1D5DB] bg-[#F9FAFB] border"}
                   />
+                  {errors.location && (
+                    <p className="text-sm text-red-500">{errors.location}</p>
+                  )}
                 </div>
               </div>
 
@@ -508,21 +621,27 @@ function ProfileSetting() {
                     rows={4}
                     className="border-[#D1D5DB] bg-[#F9FAFB] border focus:ring-[#00A3E0] rounded-xl resize-none p-4 min-h-[120px]"
                   />
-                 
+
                 </div>
-                 <div className="flex justify-end  bottom-2 right-4 text-xs md:text-sm lg:text-base text-gray-400 font-medium">
-                    {formData.bio.length}/500
-                  </div>
+                <div className="flex justify-end  bottom-2 right-4 text-xs md:text-sm lg:text-base text-gray-400 font-medium">
+                  {formData.bio.length}/500
+                </div>
               </div>
               <div className="space-y-2 mx-10 pb-4 pt-10  border-t-neutral-300 border-t " >
               </div>
 
               {/* Update Profile Button */}
-              <div className="mx-10 mb-10 mt-0  pb-8 flex justify-center">
-                <Button 
-                  onClick={handleUpdateProfile} 
-                  disabled={isUpdatingProfile}
-                  className="bg-[#00A3E0] hover:bg-[#008cc2] text-white px-12 h-12 rounded-xl font-bold transition-all active:scale-95"
+              <div className="mx-10 mb-10 mt-0 pb-8 flex justify-center">
+                <Button
+                  onClick={() => {
+                    handleUpdateProfile();
+                    // navigate("/");
+                  }}
+                  disabled={isUpdatingProfile || !isProfileChanged}
+                  className={`px-12 h-12 rounded-xl font-bold transition-all active:scale-95 text-white ${isProfileChanged
+                    ? 'bg-[#00A3E0] hover:bg-[#008cc2]'
+                    : 'bg-[#00A3E0]/40 cursor-not-allowed'
+                    }`}
                 >
                   {isUpdatingProfile ? "Saving..." : "Save Changes"}
                 </Button>
@@ -536,23 +655,6 @@ function ProfileSetting() {
               <h2 className="text-xl font-bold text-[#1E293B] px-10">Change Password</h2>
 
               <div className="w-full space-y-6 px-10">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-[#64748B]">Current Password</Label>
-                  <PasswordWithToggle
-                    field="current"
-                    icon={FiLock}
-                    name="current"
-                    value={passwordData.current}
-                    onChange={handlePasswordChange}
-                    placeholder="Enter current password"
-                    showPassword={showPasswords.current}
-                    onToggle={() => togglePasswordVisibility('current')}
-                    className={errors.currentPassword || errors.current ? 'border-red-500' : ''}
-                  />
-                  {(errors.currentPassword || errors.current) && (
-                    <p className="text-xs text-red-500 mt-1">{errors.currentPassword || errors.current}</p>
-                  )}
-                </div>
 
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold text-[#64748B]">New Password</Label>
@@ -570,22 +672,36 @@ function ProfileSetting() {
                   {(errors.newPassword || errors.new) && (
                     <p className="text-xs text-red-500 mt-1">{errors.newPassword || errors.new}</p>
                   )}
-                  {/* Strength Bar */}
-                  <div className="flex gap-1 h-1.5 mt-3">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className={`flex-1 rounded-full bg-gray-100 transition-colors duration-500 ${passwordStrength >= i * 25 ? (passwordStrength <= 50 ? 'bg-orange-400' : 'bg-green-400') : ''
-                          }`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-[10px] font-medium text-gray-400 mt-1 uppercase tracking-wider">
-                    {passwordStrength <= 25 && "Weak"}
-                    {passwordStrength > 25 && passwordStrength <= 50 && "Medium strength"}
-                    {passwordStrength > 50 && passwordStrength <= 75 && "Strong"}
-                    {passwordStrength > 75 && "Very Strong"}
-                  </p>
+                  {/* Strength Bar — 3 segments: Weak / Strong / Very Strong */}
+                  {passwordData.new && (
+                    <div className="flex items-center gap-3 mt-3">
+                      <div className="flex gap-1 h-1.5 flex-1">
+                        {[1, 2, 3].map((i) => {
+                          let barColor = 'bg-gray-200';
+                          if (passwordStrength >= i) {
+                            if (passwordStrength === 1) barColor = 'bg-red-500';
+                            else if (passwordStrength === 2) barColor = 'bg-yellow-400';
+                            else barColor = 'bg-green-500';
+                          }
+                          return (
+                            <div
+                              key={i}
+                              className={`flex-1 rounded-full transition-colors duration-500 ${barColor}`}
+                            />
+                          );
+                        })}
+                      </div>
+                      <span className={`text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap ${
+                        passwordStrength === 1 ? 'text-red-500' :
+                        passwordStrength === 2 ? 'text-yellow-500' :
+                        passwordStrength === 3 ? 'text-green-500' : 'text-gray-400'
+                      }`}>
+                        {passwordStrength === 1 && "Weak"}
+                        {passwordStrength === 2 && "Strong"}
+                        {passwordStrength === 3 && "Very Strong"}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -608,7 +724,8 @@ function ProfileSetting() {
 
                 <Button
                   onClick={handleUpdatePassword}
-                  className="bg-[#475569] hover:bg-[#334155] text-white px-8 h-12 rounded-xl font-bold transition-all active:scale-95"
+                  disabled={!passwordData.current && !passwordData.new && !passwordData.confirm}
+                  className="bg-[#475569] hover:bg-[#334155] text-white px-8 h-12 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Update Password
                 </Button>

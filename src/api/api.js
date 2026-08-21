@@ -14,6 +14,14 @@ export const getAccessToken = () => {
   return memoryAccessToken;
 };
 
+export const clearToken = () => {
+  memoryAccessToken = null;
+};
+
+export const setToken = (token) => {
+  memoryAccessToken = token;
+};
+
 /* =====================
    CROSS-TAB SYNC
 ===================== */
@@ -37,13 +45,21 @@ const api = axios.create({
    REQUEST INTERCEPTOR
 ===================== */
 api.interceptors.request.use((config) => {
-  if (config.url.includes("/user/login") || config.url.includes("/refresh-token")) {
+  if (config.url.includes("/user/login")) {
     return config;
   }
 
-  const token = getAccessToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (config.url.includes("/refresh-token")) {
+    const refreshToken = getSecureItem("refreshToken");
+    if (refreshToken) {
+      config.headers["refresh-token"] = refreshToken;
+    }
+    // We don't attach the access token to the refresh request usually
+  } else {
+    const token = getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
 
   // CSRF Protection: Read XSRF-TOKEN from cookie and set header
@@ -51,7 +67,7 @@ api.interceptors.request.use((config) => {
     .split('; ')
     .find(row => row.startsWith('XSRF-TOKEN='))
     ?.split('=')[1];
-  
+
   if (xsrfToken && config.method !== 'get') {
     config.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken);
   }
@@ -75,28 +91,26 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+const isValidationOrDuplicate = (msg, data) => {
+  if (!msg) return false;
+  const lowerMsg = msg.toLowerCase();
+  return (
+    msg.includes('E11000') ||
+    lowerMsg.includes('duplicate') ||
+    lowerMsg.includes('validation failed') ||
+    lowerMsg.includes('already exists') ||
+    lowerMsg.includes('is not unique') ||
+    lowerMsg.includes('invalid') ||
+    data?.errors ||
+    data?.fields
+  );
+};
+
 api.interceptors.response.use(
   (response) => {
     // If response is successful but backend returns fail status (for 200 OK responses)
     if (response.data?.status === "fail" || response.data?.status === "error") {
       const msg = response.data.message || "";
-      const isValidationOrDuplicate =
-        msg.includes('E11000') ||
-        msg.toLowerCase().includes('duplicate') ||
-        msg.toLowerCase().includes('validation failed') ||
-        msg.toLowerCase().includes('already exists') ||
-        msg.toLowerCase().includes('is not unique') ||
-        msg.toLowerCase().includes('invalid') ||
-        response.data.errors ||
-        response.data.fields;
-
-      const isAuthError =
-        msg.toLowerCase().includes('refresh token') ||
-        msg.toLowerCase().includes('unauthorized');
-
-      if (!isValidationOrDuplicate && !isAuthError) {
-        toast.error(msg || "An error occurred");
-      }
 
       // CRITICAL: Reject the promise so that components enter their catch blocks
       // where field-level error mapping (mapBackendErrors) can take place.
@@ -111,61 +125,14 @@ api.interceptors.response.use(
   async (err) => {
     const originalRequest = err.config;
 
-    // Handle Network Errors, Gateway Errors, or Timeouts (Server Down/Proxy Error)
-    const isNetworkError = !err.response && (err.code === 'ERR_NETWORK' || err.message === 'Network Error');
-    const isTimeout = err.code === 'ECONNABORTED' && err.message.includes('timeout');
     const isServerError = err.response?.status >= 500;
 
-    if (isNetworkError || isServerError || isTimeout) {
-      const errorTitle = isTimeout ? "Connection Timeout" : "Network Error";
-      const errorDesc = isTimeout
-        ? "The server took too long to respond. Please try again."
-        : "Server appears to be offline. Please check if your backend service is running.";
-
-      toast.error(errorTitle, {
-        description: errorDesc,
-        id: "network-error-toast",
-      });
-
-      // Redirect to server error page if not already there
+    // ONLY redirect to /server-error if the backend explicitly returns a 5xx status code
+    if (isServerError) {
       if (window.location.pathname !== "/server-error") {
         window.location.href = "/server-error";
       }
       return Promise.reject(err);
-    }
-
-    // Handle Backend Error Messages (4xx, 403, 400 etc)
-    if (err.response?.data?.message) {
-      // Show ALL error messages including 401 (Unauthorized) 
-      // EXCEPT on token refresh/login which handles things separately in its own logic or UI.
-      const msg = err.response.data.message || "";
-      const isForbidden = err.response?.status === 403;
-      const isValidationOrDuplicate =
-        msg.includes('E11000') ||
-        msg.toLowerCase().includes('duplicate') ||
-        msg.toLowerCase().includes('validation failed') ||
-        msg.toLowerCase().includes('already exists') ||
-        msg.toLowerCase().includes('is not unique') ||
-        msg.toLowerCase().includes('invalid') ||
-        err.response.data.errors ||
-        err.response.data.fields;
-
-      const isUnauthorized = err.response?.status === 401;
-
-      const isAuthError =
-        msg.toLowerCase().includes('refresh token') ||
-        msg.toLowerCase().includes('unauthorized');
-
-      const shouldRetry = (isUnauthorized || isForbidden) && !originalRequest._retry;
-
-      if (isForbidden && !shouldRetry && !originalRequest.url.includes("/refresh-token")) {
-        toast.error("Access Denied", {
-          description: "You do not have permission to perform this action.",
-          id: "forbidden-error-toast",
-        });
-      } else if (!isValidationOrDuplicate && !isUnauthorized && !isAuthError && !isForbidden) {
-        toast.error(msg);
-      }
     }
 
     if (
@@ -194,7 +161,8 @@ api.interceptors.response.use(
         const refreshHeader = refreshRes.headers["refresh-token"];
 
         if (refreshHeader) {
-          setSecureItem("refreshToken", refreshHeader);
+          const storageType = window.localStorage.getItem("nt_remember_me") === "true" ? "local" : "session";
+          setSecureItem("refreshToken", refreshHeader, { storage: storageType });
         }
 
         if (authHeader?.startsWith("Bearer ")) {
@@ -299,7 +267,8 @@ export const initAuth = () => {
           const refreshHeader = refreshRes.headers["refresh-token"];
 
           if (refreshHeader) {
-            setSecureItem("refreshToken", refreshHeader);
+            const storageType = window.localStorage.getItem("nt_remember_me") === "true" ? "local" : "session";
+            setSecureItem("refreshToken", refreshHeader, { storage: storageType });
           }
 
           if (authHeader?.startsWith("Bearer ")) {
@@ -369,10 +338,11 @@ export const buildImageUrl = (relativePath) => {
   if (!relativePath) return null;
   if (/^https?:\/\//.test(relativePath)) return relativePath; // already absolute
 
-  // Strip any leading slashes, and also remove any leading "img/" or "public/"
-  // that the backend may have stored in the DB, to avoid double segments like /img/public/...
+  // Remove only the leading root storage prefix if the backend stored a path like
+  // /public/... or /Public/... or /img/.... Preserve the actual image folders below it.
   let cleanPath = relativePath.replace(/^\/+/, '');
-  cleanPath = cleanPath.replace(/^(img\/|public\/)/, '');
+  cleanPath = cleanPath.replace(/^(img|public)\//i, '');
+  // cleanPath = cleanPath.replace(/^(img|public)$/i, '');
 
   return `/img/${cleanPath}`;
 };

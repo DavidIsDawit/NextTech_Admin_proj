@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiPlus, FiTrash2, FiPlay } from "react-icons/fi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
@@ -11,7 +12,7 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { MediaForm } from "../forms/MediaForm";
-import { getAllGallery, addGallery, deleteGallery } from "../../api/galleryApi";
+import { getAllGallery, addGallery, updateGallery, deleteGallery, searchGallery, filterGalleryByCategory, filterGalleryByStatuses, getCategories, getStatuses } from "../../api/galleryApi";
 import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 
 // Helper to extract the most useful error message from a backend error - REMOVED, using shared helper
@@ -19,14 +20,24 @@ import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers"
 
 function GalleryList() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [categories, setCategories] = useState([]);
+    const [statuses, setStatuses] = useState([]);
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
     const [statusFilter, setStatusFilter] = useState("All Status");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    const setCurrentPage = (page) => {
+        setSearchParams((prev) => {
+            prev.set("page", page);
+            return prev;
+        });
+    };
+    const itemsPerPage = 8;
 
     // Data State
     const [gallery, setGallery] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
 
     // Modal State
@@ -38,22 +49,67 @@ function GalleryList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
+
+    // Compare form data for isChanged (handles File objects)
+    const getComparableData = (data) => {
+        const clone = { ...data };
+        Object.keys(clone).forEach(key => {
+            if (clone[key] instanceof File) clone[key] = '__file__';
+            if (Array.isArray(clone[key])) {
+                clone[key] = clone[key].map(item => item instanceof File ? '__file__' : item);
+            }
+        });
+        return JSON.stringify(clone);
+    };
+
+    // Debounced search
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const fetchGallery = async () => {
+        const search = debouncedSearchTerm.trim();
+        if (search.length > 0 && search.length < 3) {
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const params = { 
-                page: 1, 
-                limit: 1000 
-            };
+            let result;
+            const params = { page: currentPage, limit: itemsPerPage };
 
-            const result = await getAllGallery(params);
-            if (result.status === "success") {
-                const galleryItems = result.data || [];
-                setGallery(galleryItems);
-                setTotalItems(galleryItems.length);
+            if (search.length >= 3) {
+                result = await searchGallery(search, params);
+            } else if (categoryFilter !== "All Categories") {
+                result = await filterGalleryByCategory(categoryFilter, params);
+            } else if (statusFilter !== "All Status") {
+                result = await filterGalleryByStatuses(statusFilter, params);
             } else {
-                toast.error(result.message || "Failed to fetch gallery");
+                result = await getAllGallery(params);
+            }
+
+            if (result && result.status === "success") {
+                const galleryItems = result.data || [];
+                const isClientSideSliced = galleryItems.length > itemsPerPage;
+                const total = isClientSideSliced
+                    ? galleryItems.length
+                    : (result.total ?? galleryItems.length);
+
+                setTotalItems(total);
+
+                if (isClientSideSliced) {
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    setGallery(galleryItems.slice(startIndex, startIndex + itemsPerPage));
+                } else {
+                    setGallery(galleryItems);
+                }
+
+                setTotalPages(Math.ceil(total / itemsPerPage) || 1);
+            } else {
+                if (result?.message) toast.error(result.message);
             }
         } catch (error) {
             console.error("Failed to fetch gallery:", error);
@@ -64,40 +120,44 @@ function GalleryList() {
 
     useEffect(() => {
         fetchGallery();
+    }, [currentPage, debouncedSearchTerm, categoryFilter, statusFilter]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const result = await getCategories();
+            if (result.status === "success") {
+                setCategories(result.data);
+            }
+        }; fetchCategories();
     }, []);
 
-    const categories = useMemo(
-        () => ["All Categories", ...new Set(gallery.map((s) => s.catagory || s.category).filter(Boolean))],
-        [gallery]
-    );
-    const statuses = useMemo(
-        () => ["All Status", ...new Set(gallery.map((s) => s.status).filter(Boolean))],
-        [gallery]
-    );
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            const result = await getStatuses();
+            if (result.status === "success") {
+                setStatuses(result.data);
+            }
+        }; fetchStatuses();
+    }, []);
 
-    // Frontend Filtering Logic
-    const filteredGallery = useMemo(() => {
-        return gallery.filter((item) => {
-            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
-                item.fileType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (item.catagory || item.category)?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesCategory && matchesStatus;
-        });
-    }, [gallery, searchTerm, categoryFilter, statusFilter]);
+    const currentData = gallery;
 
-    // Client-side Pagination Logic
-    const totalPages = Math.ceil(filteredGallery.length / itemsPerPage) || 1;
-    const currentData = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredGallery.slice(start, start + itemsPerPage);
-    }, [filteredGallery, currentPage, itemsPerPage]);
 
     const handleExportCSV = () => {
-        exportToCSV(filteredGallery, "Gallery", {
+        const exportData = gallery.map((item) => ({
+            title: item.title || "—",
+            description: item.description || "—",
+            fileType: item.fileType,
+            uploadDate: item.Date || item.createdDate || item.createdAt,
+            catagory: item.catagory || item.category,
+            status: item.status,
+        }));
+
+        exportToCSV(exportData, "Gallery", {
+            title: "Title",
+            description: "Description",
             fileType: "File Type",
-            createdDate: "Upload Date",
+            uploadDate: "Upload Date",
             catagory: "Category",
             status: "Status",
         });
@@ -107,8 +167,10 @@ function GalleryList() {
     const handleAddNew = () => {
         setFormType('add');
         setFormData({
-            catagory: '',
+            title: '',
+            description: '',
             fileType: '',
+            catagory: '',
             status: 'Active',
             coverImage: null,
             images: []
@@ -129,17 +191,23 @@ function GalleryList() {
         setErrors({});
         setIsSubmitting(true);
         try {
-            // Stricter Client-side validation
-            const newErrors = {};
-            if (formType === 'add' && (!formData.coverImage || !(formData.coverImage instanceof File))) {
-                newErrors.coverImage = "Cover image is required";
-            }
-            if (!formData.catagory) newErrors.catagory = "Category is required";
-            if (!formData.fileType) newErrors.fileType = "File type is required";
+            const requiredFields = {
+                coverImage: 'Cover image is required.',
+                title: 'Title is required.',
+                description: 'Description is required.',
+                fileType: 'File type is required.',
+                catagory: 'Category is required.',
+            };
+            const validationErrors = Object.entries(requiredFields).reduce((fieldErrors, [field, message]) => {
+                const value = formData[field];
+                if (value === null || value === undefined || String(value).trim() === '') {
+                    fieldErrors[field] = message;
+                }
+                return fieldErrors;
+            }, {});
 
-            if (Object.keys(newErrors).length > 0) {
-                setErrors(newErrors);
-                setIsSubmitting(false);
+            if (Object.keys(validationErrors).length > 0) {
+                setErrors(validationErrors);
                 return;
             }
 
@@ -157,13 +225,13 @@ function GalleryList() {
                 });
             }
 
-            // Append text fields — backend only accepts: catagory, fileType, status (no title)
-            const textFields = ["catagory", "fileType", "status"];
-            textFields.forEach((key) => {
-                if (formData[key] !== undefined && formData[key] !== null) {
-                    data.append(key, formData[key]);
-                }
-            });
+            // Append text fields
+            data.append("catagory", formData.catagory);
+            data.append("status", formData.status);
+            data.append("title", formData.title);
+            data.append("description", formData.description);
+            data.append("fileType", formData.fileType);
+
 
             let result;
             if (formType === 'add') {
@@ -174,12 +242,13 @@ function GalleryList() {
             }
 
             if (result.status === "success") {
-                toast.success(`Gallery item ${formType === 'add' ? 'added' : 'updated'} successfully!`);
+                const msg = result?.message || result?.data?.message;
+                if (msg) toast.success(msg);
                 setIsFormModalOpen(false);
                 setFormData({});
                 await fetchGallery();
             } else {
-                toast.error(result.message || `Failed to ${formType} gallery item`);
+                if (result.message) toast.error(result.message);
             }
         } catch (error) {
             const responseData = error?.response?.data;
@@ -189,7 +258,7 @@ function GalleryList() {
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             } else {
-                toast.error(extractErrorMessage(error, "Failed to save gallery item"));
+                if (error?.response?.data?.message) toast.error(error.response.data.message);
             }
         } finally {
             setIsSubmitting(false);
@@ -203,15 +272,16 @@ function GalleryList() {
             const result = await deleteGallery(id);
 
             if (result.status === "success") {
-                toast.success("Gallery item deleted successfully!");
+                const msg = result?.message || result?.data?.message;
+                if (msg) toast.success(msg);
                 setIsDeleteModalOpen(false);
                 setSelectedItem(null);
                 await fetchGallery();
             } else {
-                toast.error(result.message || "Failed to delete gallery item");
+                if (result.message) toast.error(result.message);
             }
         } catch (error) {
-            toast.error(extractErrorMessage(error, "Failed to delete gallery item"));
+            if (error?.response?.data?.message) toast.error(error.response.data.message);
         } finally {
             setIsDeleting(false);
         }
@@ -227,7 +297,7 @@ function GalleryList() {
                 <div className="relative flex-shrink-0 h-14 w-14">
                     <img
                         src={value || row.image || row.thumbnail}
-                        alt={row.title || row.mediaTitle}
+                        alt=""
                         className="h-full w-full rounded object-cover"
                         onError={(e) => {
                             e.target.style.display = "none";
@@ -245,6 +315,16 @@ function GalleryList() {
                         )}
                 </div>
             ),
+        },
+        {
+            key: "title",
+            label: "Title",
+            render: (value) => <div className="font-medium text-gray-900 truncate max-w-[150px]" title={value}>{value || "—"}</div>,
+        },
+        {
+            key: "description",
+            label: "Description",
+            render: (value) => <div className="text-sm text-gray-500 truncate max-w-[200px]" title={value}>{value || "—"}</div>,
         },
         {
             key: "fileType",
@@ -307,7 +387,7 @@ function GalleryList() {
             <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 sm:mb-6 pt-2 gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-                        Gallery and Video Management Center
+                        Gallery Management Center
                     </h1>
                     <p className="text-sm sm:text-base text-gray-500 mt-2">
                         Manage engineering services, technical offerings, and project capabilities
@@ -338,7 +418,7 @@ function GalleryList() {
                 </div>
                 {categories.length > 1 && (
                     <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                        <DynamicDropdown
+                        {/* <DynamicDropdown
                             options={categories.filter((s) => s !== "All Categories")}
                             value={categoryFilter}
                             onChange={(val) => {
@@ -346,7 +426,15 @@ function GalleryList() {
                                 setCurrentPage(1);
                             }}
                             defaultOption="All Categories"
-                        />
+                        /> */}
+                        <DynamicDropdown
+                            options={categories}
+                            value={categoryFilter}
+                            defaultOption="All Categories"
+                            onChange={(val) => {
+                                setCategoryFilter(val);
+                                setCurrentPage(1);
+                            }} />
                     </div>
                 )}
                 {statuses.length > 1 && (
@@ -408,13 +496,13 @@ function GalleryList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredGallery.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredGallery.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredGallery.length}</span> Media
+                    of <span className="font-medium text-gray-900">{totalItems}</span> Media
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
@@ -432,9 +520,11 @@ function GalleryList() {
                 title={formType === 'add' ? 'Add New Gallery Item' : 'Edit Gallery Item'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Item' : 'Save Changes'}
+                submitLabel={formType === 'add' ? 'Add Item' : 'Update Item'}
                 size="lg"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || getComparableData(formData) !== initialFormDataRef.current}
             >
                 <MediaForm formData={formData} onChange={setFormData} errors={errors} />
             </FormModal>

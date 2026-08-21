@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -15,22 +16,37 @@ import {
     getAllPortfolios,
     createPortfolio,
     updatePortfolio,
-    deletePortfolio
+    deletePortfolio,
+    searchPortfolios,
+    getSectors,
+    getStatuses,
+    filterPortfoliosByStatus,
+    filterPortfoliosBySectors
 } from "../../api/portfolioApi";
 import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 import { toast } from "sonner";
 
 function PortfolioList() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [sectors, setSectors] = useState([]);
+    const [statuses, setStatuses] = useState([]);
     const [sectorFilter, setSectorFilter] = useState("All Sectors");
     const [statusFilter, setStatusFilter] = useState("All Status");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    const setCurrentPage = (page) => {
+        setSearchParams((prev) => {
+            prev.set("page", page);
+            return prev;
+        });
+    };
+    const itemsPerPage = 8;
 
     // Data State
     const [portfolios, setPortfolios] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -41,17 +57,44 @@ function PortfolioList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
+
+    // Compare form data for isChanged (handles File objects)
+    const getComparableData = (data) => {
+        const clone = { ...data };
+        Object.keys(clone).forEach(key => {
+            if (clone[key] instanceof File) clone[key] = '__file__';
+        });
+        return JSON.stringify(clone);
+    };
+
+    // Debounced search
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const fetchPortfolios = async () => {
+        const search = debouncedSearchTerm.trim();
+        if (search.length > 0 && search.length < 3) {
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const params = {
-                page: currentPage,
-                limit: itemsPerPage,
-                sort: "latest"
-            };
+            let result;
+            const params = { page: currentPage, limit: itemsPerPage, sort: "latest" };
 
-            const result = await getAllPortfolios(params);
+            if (search.length >= 3) {
+                result = await searchPortfolios(search, params);
+            } else if (sectorFilter !== "All Sectors") {
+                result = await filterPortfoliosBySectors(sectorFilter, params);
+            } else if (statusFilter !== "All Status") {
+                result = await filterPortfoliosByStatus(statusFilter, params);
+            } else {
+                result = await getAllPortfolios(params);
+            }
 
             let portfolioItems = [];
             if (Array.isArray(result)) {
@@ -60,9 +103,21 @@ function PortfolioList() {
                 portfolioItems = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
             }
 
-            setPortfolios(portfolioItems);
-            // If the backend returns paginated data (like totalPortfolios), use it.
-            setTotalItems(result?.totalPortfolios || result?.data?.totalPortfolios || portfolioItems.length);
+            const isClientSideSliced = portfolioItems.length > itemsPerPage;
+            const total = isClientSideSliced
+                ? portfolioItems.length
+                : (result?.totalPortfolios || result?.total || portfolioItems.length);
+
+            setTotalItems(total);
+
+            if (isClientSideSliced) {
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                setPortfolios(portfolioItems.slice(startIndex, startIndex + itemsPerPage));
+            } else {
+                setPortfolios(portfolioItems);
+            }
+
+            setTotalPages(Math.ceil(total / itemsPerPage) || 1);
         } catch (error) {
             console.error("Failed to fetch portfolios:", error);
         } finally {
@@ -73,31 +128,43 @@ function PortfolioList() {
     // Refetch when currentPage changes
     useEffect(() => {
         fetchPortfolios();
-    }, [currentPage, itemsPerPage]);
+    }, [currentPage, debouncedSearchTerm, sectorFilter, statusFilter]);
 
-    const sectors = useMemo(() => ["All Sectors", ...new Set(portfolios.map(s => s.sector).filter(Boolean))], [portfolios]);
-    const statuses = useMemo(() => ["All Status", ...new Set(portfolios.map(s => s.status).filter(Boolean))], [portfolios]);
+    useEffect(() => {
+        const fetchSectors = async () => {
+            const result = await getSectors();
+            if (result.status === "success") {
+                setSectors(result.data);
+            }
+        }; fetchSectors();
+    }, []);
 
-    // Apply frontend filtering on the CURRENT page's data for now.
-    // If backend supports search/filter, params should be updated in fetchPortfolios.
-    const filteredPortfolios = useMemo(() => {
-        return portfolios.filter((item) => {
-            const searchStr = (item.title || item.client || item.sector || item.catagory || "").toLowerCase();
-            const matchesSearch = !searchTerm || searchTerm.length < 3 || searchStr.includes(searchTerm.toLowerCase());
-            const matchesSector = sectorFilter === "All Sectors" || item.sector === sectorFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesSector && matchesStatus;
-        });
-    }, [portfolios, searchTerm, sectorFilter, statusFilter]);
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            const result = await getStatuses();
+            if (result.status === "success") {
+                setStatuses(result.data);
+            }
+        }; fetchStatuses();
+    }, []);
 
-    // Use totalItems from server for total pages so all pages show in Pagination
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-    
-    // We already sliced from the server, so currentData is just filteredPortfolios
-    const currentData = filteredPortfolios;
+    // const sectors = useMemo(() => ["All Sectors", ...new Set(portfolios.map(s => s.sector).filter(Boolean))], [portfolios]);
+    // const statuses = useMemo(() => ["All Status", ...new Set(portfolios.map(s => s.status).filter(Boolean))], [portfolios]);
+
+    // Server-side pagination: portfolios already contains only the current page items
+    // const filteredPortfolios = portfolios.filter(item => {
+    //     const sectorMatch = sectorFilter === "All Sectors" || item.sector === sectorFilter;
+    //     const statusMatch = statusFilter === "All Status" || item.status === statusFilter;
+    //     return sectorMatch && statusMatch;
+    // });
+    // const currentData = filteredPortfolios;
+    const currentPortfolios = portfolios.filter(item =>
+        (statusFilter === "All Status" || item.status === statusFilter) &&
+        (sectorFilter === "All Sectors" || item.sector === sectorFilter)
+    );
 
     const handleExportCSV = () => {
-        exportToCSV(filteredPortfolios, "Portfolios", {
+        exportToCSV(portfolios, "Portfolios", {
             title: "Project Title",
             client: "Client",
             sector: "Sector",
@@ -125,7 +192,7 @@ function PortfolioList() {
             resultThere: '',
             requirements: [],
             status: 'Active',
-            happingDate: new Date().toISOString().split('T')[0],
+            happingDate: '',
             thumbinal: null,
             images: []
         });
@@ -139,11 +206,13 @@ function PortfolioList() {
         // Normalize date for input[type="date"]
         const dateVal = item.happingDate ? new Date(item.happingDate).toISOString().split('T')[0] : '';
 
-        setFormData({
+        const editData = {
             ...item,
             happingDate: dateVal,
             images: Array.isArray(item.images) ? item.images : []
-        });
+        };
+        setFormData(editData);
+        initialFormDataRef.current = getComparableData(editData);
         setErrors({});
         setIsFormModalOpen(true);
     };
@@ -155,25 +224,17 @@ function PortfolioList() {
 
     const handleFormSubmit = async (e) => {
         if (e && e.preventDefault) e.preventDefault();
-        setErrors({});
 
-        // Frontend Validation
-        const newErrors = {};
-        if (formType === 'add' && !formData.thumbinal) newErrors.thumbinal = "Thumbnail image is required";
-        if (!formData.title) newErrors.title = "Project name is required";
-        if (!formData.client) newErrors.client = "Client name is required";
-        if (!formData.sector) newErrors.sector = "Sector is required";
-        if (!formData.catagory) newErrors.catagory = "Category is required";
-        if (!formData.descriptionOne) newErrors.descriptionOne = "Project description is required";
-        if (!formData.resultOne) newErrors.resultOne = "Result description is required";
-        if (!formData.requirements || formData.requirements.length === 0 || formData.requirements.every(r => !r.trim())) newErrors.requirements = "At least one project requirement is required";
-        if (!formData.happingDate) newErrors.happingDate = "Project date is required";
-        if (!formData.images || formData.images.length === 0) newErrors.images = "At least one gallery image is required";
+        const validationErrors = {};
+        if (!formData.thumbinal) validationErrors.thumbinal = 'Thumbnail is required.';
+        if (!formData.title?.trim()) validationErrors.title = 'Project name is required.';
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
             return;
         }
+
+        setErrors({});
 
         setIsSubmitting(true);
         try {
@@ -219,20 +280,22 @@ function PortfolioList() {
             if (formType === 'add') {
                 const res = await createPortfolio(data);
                 if (res.status === "success") {
-                    toast.success("Portfolio created successfully!");
+                    const msg = res?.message || res?.data?.message;
+                    if (msg) toast.success(msg);
                     await fetchPortfolios();
                     setIsFormModalOpen(false);
                 } else {
-                    toast.error(res.message || "Failed to create portfolio");
+                    if (res.message) toast.error(res.message);
                 }
             } else {
                 const res = await updatePortfolio(selectedItem._id || selectedItem.id, data);
                 if (res.status === "success") {
-                    toast.success("Portfolio updated successfully!");
+                    const msg = res?.message || res?.data?.message;
+                    if (msg) toast.success(msg);
                     await fetchPortfolios();
                     setIsFormModalOpen(false);
                 } else {
-                    toast.error(res.message || "Failed to update portfolio");
+                    if (res.message) toast.error(res.message);
                 }
             }
         } catch (error) {
@@ -240,7 +303,7 @@ function PortfolioList() {
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             } else {
-                toast.error(extractErrorMessage(error, "Failed to save portfolio"));
+                if (error?.response?.data?.message) toast.error(error.response.data.message);
             }
         } finally {
             setIsSubmitting(false);
@@ -250,12 +313,13 @@ function PortfolioList() {
     const handleDeleteConfirm = async () => {
         setIsDeleting(true);
         try {
-            await deletePortfolio(selectedItem._id || selectedItem.id);
-            toast.success("Portfolio deleted successfully!");
+            const res = await deletePortfolio(selectedItem._id || selectedItem.id);
+            const msg = res?.message || res?.data?.message;
+            if (msg) toast.success(msg);
             fetchPortfolios();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            toast.error(extractErrorMessage(error, "Failed to delete portfolio"));
+            if (error?.response?.data?.message) toast.error(error.response.data.message);
         } finally {
             setIsDeleting(false);
         }
@@ -269,7 +333,7 @@ function PortfolioList() {
                 <div className="flex-shrink-0 h-14 w-14">
                     <img
                         src={value || "/upload-placeholder.png"}
-                        alt={row.title}
+                        alt=""
                         className="h-full w-full rounded object-cover border border-gray-100"
                         onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
                     />
@@ -278,7 +342,7 @@ function PortfolioList() {
         },
         {
             key: "title",
-            label: "Project Title",
+            label: "Portfolio Title",
             className: "max-w-[200px] truncate whitespace-nowrap",
             render: (value) => <div className="font-medium text-gray-900 truncate" title={value}>{value}</div>,
         },
@@ -324,13 +388,25 @@ function PortfolioList() {
 
     return (
         <div className="p-0 md:px-5 lg:px-2 2xl:px-5 space-y-1">
-            <div className="mb-4 sm:mb-6 pt-2">
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-                    Portfolio Management
-                </h1>
-                <p className="text-sm sm:text-base text-gray-500 mt-2">
-                    Manage your project portfolios and showcases
-                </p>
+            <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 sm:mb-6 pt-2 gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+                        Portfolio Management
+                    </h1>
+                    <p className="text-sm sm:text-base text-gray-500 mt-2">
+                        Manage your project portfolios and showcases
+                    </p>
+                </div>
+                {/* Desktop Add Button */}
+                <div className="hidden md:flex justify-end mt-2">
+                    <button
+                        onClick={handleAddNew}
+                        className="flex items-center gap-2 bg-[#00A3E0] hover:bg-blue-600 text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors cursor-pointer"
+                    >
+                        <FiPlus size={18} />
+                        Add Portfolio
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap items-center sm:justify-between gap-3 sm:gap-4 pb-6">
@@ -346,7 +422,7 @@ function PortfolioList() {
                 </div>
                 {sectors.length > 1 && (
                     <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                        <DynamicDropdown
+                        {/* <DynamicDropdown
                             options={sectors.filter((s) => s !== "All Sectors")}
                             value={sectorFilter}
                             onChange={(val) => {
@@ -354,7 +430,15 @@ function PortfolioList() {
                                 setCurrentPage(1);
                             }}
                             defaultOption="All Sectors"
-                        />
+                        /> */}
+                        <DynamicDropdown
+                            options={sectors}
+                            value={sectorFilter}
+                            defaultOption="All Sectors"
+                            onChange={(val) => {
+                                setSectorFilter(val);
+                                setCurrentPage(1);
+                            }} />
                     </div>
                 )}
                 {statuses.length > 1 && (
@@ -370,7 +454,7 @@ function PortfolioList() {
                         />
                     </div>
                 )}
-                <div className="col-span-1 sm:w-auto flex justify-start">
+                <div className="col-span-1 sm:w-auto flex justify-start md:hidden">
                     <DynamicButton
                         icon={FiPlus}
                         onClick={handleAddNew}
@@ -380,15 +464,25 @@ function PortfolioList() {
                         <span className="sm:hidden">Add</span>
                     </DynamicButton>
                 </div>
-                <div className="col-span-1 sm:w-auto flex justify-end">
-                    <DynamicButton
-                        variant="secondary"
+                <div className="col-span-1 sm:w-auto flex justify-end md:ml-auto flex-col sm:flex-row items-end sm:items-center">
+                    {/* Mobile Export Button */}
+                    <div className="md:hidden">
+                        <DynamicButton
+                            variant="secondary"
+                            onClick={handleExportCSV}
+                            className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
+                        >
+                            <span className="hidden sm:inline">Export CSV</span>
+                            <span className="sm:hidden">Export</span>
+                        </DynamicButton>
+                    </div>
+                    {/* Desktop Export Link */}
+                    <button
                         onClick={handleExportCSV}
-                        className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
+                        className="hidden md:block text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
                     >
-                        <span className="hidden sm:inline">Export CSV</span>
-                        <span className="sm:hidden">Export</span>
-                    </DynamicButton>
+                        Export CSV
+                    </button>
                 </div>
             </div>
 
@@ -398,7 +492,7 @@ function PortfolioList() {
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
                     </div>
                 ) : (
-                    <DynamicTable columns={columns} rows={currentData} />
+                    <DynamicTable columns={columns} rows={currentPortfolios} />
                 )}
             </div>
 
@@ -406,13 +500,13 @@ function PortfolioList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredPortfolios.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredPortfolios.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredPortfolios.length}</span> portfolios
+                    of <span className="font-medium text-gray-900">{totalItems}</span> portfolios
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
@@ -427,12 +521,14 @@ function PortfolioList() {
             <FormModal
                 open={isFormModalOpen}
                 onOpenChange={setIsFormModalOpen}
-                title={formType === 'add' ? 'Add New Project' : 'Edit Project'}
+                title={formType === 'add' ? 'Add New Portfolio' : 'Edit Portfolio'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Save Project' : 'Update Project'}
+                submitLabel={formType === 'add' ? 'Save Portfolio' : 'Update Portfolio'}
                 size="lg"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || getComparableData(formData) !== initialFormDataRef.current}
             >
                 <PortfolioForm
                     formData={formData}

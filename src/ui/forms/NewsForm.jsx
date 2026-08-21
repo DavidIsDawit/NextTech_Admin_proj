@@ -154,12 +154,12 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
 
             {/* News Images (Gallery) Upload */}
             <div className="space-y-2">
-                <Label className={errors.images ? 'text-red-500' : ''}>
+                <Label >
                     News Images (Gallery) <span className="text-red-500">*</span>
                 </Label>
                 {/* Upload zone — click to browse */}
                 <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors  ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors  border-[#136ECA]  `}
                     onClick={() => document.getElementById('news-images').click()}
                 >
                     <div className="flex flex-col items-center">
@@ -287,7 +287,8 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             {/* Description One */}
             <div className="space-y-2">
                 <Label htmlFor="descriptionOne" className={errors.descriptionOne ? 'text-red-500' : ''}>
-                    Article Description One <span className="text-red-500">*</span>
+                    Article Description One 
+                    {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <Textarea
                     id="descriptionOne"
@@ -306,7 +307,8 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             {/* Description Two */}
             <div className="space-y-2">
                 <Label htmlFor="descriptionTwo" className={errors.descriptionTwo ? 'text-red-500' : ''}>
-                    Article Description Two <span className="text-red-500">*</span>
+                    Article Description Two
+                     {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <Textarea
                     id="descriptionTwo"
@@ -325,7 +327,8 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             {/* Description Three */}
             <div className="space-y-2">
                 <Label htmlFor="discriptionThree" className={errors.discriptionThree ? 'text-red-500' : ''}>
-                    Article Description Three <span className="text-red-500">*</span>
+                    Article Description Three
+                     {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <Textarea
                     id="discriptionThree"
@@ -344,7 +347,8 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             {/* Description Four */}
             <div className="space-y-2">
                 <Label htmlFor="discriptionFour" className={errors.discriptionFour ? 'text-red-500' : ''}>
-                    Article Description Four <span className="text-red-500">*</span>
+                    Article Description Four 
+                    {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <Textarea
                     id="discriptionFour"
@@ -399,7 +403,8 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
             {/* Status */}
             <div className="space-y-2">
                 <Label className={errors.status ? 'text-red-500' : ''}>
-                    Status <span className="text-red-500">*</span>
+                    Status 
+                    {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <RadioGroup
                     value={formData.status || 'published'}
@@ -413,10 +418,6 @@ export function NewsForm({ formData = {}, onChange, errors = {} }) {
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="draft" id="news-draft" />
                         <Label htmlFor="news-draft" className="font-normal cursor-pointer">Draft</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="scheduled" id="news-scheduled" />
-                        <Label htmlFor="news-scheduled" className="font-normal cursor-pointer">Scheduled</Label>
                     </div>
                 </RadioGroup>
                 {errors.status && (

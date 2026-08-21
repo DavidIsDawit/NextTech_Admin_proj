@@ -5,7 +5,7 @@ import Services from "./pages/Services";
 import Dashboard from "./pages/Dashboard";
 import Teams from "./pages/Teams";
 import Projects from "./pages/Projects";
-import Login from "./pages/Login";
+import Login from "./pages/Login"
 import ChangePassword from "./pages/ChangePassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -21,120 +21,71 @@ import ModalExamples from "./pages/ModalExamples";
 import PageNotFound from "./pages/PageNotFound";
 import ProfileSetting from "./pages/ProfileSetting";
 import ServerError from "./pages/ServerError";
+import Users from "./pages/Users";
 
-import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
+
 import { getSecureItem } from "./utils/storageUtils";
-import api, { initAuth, getAccessToken } from "./api/api";
-import PropTypes from "prop-types";
+import { initAuth } from "./api/api";
 
 // simple wrapper that redirects to login if there is no access token
 const RequireAuth = ({ children }) => {
-  const token = getAccessToken();
-  if (!token) {
+  const role = getSecureItem("userRole");
+  if (!role) {
     return <Navigate to="/admin/login" replace />;
   }
   return children;
 };
 
-RequireAuth.propTypes = {
-  children: PropTypes.node,
-};
-
 // guard that ensures first-time login flow is completed
 const RequireFirstTimeCompleted = ({ children }) => {
-  const firstTime = getSecureItem("firstTimeLogin") === "true";
+  const firstTime = getSecureItem("firstTimeLogin");
   // if user is currently on change-password allow it
   const pathname = window.location.pathname;
-  if (firstTime && pathname !== "/admin/change-password") {
+  if ((firstTime === true || firstTime === "true") && pathname !== "/admin/change-password") {
     return <Navigate to="/admin/change-password" replace />;
   }
   return children;
 };
 
-RequireFirstTimeCompleted.propTypes = {
-  children: PropTypes.node,
-};
+import { useEffect, useState } from "react";
+import api from "./api/api";
 
 function App() {
-  const [authReady, setAuthReady] = useState(false);
-  const pathname = window.location.pathname;
-
-  // While auth state is initializing, only allow the public routes.
-  // This prevents a flash of redirects when the access token is restored via the refresh cookie.
-  const isPublicRoute =
-    pathname === "/admin/login" ||
-    pathname === "/forgot-password" ||
-    pathname === "/server-error" ||
-    pathname.startsWith("/admin/login/Reset_password/");
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   // Proactively check server connectivity on boot.
-  // This ensures the user is redirected to the server error page
+  // This ensures the user is redirected to the server error page 
   // even on the login page if the server is down.
   useEffect(() => {
     // If we're already on the server-error page, don't ping again
     // (the user will manually retry via the "Try Again" button)
-    if (window.location.pathname === "/server-error") return;
+    if (window.location.pathname !== "/server-error") {
+      api.get("/AllNews", { timeout: 3000 }).catch(() => { });
+    }
 
-    // The interceptor in api.js will handle the redirect if this fails.
-    // We use a slightly longer timeout (8s) for this initial check to avoid false redirects on slow networks.
-    api.get("/AllNews", { timeout: 8000 }).catch(() => {});
+    // Initialize Auth (hydrate tokens if session exists)
+    initAuth().finally(() => {
+      setIsAuthReady(true);
+    });
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      try {
-        await initAuth();
-      } finally {
-        if (!cancelled) setAuthReady(true);
-      }
-    };
-
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // CROSS-TAB SYNC: Listen for logout event in other tabs
-  useEffect(() => {
-    const authChannel = new BroadcastChannel("auth_sync");
-    
-    authChannel.onmessage = (e) => {
-      if (e.data?.type === "logout") {
-        setAuthReady(false);
-        window.location.href = "/admin/login";
-      }
-    };
-    
-    return () => authChannel.close();
-  }, []);
-
-  if (!authReady && !isPublicRoute) {
-    return null;
+  if (!isAuthReady) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
+      </div>
+    );
   }
 
   return (
-    <BrowserRouter
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    >
-      <Toaster
-        position="top-center"
-        richColors
-        toastOptions={{
-          style: { textAlign: "center", fontSize: "16px", padding: "16px" },
-        }}
-      />
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Toaster position="top-right" richColors />
       <Routes>
         {/* always allow login and password reset pages */}
         <Route path="/admin/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route
-          path="/admin/login/Reset_password/:token"
-          element={<ResetPassword />}
-        />
+        <Route path="/admin/login/Reset_password/:token" element={<ResetPassword />} />
         <Route
           path="/admin/change-password"
           element={
@@ -169,6 +120,7 @@ function App() {
           <Route path="/admin/modalexamples" element={<ModalExamples />} />
           <Route path="/admin/certificates" element={<Certificate />} />
           <Route path="/admin/profile_setting" element={<ProfileSetting />} />
+          <Route path="/admin/users" element={<Users />} />
         </Route>
 
         <Route path="/server-error" element={<ServerError />} />
@@ -179,3 +131,5 @@ function App() {
 }
 
 export default App;
+
+

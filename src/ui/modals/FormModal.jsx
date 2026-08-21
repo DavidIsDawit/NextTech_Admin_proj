@@ -35,6 +35,7 @@ export function FormModal({
     submitLabel = 'Save',
     size = 'md',
     errors = {},
+    isChanged = true,
 }) {
     const sizeClasses = {
         sm: 'sm:max-w-[425px]',
@@ -102,8 +103,8 @@ export function FormModal({
                             </Button>
                             <Button
                                 type="submit"
-                                disabled={isSubmitting}
-                                className="bg-[#00adef] hover:bg-[#00adef]/90 text-white">
+                                disabled={isSubmitting || !isChanged}
+                                className={`bg-[#00adef] hover:bg-[#00adef]/90 text-white ${!isChanged ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                 {isSubmitting ? 'Saving...' : submitLabel}
                             </Button>
                         </DialogFooter>

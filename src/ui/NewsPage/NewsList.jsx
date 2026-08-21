@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -11,21 +12,34 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { NewsForm } from "../forms/NewsForm";
-import { getAllNews, createNews, updateNews, deleteNews } from "../../api/newsApi";
+import {
+    getAllNews, createNews, updateNews, deleteNews, searchNews,
+    filterNewsByCategory, filterNewsByStatus, getStatuses, getCategories
+} from "../../api/newsApi";
 import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 import { toast } from "sonner";
 
 function NewsList() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [categories, setCategories] = useState([]);
+    const [statuses, setStatuses] = useState([]);
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
     const [statusFilter, setStatusFilter] = useState("All Status");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    const setCurrentPage = (page) => {
+        setSearchParams((prev) => {
+            prev.set("page", page);
+            return prev;
+        });
+    };
+    const itemsPerPage = 8;
 
     // Data State
     const [news, setNews] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -36,20 +50,63 @@ function NewsList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
+
+    // Compare form data for isChanged (handles File objects)
+    const getComparableData = (data) => {
+        const clone = { ...data };
+        Object.keys(clone).forEach(key => {
+            if (clone[key] instanceof File) clone[key] = '__file__';
+            if (Array.isArray(clone[key])) {
+                clone[key] = clone[key].map(item => item instanceof File ? '__file__' : item);
+            }
+        });
+        return JSON.stringify(clone);
+    };
+
+    // Debounced search
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const fetchNews = async () => {
+        const search = debouncedSearchTerm.trim();
+        if (search.length > 0 && search.length < 3) {
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const params = { 
-                page: 1, 
-                limit: 1000 
-            };
-
-            const result = await getAllNews(params);
-            if (result.status === "success") {
+            let result;
+            const params = { page: currentPage, limit: itemsPerPage };
+            if (search.length >= 3) {
+                result = await searchNews(search, params);
+            } else if (categoryFilter !== "All Categories") {
+                result = await filterNewsByCategory(categoryFilter, params);
+            } else if (statusFilter !== "All Status") {
+                result = await filterNewsByStatus(statusFilter, params);
+            } else {
+                result = await getAllNews(params);
+            }
+            if (result && result.status === "success") {
                 const newsItems = result.data?.news || (Array.isArray(result.data) ? result.data : []);
-                setNews(newsItems);
-                setTotalItems(newsItems.length);
+                const isClientSideSliced = newsItems.length > itemsPerPage;
+                const total = isClientSideSliced
+                    ? newsItems.length
+                    : (result.totalNews ?? result.total ?? newsItems.length);
+
+                setTotalItems(total);
+
+                if (isClientSideSliced) {
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    setNews(newsItems.slice(startIndex, startIndex + itemsPerPage));
+                } else {
+                    setNews(newsItems);
+                }
+
+                setTotalPages(Math.ceil(total / itemsPerPage) || 1);
             }
         } catch (error) {
             console.error("Failed to fetch news:", error);
@@ -60,32 +117,31 @@ function NewsList() {
 
     useEffect(() => {
         fetchNews();
+    }, [currentPage, debouncedSearchTerm, categoryFilter, statusFilter]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const result = await getCategories();
+            if (result.status === "success") {
+                setCategories(result.data);
+            }
+        }; fetchCategories();
     }, []);
 
-    const categories = useMemo(() => ["All Categories", ...new Set(news.map(s => s.catagory || s.category).filter(Boolean))], [news]);
-    const statuses = useMemo(() => ["All Status", ...new Set(news.map(s => s.status).filter(Boolean))], [news]);
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            const result = await getStatuses();
+            if (result.status === "success") {
+                setStatuses(result.data);
+            }
+        };
+        fetchStatuses();
+    }, []);
 
-    // Frontend Filtering Logic
-    const filteredNews = useMemo(() => {
-        return news.filter((item) => {
-            const matchesSearch = !searchTerm || searchTerm.length < 3 || 
-                item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.author?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCategory = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesCategory && matchesStatus;
-        });
-    }, [news, searchTerm, categoryFilter, statusFilter]);
-
-    // Client-side Pagination Logic
-    const totalPages = Math.ceil(filteredNews.length / itemsPerPage) || 1;
-    const currentData = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredNews.slice(start, start + itemsPerPage);
-    }, [filteredNews, currentPage, itemsPerPage]);
+    const currentNews = news;
 
     const handleExportCSV = () => {
-        exportToCSV(filteredNews, "News", {
+        exportToCSV(news, "News", {
             title: "Article Title",
             catagory: "Category",
             author: "Author",
@@ -99,7 +155,7 @@ function NewsList() {
         setFormType('add');
         setFormData({
             title: '',
-            catagory: 'company-news',
+            catagory: '',
             author: '',
             descriptionOne: '',
             descriptionTwo: '',
@@ -118,7 +174,21 @@ function NewsList() {
     const handleEdit = (item) => {
         setFormType('edit');
         setSelectedItem(item);
-        setFormData({ ...item });
+        const editData = { ...item };
+
+        // Normalize tags: backend may return an array, form expects a comma-separated string
+        if (Array.isArray(editData.tags)) {
+            editData.tags = editData.tags.join(',');
+        } else if (!editData.tags) {
+            editData.tags = '';
+        }
+
+        // Normalize happenedOn: backend may return ISO datetime, date input needs YYYY-MM-DD
+        if (editData.happenedOn && typeof editData.happenedOn === 'string') {
+            editData.happenedOn = editData.happenedOn.slice(0, 10);
+        }
+        setFormData(editData);
+        initialFormDataRef.current = getComparableData(editData);
         setErrors({});
         setIsFormModalOpen(true);
     };
@@ -135,16 +205,7 @@ function NewsList() {
         try {
             const data = new FormData();
 
-            // Client side validation
-            const clientErrors = {};
-            if (formType === 'add' && !formData.imageCover) {
-                clientErrors.imageCover = "Cover Image is required";
-            }
-            if (Object.keys(clientErrors).length > 0) {
-                setErrors(clientErrors);
-                setIsSubmitting(false);
-                return;
-            }
+            // Frontend validation removed; relying on backend.
 
             // Only send fields the backend accepts (avoids 400 from _id, createdAt, etc.)
             const allowedFields = ['title', 'catagory', 'author', 'descriptionOne', 'descriptionTwo', 'discriptionThree', 'discriptionFour', 'tags', 'happenedOn', 'status'];
@@ -172,20 +233,22 @@ function NewsList() {
             if (formType === 'add') {
                 const res = await createNews(data);
                 if (res.status === "success") {
-                    toast.success("News article created successfully!");
+                    const msg = res?.message || res?.data?.message;
+                    if (msg) toast.success(msg);
                     await fetchNews();
                     setIsFormModalOpen(false);
                 } else {
-                    toast.error(res.message || "Failed to create news");
+                    if (res.message) toast.error(res.message);
                 }
             } else {
                 const res = await updateNews(selectedItem._id || selectedItem.id, data);
                 if (res.status === "success") {
-                    toast.success("News article updated successfully!");
+                    const msg = res?.message || res?.data?.message;
+                    if (msg) toast.success(msg);
                     await fetchNews();
                     setIsFormModalOpen(false);
                 } else {
-                    toast.error(res.message || "Failed to update news");
+                    if (res.message) toast.error(res.message);
                 }
             }
         } catch (error) {
@@ -193,7 +256,7 @@ function NewsList() {
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             } else {
-                toast.error(extractErrorMessage(error, "Failed to save news article"));
+                if (error?.response?.data?.message) toast.error(error.response.data.message);
             }
         } finally {
             setIsSubmitting(false);
@@ -203,7 +266,9 @@ function NewsList() {
     const handleDeleteConfirm = async () => {
         setIsDeleting(true);
         try {
-            await deleteNews(selectedItem._id || selectedItem.id);
+            const res = await deleteNews(selectedItem._id || selectedItem.id);
+            const msg = res?.message || res?.data?.message;
+            if (msg) toast.success(msg);
             await fetchNews();
             setIsDeleteModalOpen(false);
         } catch (error) {
@@ -221,7 +286,7 @@ function NewsList() {
                 <div className="flex-shrink-0 h-14 w-14">
                     <img
                         src={value || row.image || row.thumbnail}
-                        alt={row.title || row.articleTitle}
+                        alt=""
                         className="h-full w-full rounded object-cover"
                     />
                 </div>
@@ -296,7 +361,7 @@ function NewsList() {
                         className="flex items-center gap-2 bg-[#00A3E0] hover:bg-blue-600 text-white px-5 py-2.5 rounded-md font-medium text-sm transition-colors cursor-pointer"
                     >
                         <FiPlus size={18} />
-                        Add Article
+                        Add News
                     </button>
                 </div>
             </div>
@@ -314,7 +379,7 @@ function NewsList() {
                 </div>
                 {categories.length > 1 && (
                     <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                        <DynamicDropdown
+                        {/* <DynamicDropdown
                             options={categories.filter((s) => s !== "All Categories")}
                             value={categoryFilter}
                             onChange={(val) => {
@@ -322,7 +387,15 @@ function NewsList() {
                                 setCurrentPage(1);
                             }}
                             defaultOption="All Categories"
-                        />
+                        /> */}
+                        <DynamicDropdown
+                            options={categories}
+                            value={categoryFilter}
+                            defaultOption="All Categories"
+                            onChange={(val) => {
+                                setCategoryFilter(val);
+                                setCurrentPage(1);
+                            }} />
                     </div>
                 )}
                 {statuses.length > 1 && (
@@ -356,7 +429,7 @@ function NewsList() {
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
                     </div>
                 ) : (
-                    <DynamicTable columns={columns} rows={currentData} />
+                    <DynamicTable columns={columns} rows={currentNews} />
                 )}
             </div>
 
@@ -364,13 +437,13 @@ function NewsList() {
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredNews.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredNews.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredNews.length}</span> articles
+                    of <span className="font-medium text-gray-900">{totalItems}</span> articles
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
@@ -385,12 +458,14 @@ function NewsList() {
             <FormModal
                 open={isFormModalOpen}
                 onOpenChange={setIsFormModalOpen}
-                title={formType === 'add' ? 'Add New Article' : 'Edit Article'}
+                title={formType === 'add' ? 'Add New News' : 'Edit News'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Article' : 'Save Changes'}
+                submitLabel={formType === 'add' ? 'Add News' : 'Update News'}
                 size="xl"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || getComparableData(formData) !== initialFormDataRef.current}
             >
                 <NewsForm
                     formData={formData}

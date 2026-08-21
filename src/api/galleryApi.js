@@ -6,7 +6,7 @@ export const normalizeGallery = (item) => {
         item.coverImage = buildImageUrl(item.coverImage);
     }
     if (item?.image) {
-        item.image = buildImageUrl(item.images);
+        item.image = buildImageUrl(item.image);
     }
     if (Array.isArray(item?.images)) {
         item.images = item.images.map(img => buildImageUrl(img));
@@ -101,3 +101,70 @@ export const deleteGallery = async (id) => {
         throw error;
     }
 };
+
+/**
+ * Search gallery.
+ */
+export const searchGallery = async (title, params = {}) => {
+    const response = await api.get("/gallery/search", {
+        params: { title, ...params },
+    });
+
+    const result = response.data;
+
+    return {
+        status: result.status,
+        data: (result.galleries || []).map(normalizeGallery),
+        total: result.totalGalleries ?? (result.galleries || []).length,
+    };
+};
+
+export const getCategories = async () => {
+    const response = await api.get("/gallery/categories");
+
+    const result = response.data;
+
+    return {
+        status: result.status,
+        data: result.categories || [],
+        total: result.totalCategories,
+    };
+};
+
+export const getStatuses = async () => {
+    const response = await api.get("/gallery/statuses");
+
+    const result = response.data;
+
+    return {
+        status: result.status,
+        data: result.statuses || [],
+        total: result.totalStatuses,
+    };
+};
+
+export const filterGalleryByStatuses = async (status, params = {}) => {
+    const { data } = await api.get("/gallery/filter-by-status", {
+        params: { status, ...params },
+    });
+
+    return {
+        status: data.status,
+        data: (data.galleries || []).map(normalizeGallery),
+        total: data.totalGalleries ?? (data.galleries || []).length,
+    };
+};
+
+export const filterGalleryByCategory = async (category, params = {}) => {
+    const { data } = await api.get("/gallery/filter-by-category", {
+        params: { category, ...params },
+    });
+
+    return {
+        status: data.status,
+        data: (data.galleries || []).map(normalizeGallery),
+        total: data.totalGalleries ?? (data.galleries || []).length,
+    };
+};
+
+

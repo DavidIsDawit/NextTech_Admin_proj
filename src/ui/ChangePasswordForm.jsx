@@ -24,14 +24,7 @@ export default function ChangePasswordForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (passwordData.new !== passwordData.confirm) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    if (passwordData.new.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
+
     setErrors({});
     setLoading(true);
     try {
@@ -40,7 +33,8 @@ export default function ChangePasswordForm() {
         confirmPassword: passwordData.confirm,
       });
       if (res.status === "success") {
-        toast.success("Password updated successfully");
+        const msg = res?.message || res?.data?.message;
+        if (msg) toast.success(msg);
         setSecureItem("firstTimeLogin", "false");
         navigate("/");
       }

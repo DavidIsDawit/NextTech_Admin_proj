@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -11,7 +12,7 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { CertificateForm } from "../forms/CertificateForm";
-import { getAllCertificates, createCertificate, updateCertificate, deleteCertificate } from "../../api/certificateApi";
+import { getAllCertificates, createCertificate, updateCertificate, deleteCertificate, searchCertificates, getStatuses, filterCertificatesByStatus } from "../../api/certificateApi";
 import api, { buildImageUrl } from "../../api/api";
 import { toast } from "sonner";
 import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
@@ -19,11 +20,20 @@ import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers"
 function CertificateList() {
     const [certificates, setCertificates] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [statuses, setStatuses] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All Status");
-    const [currentPage, setCurrentPage] = useState(1);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    const setCurrentPage = (page) => {
+        setSearchParams((prev) => {
+            prev.set("page", page);
+            return prev;
+        });
+    };
     const [totalItems, setTotalItems] = useState(0);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const itemsPerPage = 8;
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -35,21 +45,58 @@ function CertificateList() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
+
+    // Compare form data for isChanged (handles File objects)
+    const getComparableData = (data) => {
+        const clone = { ...data };
+        Object.keys(clone).forEach(key => {
+            if (clone[key] instanceof File) clone[key] = '__file__';
+        });
+        return JSON.stringify(clone);
+    };
+
+    // Debounced search
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const fetchCertificates = async () => {
+        const search = debouncedSearchTerm.trim();
+        if (search.length > 0 && search.length < 3) {
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const params = {
-                page: 1,
-                limit: 1000,
-                sort: 'recent'
-            };
+            let data;
+            const params = { page: currentPage, limit: itemsPerPage, sort: 'recent' };
+            if (search.length >= 3) {
+                data = await searchCertificates(search, params);
+            } else if (statusFilter !== "All Status") {
+                data = await filterCertificatesByStatus(statusFilter, params);
+            } else {
+                data = await getAllCertificates(params);
+            }
+            if (data && data.status === "success") {
+                const certificateItems = data.certificates || data.data || [];
+                const isClientSideSliced = certificateItems.length > itemsPerPage;
+                const total = isClientSideSliced
+                    ? certificateItems.length
+                    : (data.totalCertificates ?? data.total ?? certificateItems.length);
 
-            const data = await getAllCertificates(params);
-            if (data.status === "success") {
-                const certificateItems = data.certificates || [];
-                setCertificates(certificateItems);
-                setTotalItems(certificateItems.length);
+                setTotalItems(total);
+
+                if (isClientSideSliced) {
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    setCertificates(certificateItems.slice(startIndex, startIndex + itemsPerPage));
+                } else {
+                    setCertificates(certificateItems);
+                }
+
+                setTotalPages(Math.ceil(total / itemsPerPage) || 1);
             }
         } catch (error) {
             console.error("Failed to fetch certificates:", error);
@@ -60,52 +107,65 @@ function CertificateList() {
 
     useEffect(() => {
         fetchCertificates();
+    }, [currentPage, debouncedSearchTerm, statusFilter]);
+
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            const result = await getStatuses();
+            if (result.status === "success") {
+                setStatuses(result.data);
+            }
+        }; fetchStatuses();
     }, []);
 
-    const statuses = useMemo(() => ["All Status", ...new Set(certificates.map(s => s.status).filter(Boolean))], [certificates]);
+    const currentData = certificates.filter(item =>
+        statusFilter === "All Status" || item.status === statusFilter);
 
-    // Frontend Filtering Logic
-    const filteredCertificates = useMemo(() => {
-        return certificates.filter((item) => {
-            const searchStr = (item.title || item.certificateName || "").toLowerCase();
-            const matchesSearch = !searchTerm || searchTerm.length < 3 || searchStr.includes(searchTerm.toLowerCase());
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesStatus;
-        });
-    }, [certificates, searchTerm, statusFilter]);
+    // const statuses = useMemo(() => ["All Status", ...new Set(certificates.map(s => s.status).filter(Boolean))], [certificates]);
 
-    // Client-side Pagination Logic
-    const totalPages = Math.ceil(filteredCertificates.length / itemsPerPage) || 1;
-    const currentData = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredCertificates.slice(start, start + itemsPerPage);
-    }, [filteredCertificates, currentPage, itemsPerPage]);
+    // Server-side pagination: certificates already contains only the current page
+    // const filteredCertificates = certificates.filter(item => {
+    //     return statusFilter === "All Status" || item.status === statusFilter;
+    // });
+    // const currentData = filteredCertificates;
 
+    // const handleExportCSV = () => {
+    //     exportToCSV(certificates, "Certificates", {
+    //         title: "Certificate Title",
+    //         issueDate: "Issue Date",
+    //         status: "Status"
+    //     });
+    // };
     const handleExportCSV = () => {
-        exportToCSV(filteredCertificates, "Certificates", {
+        const exportData = certificates.map((cert) => ({
+            title: cert.title || cert.certificateName,
+            issueDate: cert.issueDate || cert.IssueDate,
+            status: cert.status,
+        }));
+
+        exportToCSV(exportData, "Certificates", {
             title: "Certificate Title",
             issueDate: "Issue Date",
-            status: "Status"
+            status: "Status",
         });
     };
 
     // Modal Handlers
     const handleAddNew = () => {
-        // both admin and normal users can add
         setFormType('add');
         setFormData({
-            title: '',
-            issuedBy: '',
-            description: '',
-            issueDate: '',
+            title: '',   // → certificateName
+            certificateType: '',   // → certificateType  (e.g. "Technical", "Safety")
+            issuedBy: '',   // → certificateFrom
+            description: '',   // → certificateDescription
+            issueDate: '',   // → IssueDate
             status: 'Active',
             project: '',
             catagory: '',
-            certificate: null,
-            certificateImage: ''
+            certificate: null, // new File upload
+            certificateImage: '',
         });
         setErrors({});
-
         setIsFormModalOpen(true);
     };
 
@@ -115,30 +175,34 @@ function CertificateList() {
         setSelectedId(item._id ?? item.id);
         setErrors({});
 
+        // Normalise the issue date to YYYY-MM-DD for the date input
         let formattedDate = '';
-        if (item.issueDate || item.IssueDate) {
+        const rawDate = item.IssueDate || item.issueDate;
+        if (rawDate) {
             try {
-                formattedDate = new Date(item.issueDate || item.IssueDate).toISOString().split('T')[0];
+                formattedDate = new Date(rawDate).toISOString().split('T')[0];
             } catch (e) {
                 formattedDate = '';
             }
         }
 
-        // Map backend fields to form fields, clear any stale File object
-        setFormData({
+        // Map backend fields to form fields.
+        // certificateType  and certificateDescription are TWO separate backend fields.
+        const editData = {
             ...item,
-            certificate: null,
-            // if API returned a relative path we can still store it; buildImageUrl
-            // will convert when the form component shows the preview
+            certificate: null,   // clear stale File object; keep certificateImage for preview
             certificateImage: item.certificateImage || item.image || '',
-            title: item.title || item.certificateName || '',
-            issuedBy: item.issuedBy || item.certificateFrom || '',
-            description: item.description || item.certificateType || '',
+            title: item.certificateName || item.title || '',
+            certificateType: item.certificateType || '',
+            issuedBy: item.certificateFrom || item.issuedBy || '',
+            description: item.certificateDescription || item.description || '',
             issueDate: formattedDate,
             status: item.status || 'Active',
             project: item.project || '',
-            catagory: item.catagory || ''
-        });
+            catagory: item.catagory || '',
+        };
+        setFormData(editData);
+        initialFormDataRef.current = getComparableData(editData);
         setIsFormModalOpen(true);
     };
 
@@ -151,19 +215,6 @@ function CertificateList() {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
 
-        // Frontend Validation
-        const newErrors = {};
-        if (formType === 'add' && !formData.certificate) newErrors.certificate = "Certificate image is required";
-        if (!formData.title) newErrors.title = "Certificate title is required";
-        if (!formData.issuedBy) newErrors.issuedBy = "Issuer name is required";
-        if (!formData.catagory) newErrors.catagory = "Category is required";
-        if (!formData.issueDate) newErrors.issueDate = "Issue date is required";
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
-
         setIsSubmitting(true);
         const data = new FormData();
 
@@ -172,48 +223,49 @@ function CertificateList() {
             data.append('certificateImage', formData.certificate);
         }
 
-        // Map frontend fields to backend expected fields
+        // Build payload including both standard field names (title, issuedBy, issueDate, description)
+        // and legacy backend aliases (certificateName, certificateFrom, IssueDate, certificateDescription)
         const payload = {
-            certificateName: formData.title || "",
-            title: formData.title || "",
-            certificateType: formData.description || "",
-            description: formData.description || "",
-            certificateFrom: formData.issuedBy || "",
-            issuedBy: formData.issuedBy || "",
-            IssueDate: formData.issueDate || "",
-            issueDate: formData.issueDate || "",
-            status: formData.status || "Active",
-            project: formData.project || "",
-            catagory: formData.catagory || ""
+            title: formData.title || '',
+            certificateName: formData.title || '',
+            issuedBy: formData.issuedBy || '',
+            certificateFrom: formData.issuedBy || '',
+            issueDate: formData.issueDate || '',
+            IssueDate: formData.issueDate || '',
+            description: formData.description || '',
+            certificateDescription: formData.description || '',
+            certificateType: formData.certificateType || '',
+            status: formData.status || 'Active',
+            project: formData.project || '',
+            catagory: formData.catagory || '',
+            category: formData.catagory || '',
         };
 
-        Object.keys(payload).forEach(key => {
-            if (payload[key]) {
-                data.append(key, payload[key]);
-            }
+        // Append fields from payload
+        Object.entries(payload).forEach(([key, value]) => {
+            data.append(key, value);
         });
 
         try {
-
             if (formType === 'add') {
-                await createCertificate(data);
-                toast.success("Certificate added successfully");
+                const res = await createCertificate(data);
+                const msg = res?.message || res?.data?.message || 'Certificate created successfully!';
+                toast.success(msg);
             } else {
-                await updateCertificate(selectedId, data);
-                toast.success("Certificate updated successfully");
+                const res = await updateCertificate(selectedId, data);
+                const msg = res?.message || res?.data?.message || 'Certificate updated successfully!';
+                toast.success(msg);
             }
             setIsFormModalOpen(false);
             fetchCertificates();
         } catch (error) {
-            const responseData = error?.response?.data;
-
             const backendErrors = mapBackendErrors(error);
 
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             } else {
                 const msg = extractErrorMessage(error, 'Failed to save certificate');
-                toast.error(msg);
+                if (msg) setErrors({ general: msg });
             }
         } finally {
             setIsSubmitting(false);
@@ -223,8 +275,9 @@ function CertificateList() {
     const handleDeleteConfirm = async () => {
         setIsDeleting(true);
         try {
-            await deleteCertificate(selectedItem._id || selectedItem.id);
-            toast.success("Certificate deleted successfully");
+            const res = await deleteCertificate(selectedItem._id || selectedItem.id);
+            const msg = res?.message || res?.data?.message;
+            if (msg) toast.success(msg);
             setIsDeleteModalOpen(false);
             fetchCertificates();
         } catch (error) {
@@ -254,24 +307,21 @@ function CertificateList() {
                     <div className="flex-shrink-0 h-14 w-14">
                         <img
                             src={imageUrl}
-                            alt={row.title || row.certificateName}
+                            alt=""
                             crossOrigin="anonymous"
                             className="h-full w-full rounded object-cover"
-                            onError={(e) => {
-                                e.target.src = "/upload-placeholder.png";
-                                toast.error('Unable to load certificate image');
-                            }}
+
                         />
                     </div>
                 );
             },
         },
         {
-            key: "title",
+            key: "certificateName",
             label: "Certificate Title",
-            className: "max-w-[250px] truncate",
+            className: "max-w-[220px] truncate",
             render: (value, row) => {
-                const title = value || row.certificateName || "—";
+                const title = value || row.title || "—";
                 return (
                     <div className="font-medium text-gray-900 truncate" title={title}>
                         {title}
@@ -280,11 +330,29 @@ function CertificateList() {
             },
         },
         {
-            key: "issueDate",
+            key: "certificateType",
+            label: "Type",
+            render: (value) => (
+                <div className="text-sm text-gray-600">{value || '—'}</div>
+            ),
+        },
+        {
+            key: "certificateFrom",
+            label: "Issued By",
+            render: (value, row) => (
+                <div className="text-sm text-gray-600">{value || row.issuedBy || '—'}</div>
+            ),
+        },
+        {
+            key: "IssueDate",
             label: "Issue Date",
             render: (value, row) => {
-                const date = value || row.IssueDate;
-                return <div className="text-sm text-gray-500">{date ? new Date(date).toLocaleDateString() : 'N/A'}</div>;
+                const date = value || row.issueDate;
+                return (
+                    <div className="text-sm text-gray-500">
+                        {date ? new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                    </div>
+                );
             },
         },
         {
@@ -316,7 +384,6 @@ function CertificateList() {
                 );
             },
         },
-
     ];
 
 
@@ -400,20 +467,26 @@ function CertificateList() {
             </div>
 
             <div>
-                <DynamicTable columns={columns} rows={currentData} />
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
+                    </div>
+                ) : (
+                    <DynamicTable columns={columns} rows={currentData} />
+                )}
             </div>
 
             <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredCertificates.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredCertificates.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredCertificates.length}</span> certificates
+                    of <span className="font-medium text-gray-900">{totalItems}</span> certificates
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
@@ -431,9 +504,11 @@ function CertificateList() {
                 title={formType === 'add' ? 'Add New Certificate' : 'Edit Certificate'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Certificate' : 'Save Changes'}
+                submitLabel={formType === 'add' ? 'Add Certificate' : 'Update Certificate'}
                 size="lg"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || getComparableData(formData) !== initialFormDataRef.current}
             >
                 <CertificateForm
                     formData={formData}

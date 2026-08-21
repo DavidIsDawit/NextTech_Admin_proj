@@ -58,6 +58,9 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
         <div className="space-y-4">
             {/* Image Upload */}
             <div className="space-y-2">
+                <Label className={errors.image ? 'text-red-500' : ''}>
+                    Team Member Image <span className="text-red-500">*</span>
+                </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.image ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
                     onClick={() => document.getElementById('team-image').click()}
@@ -137,7 +140,8 @@ export function TeamForm({ formData = {}, onChange, errors = {} }) {
             {/* Status */}
             <div className="space-y-2">
                 <Label className={errors.status ? 'text-red-500' : ''}>
-                    Status <span className="text-red-500">*</span>
+                    Status 
+                    {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <RadioGroup
                     value={formData.status}

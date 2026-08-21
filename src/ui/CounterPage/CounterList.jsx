@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ function CounterList() {
     const [selectedItem, setSelectedItem] = useState(null);
     const [formType, setFormType] = useState('add'); // 'add' or 'edit'
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
 
     const fetchCounters = async () => {
         setIsLoading(true);
@@ -90,6 +91,7 @@ function CounterList() {
             value: 0,
             status: 'Active'
         });
+        initialFormDataRef.current = null;
         setErrors({});
         setIsFormModalOpen(true);
     };
@@ -98,6 +100,7 @@ function CounterList() {
         setFormType('edit');
         setSelectedItem(item);
         setFormData({ ...item });
+        initialFormDataRef.current = JSON.stringify({ ...item });
         setErrors({});
         setIsFormModalOpen(true);
     };
@@ -106,15 +109,14 @@ function CounterList() {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
 
-        // Simple client-side validation
-        const localErrors = {};
-        if (formType === 'add' && !formData.name) {
-            localErrors.name = "Counter Title is required";
-        }
-
-        if (Object.keys(localErrors).length > 0) {
-            setErrors(localErrors);
-            return;
+        // Frontend validation removed; relying on backend.
+        
+        if (formType === 'edit') {
+            const hasChanged = JSON.stringify(formData) !== initialFormDataRef.current;
+            if (!hasChanged) {
+                toast.info("No changes detected.");
+                return;
+            }
         }
 
         setIsSubmitting(true);
@@ -136,7 +138,8 @@ function CounterList() {
             }
 
             if (response.status === "success") {
-                toast.success(`Counter ${formType === 'add' ? 'added' : 'updated'} successfully!`);
+                const msg = response?.message || response?.data?.message;
+                if (msg) toast.success(msg);
                 setIsFormModalOpen(false);
                 fetchCounters();
             }
@@ -312,6 +315,8 @@ function CounterList() {
                 submitLabel={formType === 'add' ? 'Add' : 'Save Changes'}
                 size="md"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || JSON.stringify(formData) !== initialFormDataRef.current}
             >
                 <CounterForm
                     formData={formData}

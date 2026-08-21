@@ -22,10 +22,10 @@ const normalizeCert = (cert) => {
    GET /api/getAllCertificates?page=1&sort=recent
    Returns: { status, certificates: [], totalCertificates, currentPage, totalPages }
 ------------------------------------------------------------------ */
-export const getAllCertificates = async ({ page = 1, sort = "recent" } = {}) => {
+export const getAllCertificates = async (params = {}) => {
     try {
         const response = await api.get("/getAllCertificates", {
-            params: { page, sort },
+            params,
         });
         const data = response.data;
 
@@ -39,11 +39,6 @@ export const getAllCertificates = async ({ page = 1, sort = "recent" } = {}) => 
     }
 };
 
-/* ------------------------------------------------------------------
-   READ – single
-   GET /api/getCertificate/:id
-   Returns: { status, data: { certificate: {} } }
------------------------------------------------------------------- */
 export const getCertificate = async (id) => {
     try {
         const response = await api.get(`/getCertificate/${id}`);
@@ -59,12 +54,6 @@ export const getCertificate = async (id) => {
     }
 };
 
-/* ------------------------------------------------------------------
-   CREATE
-   POST /api/createCertificates   (multipart/form-data)
-   Body fields: title, issuedBy, issueDate, status, certificateImage (file)
-   Returns: { status, data: { certificate: {} } }
------------------------------------------------------------------- */
 export const createCertificate = async (formData) => {
     try {
         const response = await api.post("/createCertificates", formData);
@@ -80,12 +69,6 @@ export const createCertificate = async (formData) => {
     }
 };
 
-/* ------------------------------------------------------------------
-   UPDATE
-   PUT /api/updateCertificate/:id   (multipart/form-data)
-   Body: any subset of create fields
-   Returns: { status, certificate: {} }
------------------------------------------------------------------- */
 export const updateCertificate = async (id, formData) => {
     try {
         const response = await api.put(`/updateCertificate/${id}`, formData);
@@ -101,11 +84,6 @@ export const updateCertificate = async (id, formData) => {
     }
 };
 
-/* ------------------------------------------------------------------
-   DELETE
-   DELETE /api/deleteCertificate/:id
-   Returns: { status, message }
------------------------------------------------------------------- */
 export const deleteCertificate = async (id) => {
     try {
         const response = await api.delete(`/deleteCertificate/${id}`);
@@ -113,4 +91,33 @@ export const deleteCertificate = async (id) => {
     } catch (error) {
         throw error;
     }
+};
+
+export const searchCertificates = async (name, params = {}) => {
+    const response = await api.get(`/Certificates/search`,
+        { params: { name, ...params } }
+    );
+    return response.data;
+};
+
+export const getStatuses = async () => {
+    const response = await api.get("/certificates/statuses");
+    const result = response.data;
+    return {
+        status: result.status,
+        data: result.statuses,
+        total: result.totalStatuses,
+    };
+};
+
+export const filterCertificatesByStatus = async (status, params = {}) => {
+    const { data } = await api.get("/certificates/filter-by-status", {
+        params: { status, ...params },
+    });
+
+    return {
+        status: data.status,
+        data: (data.certificates || []).map(normalizeCert),
+        total: data.totalCertificates,
+    };
 };

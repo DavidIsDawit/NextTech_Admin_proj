@@ -10,6 +10,8 @@ const NextTech_logo = "/NextTech_logo.png";
 import { login } from "../../api/userApi";
 import { toast } from "sonner";
 import { getSecureItem, setSecureItem, removeSecureItem } from "../../utils/storageUtils";
+import { setRememberMe as setRememberMeFlag } from "../../utils/authSession";
+import { mapBackendErrors } from "../../utils/errorHelpers";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,6 +19,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   // Load remembered email on mount
@@ -30,11 +33,8 @@ function Login() {
 
   const handlesubmit = async function (e) {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Email and password are required");
-      return;
-    }
 
+    setErrors({});
     setLoading(true);
     try {
       const res = await login(email, password, rememberMe);
@@ -44,6 +44,7 @@ function Login() {
           navigate("/admin/change-password");
         } else {
           // Handle Remember Me
+          setRememberMeFlag(rememberMe);
           if (rememberMe) {
               // Email is safe to persist when the user explicitly opts in.
               setSecureItem("rememberedEmail", email, { storage: "local" });
@@ -53,17 +54,20 @@ function Login() {
           navigate("/");
         }
       } else {
-        // Now toast.error is handled globally in api.js or here 
-        // We ensure we show the backend message if available
-        toast.error(res.message || "Login failed");
+        if (res.message || res.error) {
+           setErrors({ email: res.message || res.error, password: res.message || res.error });
+        }
       }
     } catch (error) {
-      const message = error.response?.data?.message || error.message || "Something went wrong";
-      const isForbidden = error.response?.status === 403;
-      const isInvalid = message.toLowerCase().includes("invalid");
+      const backendMessage = error.response?.data?.message || error.response?.data?.error;
+      const mappedErrors = mapBackendErrors(error);
       
-      if (!isForbidden && !isInvalid) {
-        toast.error(message);
+      if (Object.keys(mappedErrors).length > 0) {
+        setErrors(mappedErrors);
+      } else if (backendMessage) {
+        // If the backend returns a general error message not caught by mapBackendErrors, 
+        // display it on the fields
+        setErrors({ email: backendMessage, password: backendMessage });
       }
     } finally {
       setLoading(false);
@@ -123,11 +127,12 @@ function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@engineercms.com"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 outline-none transition-all placeholder:text-gray-300 ${errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"}`}
                   required
                 />
 
               </div>
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
 
             {/* Password Field */}
@@ -143,7 +148,7 @@ function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition-all placeholder:text-gray-300"
+                  className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 outline-none transition-all placeholder:text-gray-300 ${errors.password ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"}`}
                 />
 
                 <Button
@@ -163,6 +168,7 @@ function Login() {
 
 
               </div>
+              {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
             </div>
 
             {/* Checkbox */}
@@ -170,9 +176,9 @@ function Login() {
               <input
                 type="checkbox"
                 id="remember"
+                className="w-4 h-4 border border-gray-500 rounded"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-5 h-5 border-gray-300 rounded accent-[#00A8E8]"
               />
 
               <Label htmlFor="remember" className="text-gray-600 text-sm cursor-pointer">

@@ -17,19 +17,17 @@ function ForgotPassword() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!email) {
-            toast.error("Email is required");
-            return;
-        }
+
 
         setLoading(true);
         try {
             const res = await forgotPassword(email);
             if (res.status === "success") {
                 setSubmitted(true);
-                toast.success("Password reset link sent to your email");
+                const msg = res?.message || res?.data?.message;
+                if (msg) toast.success(msg);
             } else {
-                toast.error(res.message || "Failed to send reset link");
+                if (res.message) toast.error(res.message);
             }
         } catch (error) {
             const message = error.response?.data?.message || "Something went wrong";

@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
@@ -11,18 +12,27 @@ import { exportToCSV } from "../../utils/csvExport";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { PartnerForm } from "../forms/PartnerForm";
-import { getAllPartners, createPartner, updatePartner, deletePartner } from "../../api/partnerApi";
+import { getAllPartners, createPartner, updatePartner, deletePartner, searchPartners, getStatuses, filterPartnersByStatus } from "../../api/partnerApi";
 import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers";
 import { toast } from "sonner";
 
 function PartnerList() {
     const [partners, setPartners] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [statuses, setStatuses] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All Status");
-    const [currentPage, setCurrentPage] = useState(1);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    const setCurrentPage = (page) => {
+        setSearchParams((prev) => {
+            prev.set("page", page);
+            return prev;
+        });
+    };
     const [totalItems, setTotalItems] = useState(0);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const itemsPerPage = 8;
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -30,26 +40,63 @@ function PartnerList() {
     const [selectedItem, setSelectedItem] = useState(null);
     const [formType, setFormType] = useState('add'); // 'add' or 'edit'
     const [formData, setFormData] = useState({});
+    const [selectedId, setSelectedId] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [errors, setErrors] = useState({});
+    const initialFormDataRef = useRef(null);
 
-    const [selectedId, setSelectedId] = useState(null);
+    // Compare form data for isChanged (handles File objects)
+    const getComparableData = (data) => {
+        const clone = { ...data };
+        Object.keys(clone).forEach(key => {
+            if (clone[key] instanceof File) clone[key] = '__file__';
+        });
+        return JSON.stringify(clone);
+    };
+
+    // Debounced search
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     const fetchPartners = async () => {
+        const search = debouncedSearchTerm.trim();
+        if (search.length > 0 && search.length < 3) {
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const params = { 
-                page: 1, 
-                limit: 1000, 
-                sort: 'recent' 
-            };
+            let data;
+            const params = { page: currentPage, limit: itemsPerPage, sort: 'recent' };
+            if (search.length >= 3) {
+                data = await searchPartners(search, params);
+            } else if (statusFilter !== "All Status") {
+                data = await filterPartnersByStatus(statusFilter, params);
+            } else {
+                data = await getAllPartners(params);
+            }
+            if (data && data.status === "success") {
+                const raw = data.data;
+                const partnerItems = Array.isArray(raw) ? raw : (raw?.partners || raw?.data || []);
+                const isClientSideSliced = partnerItems.length > itemsPerPage;
+                const total = isClientSideSliced
+                    ? partnerItems.length
+                    : (data.totalPartners ?? data.total ?? partnerItems.length);
 
-            const data = await getAllPartners(params);
-            if (data.status === "success") {
-                const partnerItems = data.data || [];
-                setPartners(partnerItems);
-                setTotalItems(partnerItems.length);
+                setTotalItems(total);
+
+                if (isClientSideSliced) {
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    setPartners(partnerItems.slice(startIndex, startIndex + itemsPerPage));
+                } else {
+                    setPartners(partnerItems);
+                }
+
+                setTotalPages(Math.ceil(total / itemsPerPage) || 1);
             }
         } catch (error) {
             console.error("Failed to fetch partners:", error);
@@ -60,29 +107,21 @@ function PartnerList() {
 
     useEffect(() => {
         fetchPartners();
+    }, [currentPage, debouncedSearchTerm, statusFilter]);
+
+    useEffect(() => {
+        const fetchStatuses = async () => {
+            const result = await getStatuses();
+            if (result.status === "success") {
+                setStatuses(result.data);
+            }
+        }; fetchStatuses();
     }, []);
 
-    const statuses = useMemo(() => ["All Status", ...new Set(partners.map(s => s.status).filter(Boolean))], [partners]);
-
-    // Frontend Filtering Logic
-    const filteredPartners = useMemo(() => {
-        return partners.filter((item) => {
-            const searchStr = (item.partnerName || item.company || item.name || "").toLowerCase();
-            const matchesSearch = !searchTerm || searchTerm.length < 3 || searchStr.includes(searchTerm.toLowerCase());
-            const matchesStatus = statusFilter === "All Status" || item.status === statusFilter;
-            return matchesSearch && matchesStatus;
-        });
-    }, [partners, searchTerm, statusFilter]);
-
-    // Client-side Pagination Logic
-    const totalPages = Math.ceil(filteredPartners.length / itemsPerPage) || 1;
-    const currentData = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return filteredPartners.slice(start, start + itemsPerPage);
-    }, [filteredPartners, currentPage, itemsPerPage]);
+    const currentData = partners;
 
     const handleExportCSV = () => {
-        exportToCSV(filteredPartners, "Partners", {
+        exportToCSV(partners, "Partners", {
             partnerName: "Partner Name",
             createdDate: "Upload Date",
             status: "Status"
@@ -108,12 +147,14 @@ function PartnerList() {
         setSelectedId(item._id || item.id);
         setErrors({});
 
-        setFormData({
+        const editData = {
             ...item,
             partnerImage: item.partnerImage || item.image || item.partnerFile || '',
             partnerName: item.partnerName || item.company || item.name || '',
             status: item.status || 'Active'
-        });
+        };
+        setFormData(editData);
+        initialFormDataRef.current = getComparableData(editData);
         setIsFormModalOpen(true);
     };
 
@@ -127,20 +168,8 @@ function PartnerList() {
         if (e && e.preventDefault) e.preventDefault();
         setErrors({});
 
-        const localErrors = {};
+        // Frontend validation removed; relying on backend.
         const partnerName = formData.partnerName || "";
-        if (!partnerName.trim()) {
-            localErrors.partnerName = "Partner Name is required";
-        }
-
-        if (formType === 'add' && !(formData.partnerImage instanceof File)) {
-            localErrors.partnerImage = "Partner Image is required";
-        }
-
-        if (Object.keys(localErrors).length > 0) {
-            setErrors(localErrors);
-            return;
-        }
 
         setIsSubmitting(true);
 
@@ -164,20 +193,22 @@ function PartnerList() {
             if (formType === 'add') {
                 const res = await createPartner(data);
                 if (res.status === "success") {
-                    toast.success("Partner added successfully");
+                    const msg = res?.message || res?.data?.message;
+                    if (msg) toast.success(msg);
                     fetchPartners();
                     setIsFormModalOpen(false);
                 } else {
-                    toast.error(res.message || "Failed to add partner");
+                    if (res.message) toast.error(res.message);
                 }
             } else {
                 const res = await updatePartner(selectedId, data);
                 if (res.status === "success") {
-                    toast.success("Partner updated successfully");
+                    const msg = res?.message || res?.data?.message;
+                    if (msg) toast.success(msg);
                     fetchPartners();
                     setIsFormModalOpen(false);
                 } else {
-                    toast.error(res.message || "Failed to update partner");
+                    if (res.message) toast.error(res.message);
                 }
             }
         } catch (error) {
@@ -185,7 +216,7 @@ function PartnerList() {
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             } else {
-                toast.error(extractErrorMessage(error, "Failed to save partner"));
+                if (error?.response?.data?.message) toast.error(error.response.data.message);
             }
         } finally {
             setIsSubmitting(false);
@@ -197,14 +228,15 @@ function PartnerList() {
         try {
             const res = await deletePartner(selectedId);
             if (res.status === "success") {
-                toast.success("Partner deleted successfully");
+                const msg = res?.message || res?.data?.message;
+                if (msg) toast.success(msg);
                 fetchPartners();
                 setIsDeleteModalOpen(false);
             } else {
-                toast.error(res.message || "Failed to delete partner");
+                if (res.message) toast.error(res.message);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "An error occurred");
+            if (error.response?.data?.message) toast.error(error.response?.data?.message);
         } finally {
             setIsDeleting(false);
         }
@@ -360,20 +392,26 @@ function PartnerList() {
             </div>
 
             <div>
-                <DynamicTable columns={columns} rows={currentData} />
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3E0]"></div>
+                    </div>
+                ) : (
+                    <DynamicTable columns={columns} rows={currentData} />
+                )}
             </div>
 
             <div className="flex flex-col bg-white py-3 rounded-b-lg shadow   sm:flex-row justify-between items-center md:px-8 gap-4 pt-2">
                 <div className="text-sm text-gray-500 order-2 sm:order-1">
                     Showing{" "}
                     <span className="font-medium text-gray-900">
-                        {filteredPartners.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                        {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
                     </span>
                     -
                     <span className="font-medium text-gray-900">
-                        {Math.min(currentPage * itemsPerPage, filteredPartners.length)}
+                        {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of <span className="font-medium text-gray-900">{filteredPartners.length}</span> partners
+                    of <span className="font-medium text-gray-900">{totalItems}</span> partners
                 </div>
                 <div className="order-1 sm:order-2 w-full sm:w-auto flex justify-center">
                     <Pagination
@@ -391,9 +429,11 @@ function PartnerList() {
                 title={formType === 'add' ? 'Add New Partner' : 'Edit Partner'}
                 onSubmit={handleFormSubmit}
                 isSubmitting={isSubmitting}
-                submitLabel={formType === 'add' ? 'Add Partner' : 'Save Changes'}
+                submitLabel={formType === 'add' ? 'Add Partner' : 'Update Partner'}
                 size="lg"
                 errors={errors}
+                formType={formType}
+                isChanged={formType === 'add' || getComparableData(formData) !== initialFormDataRef.current}
             >
                 <PartnerForm
                     formData={formData}

@@ -152,7 +152,8 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
             {/* Service Images Upload */}
             <div className="space-y-2">
                 <Label className={errors.images ? 'text-red-500' : ''}>
-                    Service Images (Gallery) <span className="text-red-500">*</span>
+                    Service Images (Gallery) 
+                    {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative ${errors.images ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
@@ -311,19 +312,20 @@ export function ServiceForm({ formData = {}, onChange, errors = {} }) {
             {/* Status */}
             <div className="space-y-2">
                 <Label className={errors.status ? 'text-red-500' : ''}>
-                    Status <span className="text-red-500">*</span>
+                    Status
+                     {/* <span className="text-red-500">*</span> */}
                 </Label>
                 <RadioGroup
-                    value={formData.status || Active}
+                    value={formData.status || "active"}
                     onValueChange={handleStatusChange}
                     className="flex gap-4"
                 >
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Active" id="service-active" />
+                        <RadioGroupItem value="active" id="service-active" />
                         <Label htmlFor="service-active" className="font-normal cursor-pointer">Active</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Inactive" id="service-inactive" />
+                        <RadioGroupItem value="inactive" id="service-inactive" />
                         <Label htmlFor="service-inactive" className="font-normal cursor-pointer">Inactive</Label>
                     </div>
                     <div className="flex items-center space-x-2">
