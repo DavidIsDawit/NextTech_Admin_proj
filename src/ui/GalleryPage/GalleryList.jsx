@@ -286,39 +286,57 @@ function GalleryList() {
                 return;
             }
 
-            const data = new FormData();
-
-            // Only append coverImage if it's a new file
-            if (formData.coverImage instanceof File) {
-                data.append("coverImage", formData.coverImage);
-            }
-
-            // Append additional gallery images if they are new files
-            if (Array.isArray(formData.images)) {
-                formData.images.forEach((img) => {
-                    if (img instanceof File) data.append("images", img);
-                });
-            }
-
-            // Append text fields
-            data.append("catagory", formData.catagory);
-            data.append("status", formData.status);
-            data.append("title", formData.title);
-            data.append("description", formData.description);
-            data.append("fileType", formData.fileType);
-
-
             let result;
             if (formType === 'add') {
+                const data = new FormData();
+                if (formData.coverImage instanceof File) {
+                    data.append("coverImage", formData.coverImage);
+                }
+                if (Array.isArray(formData.images)) {
+                    formData.images.forEach((img) => {
+                        if (img instanceof File) data.append("images", img);
+                    });
+                }
+                data.append("catagory", formData.catagory);
+                data.append("status", formData.status);
+                data.append("title", formData.title);
+                data.append("description", formData.description);
+                data.append("fileType", formData.fileType);
                 result = await addGallery(data);
             } else {
                 const id = selectedItem?._id || selectedItem?.id;
-                result = await updateGallery(id, data);
+                const hasNewFiles = (formData.coverImage instanceof File) ||
+                    (Array.isArray(formData.images) && formData.images.some(img => img instanceof File));
+
+                let updatePayload;
+                if (hasNewFiles) {
+                    updatePayload = new FormData();
+                    if (formData.coverImage instanceof File) updatePayload.append("coverImage", formData.coverImage);
+                    if (Array.isArray(formData.images)) {
+                        formData.images.forEach((img) => {
+                            if (img instanceof File) updatePayload.append("images", img);
+                        });
+                    }
+                    updatePayload.append("catagory", formData.catagory);
+                    updatePayload.append("status", formData.status);
+                    updatePayload.append("title", formData.title);
+                    updatePayload.append("description", formData.description);
+                    updatePayload.append("fileType", formData.fileType);
+                } else {
+                    updatePayload = {
+                        catagory: formData.catagory,
+                        status: formData.status,
+                        title: formData.title,
+                        description: formData.description,
+                        fileType: formData.fileType,
+                    };
+                }
+                result = await updateGallery(id, updatePayload);
             }
 
             if (result.status === "success") {
-                const msg = result?.message || result?.data?.message;
-                if (msg) toast.success(msg);
+                const msg = result?.message || result?.data?.message || "Item updated successfully";
+                toast.success(msg);
                 setIsFormModalOpen(false);
                 setFormData({});
                 await fetchGallery();
@@ -326,14 +344,17 @@ function GalleryList() {
                 if (result.message) toast.error(result.message);
             }
         } catch (error) {
-            const responseData = error?.response?.data;
-
             const backendErrors = mapBackendErrors(error);
 
             if (Object.keys(backendErrors).length > 0) {
                 setErrors(backendErrors);
             } else {
-                if (error?.response?.data?.message) toast.error(error.response.data.message);
+                const errorMsg = error?.response?.data?.message || extractErrorMessage(error);
+                if (errorMsg && errorMsg.includes("Can't find /api/updateGallery")) {
+                    toast.error("Gallery update endpoint is not implemented on the backend server (/api/updateGallery).");
+                } else if (errorMsg) {
+                    toast.error(errorMsg);
+                }
             }
         } finally {
             setIsSubmitting(false);
