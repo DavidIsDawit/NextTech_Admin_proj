@@ -98,6 +98,10 @@ function PartnerList() {
         try {
             let data;
             const params = { page: currentPage, limit: itemsPerPage, sort: 'recent' };
+            if (statusFilter !== "All Status") {
+                params.status = statusFilter;
+            }
+
             if (search.length >= 3) {
                 data = await searchPartners(search, params);
             } else if (statusFilter !== "All Status") {
@@ -105,9 +109,15 @@ function PartnerList() {
             } else {
                 data = await getAllPartners(params);
             }
-            if (data && data.status === "success") {
+            if (data) {
                 const raw = data.data;
-                const partnerItems = Array.isArray(raw) ? raw : (raw?.partners || raw?.data || []);
+                let partnerItems = Array.isArray(raw) ? raw : (raw?.partners || raw?.data || (Array.isArray(data) ? data : []));
+
+                if (statusFilter !== "All Status") {
+                    const statusMatch = statusFilter.toLowerCase();
+                    partnerItems = partnerItems.filter(item => (item.status || "").toLowerCase() === statusMatch);
+                }
+
                 const isClientSideSliced = partnerItems.length > itemsPerPage;
                 const total = isClientSideSliced
                     ? partnerItems.length

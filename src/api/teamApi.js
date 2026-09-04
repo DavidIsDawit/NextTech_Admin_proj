@@ -143,8 +143,9 @@ export const getStatuses = async () => {
 
 export const filterTeamsByStatus = async (status, params = {}) => {
     try {
+        const formattedStatus = String(status).charAt(0).toUpperCase() + String(status).slice(1).toLowerCase();
         const { data } = await api.get("/team/filter-by-status", {
-            params: { status: String(status).toLowerCase(), ...params },
+            params: { status: formattedStatus, ...params },
         });
 
         const list = data.team || data.teams || data.teamMembers || data.data || [];

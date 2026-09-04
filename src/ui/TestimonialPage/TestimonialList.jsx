@@ -111,7 +111,7 @@ function TestimonialList() {
         try {
             const params = { page: currentPage, limit: itemsPerPage, sort: 'recent' };
             if (statusFilter !== "All Status") {
-                params.status = statusFilter.toLowerCase();
+                params.status = statusFilter;
             }
             if (specialtyFilter !== "All Specialties") {
                 params.specialty = specialtyFilter;

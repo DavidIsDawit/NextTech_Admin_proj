@@ -99,6 +99,10 @@ function CertificateList() {
         try {
             let data;
             const params = { page: currentPage, limit: itemsPerPage, sort: 'recent' };
+            if (statusFilter !== "All Status") {
+                params.status = statusFilter;
+            }
+
             if (search.length >= 3) {
                 data = await searchCertificates(search, params);
             } else if (statusFilter !== "All Status") {
@@ -107,7 +111,13 @@ function CertificateList() {
                 data = await getAllCertificates(params);
             }
             if (data && data.status === "success") {
-                const certificateItems = data.certificates || data.data || [];
+                let certificateItems = data.certificates || data.data || [];
+
+                if (statusFilter !== "All Status") {
+                    const statusMatch = statusFilter.toLowerCase();
+                    certificateItems = certificateItems.filter(item => (item.status || "").toLowerCase() === statusMatch);
+                }
+
                 const isClientSideSliced = certificateItems.length > itemsPerPage;
                 const total = isClientSideSliced
                     ? certificateItems.length

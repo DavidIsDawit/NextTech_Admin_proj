@@ -174,8 +174,9 @@ export const getStatuses = async () => {
 
 export const filterTestimonialsByStatus = async (status, params = {}) => {
     try {
+        const formattedStatus = String(status).charAt(0).toUpperCase() + String(status).slice(1).toLowerCase();
         const { data } = await api.get("/testimonials/filter-by-status", {
-            params: { status, ...params },
+            params: { status: formattedStatus, ...params },
         });
 
         const list = data.testimonials || data.testimonial || data.data || [];

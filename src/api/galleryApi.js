@@ -145,8 +145,9 @@ export const getStatuses = async () => {
 
 export const filterGalleryByStatuses = async (status, params = {}) => {
     try {
+        const formattedStatus = String(status).charAt(0).toUpperCase() + String(status).slice(1).toLowerCase();
         const { data } = await api.get("/gallery/filter-by-status", {
-            params: { status, ...params },
+            params: { status: formattedStatus, ...params },
         });
 
         const list = data.galleries || data.gallery || data.data || [];

@@ -110,7 +110,7 @@ function TeamList() {
             let result;
             const params = { page: currentPage, limit: itemsPerPage };
             if (statusFilter !== "All Status") {
-                params.status = statusFilter.toLowerCase();
+                params.status = statusFilter;
             }
             if (specialtyFilter !== "All Specialties") {
                 params.specialty = specialtyFilter;

@@ -112,8 +112,9 @@ export const getStatuses = async () => {
 
 export const filterCertificatesByStatus = async (status, params = {}) => {
     try {
+        const formattedStatus = String(status).charAt(0).toUpperCase() + String(status).slice(1).toLowerCase();
         const { data } = await api.get("/certificates/filter-by-status", {
-            params: { status, ...params },
+            params: { status: formattedStatus, ...params },
         });
 
         const list = data.certificates || data.certificate || data.data || [];

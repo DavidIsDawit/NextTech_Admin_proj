@@ -120,7 +120,7 @@ function PortfolioList() {
             let result;
             const params = { page: currentPage, limit: itemsPerPage, sort: "latest" };
             if (statusFilter !== "All Status") {
-                params.status = statusFilter.toLowerCase();
+                params.status = statusFilter;
             }
             if (sectorFilter !== "All Sectors") {
                 params.sector = sectorFilter;

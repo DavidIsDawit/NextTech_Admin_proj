@@ -129,8 +129,9 @@ export const getStatuses = async () => {
 
 export const filterPartnersByStatus = async (status, params = {}) => {
     try {
+        const formattedStatus = String(status).charAt(0).toUpperCase() + String(status).slice(1).toLowerCase();
         const { data } = await api.get("/partners/filter", {
-            params: { status, ...params },
+            params: { status: formattedStatus, ...params },
         });
 
         const list = data.partners || data.partner || data.data || [];

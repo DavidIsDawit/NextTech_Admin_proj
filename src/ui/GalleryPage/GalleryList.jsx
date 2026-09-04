@@ -115,7 +115,7 @@ function GalleryList() {
             let result;
             const params = { page: currentPage, limit: itemsPerPage };
             if (statusFilter !== "All Status") {
-                params.status = statusFilter.toLowerCase();
+                params.status = statusFilter;
             }
             if (categoryFilter !== "All Categories") {
                 params.category = categoryFilter;

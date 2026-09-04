@@ -139,8 +139,9 @@ export const getStatuses = async () => {
 
 export const filterPortfoliosByStatus = async (status, params = {}) => {
     try {
+        const formattedStatus = String(status).charAt(0).toUpperCase() + String(status).slice(1).toLowerCase();
         const { data } = await api.get("/portfolios/filter-by-status", {
-            params: { status: String(status).toLowerCase(), ...params },
+            params: { status: formattedStatus, ...params },
         });
 
         const list = data.portfolios || data.portfolio || data.data || [];
