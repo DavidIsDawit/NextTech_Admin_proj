@@ -551,8 +551,8 @@ function ProfileSetting() {
                     value={formData.employeId}
                     onChange={handleInputChange}
                     className={errors.employeId ? "border-red-500" : "border-[#D1D5DB] bg-[#F9FAFB] border"}
-                    disabled={(formData.role || '').toLowerCase() !== 'admin'}
-                    readOnly={(formData.role || '').toLowerCase() !== 'admin'}
+                    disabled
+                    readOnly
                   />
                   {errors.employeId && (
                     <p className="text-sm text-red-500">{errors.employeId}</p>
