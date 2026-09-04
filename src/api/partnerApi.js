@@ -128,13 +128,34 @@ export const getStatuses = async () => {
 };
 
 export const filterPartnersByStatus = async (status, params = {}) => {
-    const { data } = await api.get("/partners/filter", {
-        params: { status, ...params },
-    });
+    try {
+        const { data } = await api.get("/partners/filter", {
+            params: { status, ...params },
+        });
 
-    return {
-        status: data.status,
-        data: data.partners.map(normalizePartner),
-        total: data.totalPartners,
-    };
+        const list = data.partners || data.partner || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizePartner),
+            total: data.totalPartners ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllPartners(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes.data))) {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) =>
+                    (item.status || "").toLowerCase() === String(status).toLowerCase()
+                );
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };

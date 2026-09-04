@@ -145,27 +145,70 @@ export const getStatuses = async () => {
 
 
 export const filterNewsByStatus = async (status, params = {}) => {
-    const { data } = await api.get("/filter/status", {
-        params: { status, ...params },
-    });
+    try {
+        const { data } = await api.get("/news/filter-by-status", {
+            params: { status: String(status).toLowerCase(), ...params },
+        });
 
-    return {
-        status: data.status,
-        data: data.news.map(normalizeNews),
-        total: data.totalnews,
-    };
+        const list = data.news || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeNews),
+            total: data.totalnews ?? data.totalNews ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllNews(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes.data))) {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) =>
+                    (item.status || "").toLowerCase() === String(status).toLowerCase()
+                );
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 export const filterNewsByCategory = async (catagory, params = {}) => {
-    const { data } = await api.get("/news/filter-by-category", {
-        params: { catagory, ...params },
-    });
+    try {
+        const { data } = await api.get("/news/filter-by-category", {
+            params: { catagory, category: catagory, ...params },
+        });
 
-    return {
-        status: data.status,
-        data: data.news.map(normalizeNews),
-        total: data.totalNews,
-    };
+        const list = data.news || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeNews),
+            total: data.totalNews ?? data.totalnews ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllNews(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes.data))) {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) => {
+                    const itemCat = item.catagory || item.category || "";
+                    return itemCat.toLowerCase() === String(catagory).toLowerCase();
+                });
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 

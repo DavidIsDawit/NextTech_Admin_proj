@@ -144,27 +144,70 @@ export const getStatuses = async () => {
 };
 
 export const filterGalleryByStatuses = async (status, params = {}) => {
-    const { data } = await api.get("/gallery/filter-by-status", {
-        params: { status, ...params },
-    });
+    try {
+        const { data } = await api.get("/gallery/filter-by-status", {
+            params: { status, ...params },
+        });
 
-    return {
-        status: data.status,
-        data: (data.galleries || []).map(normalizeGallery),
-        total: data.totalGalleries ?? (data.galleries || []).length,
-    };
+        const list = data.galleries || data.gallery || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeGallery),
+            total: data.totalGalleries ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllGallery(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes.data))) {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) =>
+                    (item.status || "").toLowerCase() === String(status).toLowerCase()
+                );
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 export const filterGalleryByCategory = async (category, params = {}) => {
-    const { data } = await api.get("/gallery/filter-by-category", {
-        params: { category, ...params },
-    });
+    try {
+        const { data } = await api.get("/gallery/filter-by-category", {
+            params: { category, catagory: category, ...params },
+        });
 
-    return {
-        status: data.status,
-        data: (data.galleries || []).map(normalizeGallery),
-        total: data.totalGalleries ?? (data.galleries || []).length,
-    };
+        const list = data.galleries || data.gallery || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeGallery),
+            total: data.totalGalleries ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllGallery(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes.data))) {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) => {
+                    const itemCat = item.category || item.catagory || "";
+                    return itemCat.toLowerCase() === String(category).toLowerCase();
+                });
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 
