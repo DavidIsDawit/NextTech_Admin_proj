@@ -173,38 +173,68 @@ export const getStatuses = async () => {
 
 
 export const filterTestimonialsByStatus = async (status, params = {}) => {
-    const { data } = await api.get("/testimonials/filter-by-status", {
-        params: { status, ...params },
-    });
+    try {
+        const { data } = await api.get("/testimonials/filter-by-status", {
+            params: { status, ...params },
+        });
 
-    const list = data.testimonials || data.testimonial || data.data || [];
-    return {
-        status: data.status,
-        data: (Array.isArray(list) ? list : []).map(normalizeTestimonial),
-        total: data.totalcount ?? data.totalCount ?? data.totalTestimonials ?? list.length,
-    };
+        const list = data.testimonials || data.testimonial || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeTestimonial),
+            total: data.totalcount ?? data.totalCount ?? data.totalTestimonials ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllTestimonials(params);
+            if (allRes && allRes.status === "success") {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) =>
+                    (item.status || "").toLowerCase() === String(status).toLowerCase()
+                );
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
-// export const filterTestimonialsBySpecialty = async (specialty) => {
-//     const { data } = await api.get("/testimonials/filter-by-specialty", {
-//         params: { specialty },
-//     });
-
-//     return {
-//         status: data.status,
-//         data: data.testimonial.map(normalizeTestimonial),
-//         total: data.totalCount,
-//     };
-// };
 export const filterTestimonialsBySpecialty = async (specialty, params = {}) => {
-    const { data } = await api.get("/testimonials/filter-by-specialty", {
-        params: { specialty, ...params },
-    });   
+    try {
+        const { data } = await api.get("/testimonials/filter-by-specialty", {
+            params: { specialty, ...params },
+        });   
 
-    const list = data.testimonials || data.testimonial || data.data || [];
-    return {
-        status: data.status,
-        data: (Array.isArray(list) ? list : []).map(normalizeTestimonial),
-        total: data.totalTestimonials ?? data.totalcount ?? data.totalCount ?? list.length,
-    };
+        const list = data.testimonials || data.testimonial || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeTestimonial),
+            total: data.totalTestimonials ?? data.totalcount ?? data.totalCount ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllTestimonials(params);
+            if (allRes && allRes.status === "success") {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) => {
+                    const itemSpec = item.specality || item.specialty || item.speciality || item.testimony || "";
+                    return itemSpec.toLowerCase() === String(specialty).toLowerCase();
+                });
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };

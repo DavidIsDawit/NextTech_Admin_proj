@@ -73,8 +73,14 @@ function TestimonialList() {
 
         setIsLoading(true);
         try {
-            let result;
             const params = { page: currentPage, limit: itemsPerPage, sort: 'recent' };
+            if (statusFilter !== "All Status") {
+                params.status = statusFilter.toLowerCase();
+            }
+            if (specialtyFilter !== "All Specialties") {
+                params.specialty = specialtyFilter;
+            }
+
             if (search.length >= 3) {
                 result = await searchTestimonials(search, params);
             } else if (specialtyFilter !== "All Specialties") {
@@ -142,8 +148,12 @@ function TestimonialList() {
     //     return specialtyMatch && statusMatch;
     // });
     // const currentData = filteredTestimonials;
-    const currentData = testimonials.filter(item =>
-        statusFilter === "All Status" || item.status === statusFilter);
+    const currentData = testimonials.filter(item => {
+        const itemSpecialty = item.specality || item.specialty || item.speciality || item.testimony;
+        const specialtyMatch = specialtyFilter === "All Specialties" || itemSpecialty === specialtyFilter;
+        const statusMatch = statusFilter === "All Status" || (item.status || "").toLowerCase() === statusFilter.toLowerCase();
+        return specialtyMatch && statusMatch;
+    });
 
     const handleExportCSV = () => {
         exportToCSV(testimonials, "Testimonials", {
