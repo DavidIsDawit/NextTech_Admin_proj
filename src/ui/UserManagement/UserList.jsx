@@ -462,16 +462,23 @@ function UserList() {
                     />
                 </div>
 
-                <div className="order-2 sm:order-2 col-span-2 sm:col-span-1 flex flex-wrap items-center gap-4 text-sm font-medium mr-auto sm:mx-4">
-                    {["All", ...availableRoles].map((role) => (
-                        <button
-                            key={role}
-                            onClick={() => setFiltersAndPage({ role, page: 1 })}
-                            className={`transition-colors ${roleFilter === role ? 'text-[#00A3E0]' : 'text-gray-600 hover:text-gray-900'}`}
-                        >
-                            {role}
-                        </button>
-                    ))}
+                <div className="order-2 sm:order-2 col-span-2 sm:col-span-1 flex flex-wrap items-center gap-2 text-sm font-medium mr-auto sm:mx-4">
+                    {["All", ...availableRoles].map((role) => {
+                        const isActive = (roleFilter || '').toLowerCase() === (role || '').toLowerCase();
+                        return (
+                            <button
+                                key={role}
+                                onClick={() => setFiltersAndPage({ role, page: 1 })}
+                                className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-all duration-150 cursor-pointer ${
+                                    isActive
+                                        ? 'bg-[#00A3E0] text-white shadow-sm'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-[#00A3E0] hover:text-white'
+                                }`}
+                            >
+                                {role}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 <div className="order-3 sm:order-3 col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden shadow-sm sm:shadow-none sm:w-40">
