@@ -203,66 +203,88 @@ export function MediaForm({ formData = {}, onChange, errors = {}, isEdit = false
                     <p className="text-sm text-red-500">{errors.description}</p>
                 )}
             </div>
+            {/* Gallery Images */}
             <div className="space-y-2">
-                <Label>
-                    Gallery Images
-                </Label>
-                <div
-                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative border-[#136ECA]"
-                    onClick={() => document.getElementById('media-gallery').click()}
-                >
-                    <div className="flex flex-col items-center">
-                        {imagesPreview.length > 0 && (
-                            <div className="w-full mb-6">
-                                <p className="text-xs text-gray-500 font-medium mb-3">
-                                    {imagesPreview.length} image{imagesPreview.length > 1 ? 's' : ''} selected
-                                </p>
-                                <div className={imagesPreview.length === 1 ? "flex justify-center mb-6" : "grid grid-cols-4 gap-2"}>
-                                    {imagesPreview.map((preview, idx) => (
-                                        <div key={idx} className={`relative group ${imagesPreview.length === 1 ? "w-48" : "aspect-square"}`}>
-                                            <img
-                                                src={preview}
-                                                alt=""
-                                                className={`rounded-lg border border-gray-200 shadow-sm ${imagesPreview.length === 1 ? "w-full h-auto object-contain" : "h-full w-full object-cover"}`}
-                                                onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Don't trigger file picker
-                                                    handleRemoveImage(idx);
-                                                }}
-                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                                                title="Remove image"
-                                            >
-                                                <X size={14} />
-                                            </button>
+                <Label>Gallery Images</Label>
+                {isEdit ? (
+                    <div className="border rounded-lg p-4 bg-gray-50 flex items-center gap-4">
+                        {imagesPreview.length > 0 ? (
+                            <div className="grid grid-cols-4 gap-2 w-full">
+                                {imagesPreview.map((preview, idx) => (
+                                    <div key={idx} className="aspect-square relative">
+                                        <img
+                                            src={preview}
+                                            alt=""
+                                            className="rounded-lg border border-gray-200 shadow-sm h-full w-full object-cover"
+                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-xs text-gray-500 font-medium">No additional gallery images</div>
+                        )}
+                    </div>
+                ) : (
+                    <>
+                        <div
+                            className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative border-[#136ECA]"
+                            onClick={() => document.getElementById('media-gallery').click()}
+                        >
+                            <div className="flex flex-col items-center">
+                                {imagesPreview.length > 0 && (
+                                    <div className="w-full mb-6">
+                                        <p className="text-xs text-gray-500 font-medium mb-3">
+                                            {imagesPreview.length} image{imagesPreview.length > 1 ? 's' : ''} selected
+                                        </p>
+                                        <div className={imagesPreview.length === 1 ? "flex justify-center mb-6" : "grid grid-cols-4 gap-2"}>
+                                            {imagesPreview.map((preview, idx) => (
+                                                <div key={idx} className={`relative group ${imagesPreview.length === 1 ? "w-48" : "aspect-square"}`}>
+                                                    <img
+                                                        src={preview}
+                                                        alt=""
+                                                        className={`rounded-lg border border-gray-200 shadow-sm ${imagesPreview.length === 1 ? "w-full h-auto object-contain" : "h-full w-full object-cover"}`}
+                                                        onError={(e) => { e.target.src = "/upload-placeholder.png"; }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRemoveImage(idx);
+                                                        }}
+                                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                                                        title="Remove image"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
+                                )}
+                                <div className="flex flex-col items-center justify-center">
+                                    <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                                    <p className="text-sm text-gray-600">
+                                        Drag media gallery images to start uploading
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
+                                    <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer bg-blue-50 transition">
+                                        Browse files
+                                    </div>
                                 </div>
                             </div>
-                        )}
-                        <div className="flex flex-col items-center justify-center">
-                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
-                            <p className="text-sm text-gray-600">
-                                Drag media gallery images to start uploading
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
-                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer bg-blue-50 transition">
-                                Browse files
-                            </div>
                         </div>
-                    </div>
-                </div>
-                <input
-                    id="media-gallery"
-                    name="images"
-                    type="file"
-                    accept="image/*,video/*"
-                    multiple
-                    onChange={handleImagesChange}
-                    className="hidden"
-                />
+                        <input
+                            id="media-gallery"
+                            name="images"
+                            type="file"
+                            accept="image/*,video/*"
+                            multiple
+                            onChange={handleImagesChange}
+                            className="hidden"
+                        />
+                    </>
+                )}
             </div>
 
             {/* Category */}

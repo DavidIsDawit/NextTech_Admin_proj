@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FiPlus, FiTrash2, FiPlay } from "react-icons/fi";
+import { BiEdit } from "react-icons/bi";
 import DynamicTable from "../DynamicTable";
 import DynamicDropdown from "../DynamicDropdown";
 import DynamicButton from "../DynamicButton";
@@ -232,6 +233,25 @@ function GalleryList() {
         setIsFormModalOpen(true);
     };
 
+    const handleEdit = (item) => {
+        setFormType('edit');
+        setSelectedItem(item);
+        const data = {
+            title: item.title || '',
+            description: item.description || '',
+            fileType: item.fileType || '',
+            catagory: item.catagory || item.category || '',
+            status: item.status || 'Active',
+            coverImage: item.coverImage || item.image || item.thumbnail || null,
+            images: item.images || item.galleryImages || item.mediaImages || [],
+            Date: item.Date || item.createdDate || item.createdAt || ''
+        };
+        setFormData(data);
+        initialFormDataRef.current = getComparableData(data);
+        setErrors({});
+        setIsFormModalOpen(true);
+    };
+
 
 
     const handleDeleteClick = (item) => {
@@ -425,6 +445,13 @@ function GalleryList() {
             label: "Actions",
             render: (_, row) => (
                 <div className="flex items-center space-x-3">
+                    <button
+                        className="p-1 text-gray-400 hover:text-[#00A3E0] rounded border border-gray-100 hover:bg-sky-50 transition-colors cursor-pointer"
+                        onClick={() => handleEdit(row)}
+                        title="Edit"
+                    >
+                        <BiEdit size={21} />
+                    </button>
                     <button
                         className="p-1 text-red-300 hover:text-red-500 rounded border border-red-100 hover:bg-red-50 transition-colors"
                         onClick={() => handleDeleteClick(row)}
