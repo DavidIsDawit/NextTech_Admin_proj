@@ -192,12 +192,14 @@ function GalleryList() {
         setIsSubmitting(true);
         try {
             const requiredFields = {
-                coverImage: 'Cover image is required.',
                 title: 'Title is required.',
                 description: 'Description is required.',
-                fileType: 'File type is required.',
                 catagory: 'Category is required.',
             };
+            if (formType === 'add') {
+                requiredFields.coverImage = 'Cover image is required.';
+                requiredFields.fileType = 'File type is required.';
+            }
             const validationErrors = Object.entries(requiredFields).reduce((fieldErrors, [field, message]) => {
                 const value = formData[field];
                 if (value === null || value === undefined || String(value).trim() === '') {
@@ -526,7 +528,7 @@ function GalleryList() {
                 formType={formType}
                 isChanged={formType === 'add' || getComparableData(formData) !== initialFormDataRef.current}
             >
-                <MediaForm formData={formData} onChange={setFormData} errors={errors} />
+                <MediaForm formData={formData} onChange={setFormData} errors={errors} isEdit={formType === 'edit'} />
             </FormModal>
 
             <DeleteModal

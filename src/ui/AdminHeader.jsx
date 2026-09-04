@@ -88,7 +88,7 @@ export default function AdminHeader() {
     }, [menuOpen]);
 
     return (
-        <header className="bg-white shadow-sm rounded-lg ml-2 border-black p-4 flex justify-end lg:justify-between items-center relative">
+        <header className="bg-white shadow-sm rounded-lg mx-4 md:mx-6 mt-4 md:mt-6 p-4 flex justify-end lg:justify-between items-center relative">
             {/* Search bar */}
             <div className="relative w-1/4 hidden lg:flex">
                 {/* <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -101,11 +101,11 @@ export default function AdminHeader() {
             </div>
 
             {/* Avatar + name */}
-            <div className="flex items-center space-x-1 sm:space-x-3 mr-8 hover:bg-[#D1D5DB] rounded-md">
+            <div className="flex items-center space-x-1 sm:space-x-3 hover:bg-[#D1D5DB] rounded-md px-1 py-1">
                 {/* Avatar circle */}
                 <div
                     ref={avatarRef}
-                    className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer ml-1 relative overflow-hidden"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center cursor-pointer relative overflow-hidden"
                     onClick={handleAvatarClick}
                     title="Profile"
                 >
@@ -143,7 +143,7 @@ export default function AdminHeader() {
                 {menuOpen && (
                     <div
                         ref={menuRef}
-                        className="absolute top-16 right-14 w-52 bg-white shadow-xl rounded-lg z-50 border border-gray-100 overflow-hidden"
+                        className="absolute top-full mt-2 right-4 md:right-6 w-52 bg-white shadow-xl rounded-lg z-50 border border-gray-100 overflow-hidden"
                     >
                         {/* User Info Header (Visible on Mobile) */}
                         <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 md:hidden">

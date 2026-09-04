@@ -21,7 +21,7 @@ const getFileType = (file) => {
  * @param {function} onChange - Callback when form data changes
  * @param {object} errors - Validation errors object
  */
-export function MediaForm({ formData = {}, onChange, errors = {} }) {
+export function MediaForm({ formData = {}, onChange, errors = {}, isEdit = false }) {
     const [coverImagePreview, setCoverImagePreview] = useState(null);
     const [imagesPreview, setImagesPreview] = useState([]);
 
@@ -98,45 +98,70 @@ export function MediaForm({ formData = {}, onChange, errors = {} }) {
 
     return (
         <div className="space-y-4">
-            {/* Cover Image Upload */}
+            {/* Cover Image Upload / Read-Only View */}
             <div className="space-y-2">
                 <Label className={errors.coverImage ? 'text-red-500' : ''}>
-                    Cover Image <span className="text-red-500">*</span>
+                    Cover Image {!isEdit && <span className="text-red-500">*</span>}
                 </Label>
-                <div
-                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.coverImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
-                    onClick={() => document.getElementById('media-coverImage').click()}
-                >
-                    <div className="flex flex-col items-center">
-                        {formData.coverImage instanceof File && coverImagePreview && (
-                            <div className="flex flex-col items-center mb-6">
-                                <img
-                                    src={coverImagePreview}
-                                    alt=""
-                                    className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
-                                />
+                {isEdit ? (
+                    <div className="border rounded-lg p-4 bg-gray-50 flex items-center gap-4">
+                        {coverImagePreview ? (
+                            <img
+                                src={coverImagePreview}
+                                alt="Cover Preview"
+                                className="w-24 h-24 object-cover rounded-md border border-gray-200"
+                            />
+                        ) : (
+                            <div className="w-24 h-24 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-500">
+                                No Cover
                             </div>
                         )}
-                        <div className="flex flex-col items-center justify-center">
-                            <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
-                            <p className="text-sm text-gray-600">
-                                Drag your cover image to start uploading
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
-                            <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer bg-blue-50 transition">
-                                Browse files
+                        <div className="text-xs text-gray-500 space-y-1">
+                            <p className="font-medium text-gray-700">Cover image cannot be changed during update</p>
+                            {formData.fileType && <p>File Type: <span className="font-semibold text-gray-800 uppercase">{formData.fileType}</span></p>}
+                            {(formData.Date || formData.createdDate || formData.createdAt) && (
+                                <p>Uploaded Date: <span className="font-semibold text-gray-800">{new Date(formData.Date || formData.createdDate || formData.createdAt).toLocaleDateString()}</span></p>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div
+                        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer bg-blue-50 transition-colors relative  ${errors.coverImage ? 'border-red-500 bg-red-50' : 'border-[#136ECA]'}`}
+                        onClick={() => document.getElementById('media-coverImage').click()}
+                    >
+                        <div className="flex flex-col items-center">
+                            {formData.coverImage instanceof File && coverImagePreview && (
+                                <div className="flex flex-col items-center mb-6">
+                                    <img
+                                        src={coverImagePreview}
+                                        alt=""
+                                        className="w-48 h-auto object-contain rounded-lg border border-gray-200 shadow-sm"
+                                    />
+                                </div>
+                            )}
+                            <div className="flex flex-col items-center justify-center">
+                                <Upload className="h-10 w-10 text-[#136ECA] mb-4" />
+                                <p className="text-sm text-gray-600">
+                                    Drag your cover image to start uploading
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1 mb-2">OR</p>
+                                <div className="inline-block px-4 py-1 border border-[#136ECA] text-blue-600 text-sm rounded-md cursor-pointer bg-blue-50 transition">
+                                    Browse files
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <Input
-                    id="media-coverImage"
-                    name="coverImage"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    onChange={handleCoverImageChange}
-                    className="hidden"
-                />
+                )}
+                {!isEdit && (
+                    <Input
+                        id="media-coverImage"
+                        name="coverImage"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        onChange={handleCoverImageChange}
+                        className="hidden"
+                    />
+                )}
                 {errors.coverImage && (
                     <p className="text-sm text-red-500">{errors.coverImage}</p>
                 )}

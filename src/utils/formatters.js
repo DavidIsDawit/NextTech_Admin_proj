@@ -24,3 +24,23 @@ export const formatNumber = (val) => {
 
     return num.toString();
 };
+
+/**
+ * Formats a date string or Date object to 'MMM D, YYYY' format (e.g., 'Sep 2, 2026').
+ * @param {string|Date} dateVal 
+ * @returns {string}
+ */
+export const formatDate = (dateVal) => {
+    if (!dateVal) return "";
+    try {
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return dateVal;
+        return d.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    } catch {
+        return dateVal;
+    }
+};

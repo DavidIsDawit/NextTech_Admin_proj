@@ -9,6 +9,7 @@ import DynamicSearch from "../DynamicSearch";
 import Pagination from "../Pagination";
 import Badge from "../Badge";
 import { exportToCSV } from "../../utils/csvExport";
+import { formatDate } from "../../utils/formatters";
 import { FormModal } from "../modals/FormModal";
 import { DeleteModal } from "../modals/DeleteModal";
 import { NewsForm } from "../forms/NewsForm";
@@ -311,7 +312,14 @@ function NewsList() {
         {
             key: "happenedOn",
             label: "Happened On",
-            render: (value, row) => <div className="text-sm text-gray-500">{value || row.publishDate}</div>,
+            render: (value, row) => {
+                const dateVal = value || row.publishDate || row.createdAt;
+                return (
+                    <div className="text-sm text-gray-500">
+                        {dateVal ? formatDate(dateVal) : "—"}
+                    </div>
+                );
+            },
         },
         {
             key: "status",
