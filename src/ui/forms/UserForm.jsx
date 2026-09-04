@@ -87,7 +87,8 @@ export function UserForm({ formData, onChange, errors, formType }) {
           value={formData.employeId || ''}
           onChange={handleChange}
           disabled={formType === 'edit'}
-          className={`disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed ${
+          readOnly={formType === 'edit'}
+          className={`disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed read-only:bg-gray-100 read-only:text-gray-500 read-only:cursor-not-allowed ${
             errors.employeId ? 'border-red-500' : ''
           }`}
         />
