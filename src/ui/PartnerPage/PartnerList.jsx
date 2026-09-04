@@ -21,6 +21,8 @@ function PartnerList() {
     const [partners, setPartners] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [statuses, setStatuses] = useState([]);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
     const [searchParams, setSearchParams] = useSearchParams();
 
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
