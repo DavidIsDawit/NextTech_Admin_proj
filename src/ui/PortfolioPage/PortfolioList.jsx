@@ -145,6 +145,18 @@ function PortfolioList() {
                 portfolioItems = result.portfolios || result.data?.portfolios || (Array.isArray(result.data) ? result.data : []);
             }
 
+            if (statusFilter !== "All Status") {
+                const statusMatch = statusFilter.toLowerCase();
+                portfolioItems = portfolioItems.filter(item => (item.status || "").toLowerCase() === statusMatch);
+            }
+            if (sectorFilter !== "All Sectors") {
+                const sectorMatch = sectorFilter.toLowerCase();
+                portfolioItems = portfolioItems.filter(item => {
+                    const sec = item.sector || item.category || "";
+                    return sec.toLowerCase() === sectorMatch;
+                });
+            }
+
             const isClientSideSliced = portfolioItems.length > itemsPerPage;
             const total = isClientSideSliced
                 ? portfolioItems.length

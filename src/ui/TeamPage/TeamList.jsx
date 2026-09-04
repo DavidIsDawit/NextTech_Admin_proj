@@ -128,8 +128,23 @@ function TeamList() {
                 result = await getAllTeams(params);
             }
 
-            if (result && result.status === "success" && Array.isArray(result.data)) {
-                const teamItems = result.data;
+            if (result) {
+                let teamItems = Array.isArray(result.data)
+                    ? result.data
+                    : (result.team || result.teams || result.teamMembers || (Array.isArray(result) ? result : []));
+
+                if (statusFilter !== "All Status") {
+                    const statusMatch = statusFilter.toLowerCase();
+                    teamItems = teamItems.filter(item => (item.status || "").toLowerCase() === statusMatch);
+                }
+                if (specialtyFilter !== "All Specialties") {
+                    const specMatch = specialtyFilter.toLowerCase();
+                    teamItems = teamItems.filter(item => {
+                        const sp = item.specality || item.specialty || "";
+                        return sp.toLowerCase() === specMatch;
+                    });
+                }
+
                 const isClientSideSliced = teamItems.length > itemsPerPage;
                 const total = isClientSideSliced
                     ? teamItems.length

@@ -131,10 +131,20 @@ function Services() {
             } else {
                 result = await getAllServices(params);
             }
-            if (result && result.status === "success") {
-                const servicesArray = Array.isArray(result.data)
+            if (result && (result.status === "success" || Array.isArray(result.data) || Array.isArray(result))) {
+                let servicesArray = Array.isArray(result.data)
                     ? result.data
-                    : result.data?.services || [];
+                    : (result.services || result.data?.services || (Array.isArray(result) ? result : []));
+
+                if (statusFilter !== "All Status") {
+                    const statusMatch = statusFilter.toLowerCase();
+                    servicesArray = servicesArray.filter(item => (item.status || "").toLowerCase() === statusMatch);
+                }
+                if (categoryFilter !== "All Categories") {
+                    const catMatch = categoryFilter.toLowerCase();
+                    servicesArray = servicesArray.filter(item => (item.category || "").toLowerCase() === catMatch);
+                }
+
                 const isClientSideSliced = servicesArray.length > itemsPerPage;
                 const total = isClientSideSliced
                     ? servicesArray.length

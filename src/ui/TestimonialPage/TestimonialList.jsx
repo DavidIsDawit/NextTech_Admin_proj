@@ -131,7 +131,22 @@ function TestimonialList() {
             }
 
             if (result) {
-                const testimonialItems = result.data?.testimonials || (Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : []);
+                let testimonialItems = Array.isArray(result)
+                    ? result
+                    : (result.testimonials || result.data?.testimonials || (Array.isArray(result.data) ? result.data : []));
+
+                if (statusFilter !== "All Status") {
+                    const statusMatch = statusFilter.toLowerCase();
+                    testimonialItems = testimonialItems.filter(item => (item.status || "").toLowerCase() === statusMatch);
+                }
+                if (specialtyFilter !== "All Specialties") {
+                    const specMatch = specialtyFilter.toLowerCase();
+                    testimonialItems = testimonialItems.filter(item => {
+                        const sp = item.specality || item.specialty || item.speciality || "";
+                        return sp.toLowerCase() === specMatch;
+                    });
+                }
+
                 const isClientSideSliced = testimonialItems.length > itemsPerPage;
                 const total = isClientSideSliced
                     ? testimonialItems.length

@@ -138,27 +138,74 @@ export const getStatuses = async () => {
 
 
 export const filterPortfoliosByStatus = async (status, params = {}) => {
-    const { data } = await api.get("/portfolios/filter-by-status", {
-        params: { status, ...params },
-    });
+    try {
+        const { data } = await api.get("/portfolios/filter-by-status", {
+            params: { status: String(status).toLowerCase(), ...params },
+        });
 
-    return {
-        status: data.status,
-        data: data.portfolios.map(normalizePortfolio),
-        total: data.totalPortfolios,
-    };
+        const list = data.portfolios || data.portfolio || data.data || [];
+        return {
+            status: data.status || "success",
+            portfolios: (Array.isArray(list) ? list : []).map(normalizePortfolio),
+            data: (Array.isArray(list) ? list : []).map(normalizePortfolio),
+            total: data.totalPortfolios ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllPortfolios(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes))) {
+                const list = Array.isArray(allRes) ? allRes : (allRes.portfolios || allRes.data?.portfolios || allRes.data || []);
+                const filtered = list.filter((item) =>
+                    (item.status || "").toLowerCase() === String(status).toLowerCase()
+                );
+                return {
+                    status: "success",
+                    portfolios: filtered,
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 export const filterPortfoliosBySectors = async (sector, params = {}) => {
-    const { data } = await api.get("/portfolios/filter-by-sector", {
-        params: { sector, ...params },
-    });
+    try {
+        const { data } = await api.get("/portfolios/filter-by-sector", {
+            params: { sector, ...params },
+        });
 
-    return {
-        status: data.status,
-        data: data.portfolios.map(normalizePortfolio),
-        total: data.totalPortfolios,
-    };
+        const list = data.portfolios || data.portfolio || data.data || [];
+        return {
+            status: data.status || "success",
+            portfolios: (Array.isArray(list) ? list : []).map(normalizePortfolio),
+            data: (Array.isArray(list) ? list : []).map(normalizePortfolio),
+            total: data.totalPortfolios ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllPortfolios(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes))) {
+                const list = Array.isArray(allRes) ? allRes : (allRes.portfolios || allRes.data?.portfolios || allRes.data || []);
+                const filtered = list.filter((item) => {
+                    const itemSector = item.sector || item.category || "";
+                    return itemSector.toLowerCase() === String(sector).toLowerCase();
+                });
+                return {
+                    status: "success",
+                    portfolios: filtered,
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 

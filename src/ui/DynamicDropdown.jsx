@@ -21,7 +21,10 @@ function DynamicDropdown({ options, value, onChange, defaultOption }) {
         ? [cleanDefaultOption, ...normalizedOptions]
         : normalizedOptions;
 
-    const selectedValue = typeof value === 'string' && value.trim() !== '' ? value : undefined;
+    const matchedOption = selectOptions.find(
+        (opt) => opt.toLowerCase() === (value || '').toLowerCase()
+    );
+    const selectedValue = matchedOption || (typeof value === 'string' && value.trim() !== '' ? value : undefined);
 
     return (
         <Select

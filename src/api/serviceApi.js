@@ -142,27 +142,70 @@ export const getStatuses = async () => {
 
 
 export const filterServicesByStatus = async (status, params = {}) => {
-    const { data } = await api.get("/filter/status", {
-        params: { status, ...params },
-    });
+    try {
+        const { data } = await api.get("/filter/status", {
+            params: { status: String(status).toLowerCase(), ...params },
+        });
 
-    return {
-        status: data.status,
-        data: data.services.map(normalizeService),
-        total: data.totalServices,
-    };
+        const list = data.services || data.service || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeService),
+            total: data.totalServices ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllServices(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes.data))) {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) =>
+                    (item.status || "").toLowerCase() === String(status).toLowerCase()
+                );
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 export const filterServicesByCategory = async (category, params = {}) => {
-    const { data } = await api.get("/services/filter", {
-        params: { category, ...params },
-    });   
+    try {
+        const { data } = await api.get("/services/filter", {
+            params: { category, ...params },
+        });
 
-    return {
-        status: data.status,
-        data: data.services.map(normalizeService),
-        total: data.totalServices,
-    };
+        const list = data.services || data.service || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeService),
+            total: data.totalServices ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllServices(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes.data))) {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) => {
+                    const itemCat = item.category || "";
+                    return itemCat.toLowerCase() === String(category).toLowerCase();
+                });
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 

@@ -142,27 +142,70 @@ export const getStatuses = async () => {
 
 
 export const filterTeamsByStatus = async (status, params = {}) => {
-    const { data } = await api.get("/team/filter-by-status", {
-        params: { status, ...params },
-    });
+    try {
+        const { data } = await api.get("/team/filter-by-status", {
+            params: { status: String(status).toLowerCase(), ...params },
+        });
 
-    return {
-        status: data.status,
-        data: data.team.map(normalizeTeam),
-        total: data.totalTeamMembers,
-    };
+        const list = data.team || data.teams || data.teamMembers || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeTeam),
+            total: data.totalTeamMembers ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllTeams(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes.data))) {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) =>
+                    (item.status || "").toLowerCase() === String(status).toLowerCase()
+                );
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 export const filterTeamsBySpecialty = async (specialty, params = {}) => {
-    const { data } = await api.get("/team/filter-by-specialty", {
-        params: { specialty, ...params },
-    });
+    try {
+        const { data } = await api.get("/team/filter-by-specialty", {
+            params: { specialty, ...params },
+        });
 
-    return {
-        status: data.status,
-        data: data.team.map(normalizeTeam),
-        total: data.totalTeamMembers,
-    };
+        const list = data.team || data.teams || data.teamMembers || data.data || [];
+        return {
+            status: data.status || "success",
+            data: (Array.isArray(list) ? list : []).map(normalizeTeam),
+            total: data.totalTeamMembers ?? data.total ?? list.length,
+        };
+    } catch (error) {
+        try {
+            const allRes = await getAllTeams(params);
+            if (allRes && (allRes.status === "success" || Array.isArray(allRes.data))) {
+                const list = allRes.data || [];
+                const filtered = list.filter((item) => {
+                    const itemSpec = item.specality || item.specialty || "";
+                    return itemSpec.toLowerCase() === String(specialty).toLowerCase();
+                });
+                return {
+                    status: "success",
+                    data: filtered,
+                    total: filtered.length,
+                };
+            }
+        } catch {
+            // Ignore fallback error
+        }
+        throw error;
+    }
 };
 
 
