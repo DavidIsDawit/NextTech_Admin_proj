@@ -17,22 +17,46 @@ import { extractErrorMessage, mapBackendErrors } from "../../utils/errorHelpers"
 import { toast } from "sonner";
 
 function PartnerList() {
+    const [searchTerm, setSearchTerm] = useState("");
     const [partners, setPartners] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [statuses, setStatuses] = useState([]);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState("All Status");
     const [searchParams, setSearchParams] = useSearchParams();
+
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
-    const setCurrentPage = (page) => {
-        setSearchParams((prev) => {
-            prev.set("page", page);
-            return prev;
-        });
-    };
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+    const statusParam = searchParams.get("status");
+
+    const statusFilter = statusParam
+        ? (statusParam.toLowerCase() === "active" ? "Active" : statusParam.toLowerCase() === "inactive" ? "Inactive" : statusParam)
+        : "All Status";
+
     const itemsPerPage = 8;
+
+    const setFiltersAndPage = ({ status, page }) => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            
+            const newPage = page !== undefined ? page : 1;
+            if (newPage > 1) {
+                next.set("page", String(newPage));
+            } else {
+                next.delete("page");
+            }
+
+            const newStatus = status !== undefined ? status : (searchParams.get("status") || "All Status");
+            if (newStatus && newStatus !== "All Status") {
+                next.set("status", newStatus.toLowerCase());
+            } else {
+                next.delete("status");
+            }
+
+            return next;
+        }, { replace: true });
+    };
+
+    const setCurrentPage = (page) => {
+        setFiltersAndPage({ page });
+    };
 
     // Modal State
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -336,7 +360,7 @@ function PartnerList() {
             </div>
 
             <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap items-center sm:justify-between gap-3 sm:gap-4 pb-6">
-                <div className="order-1 sm:order-1 col-span-1 sm:w-auto flex-1 md:max-w-md">
+                <div className="col-span-2 sm:w-auto flex-1 md:max-w-md">
                     <DynamicSearch
                         value={searchTerm}
                         onChange={(val) => {
@@ -346,48 +370,41 @@ function PartnerList() {
                         placeholder="Search partners..."
                     />
                 </div>
-                <div className="order-2 sm:order-4 col-span-1 sm:w-auto flex justify-end sm:ml-auto md:ml-0 flex-col sm:flex-row items-end sm:items-center">
-                    {/* Mobile Export Button */}
-                    <div className="md:hidden">
-                        <DynamicButton
-                            variant="secondary"
-                            onClick={handleExportCSV}
-                            className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
-                        >
-                            <span className="hidden sm:inline">Export CSV</span>
-                            <span className="sm:hidden">Export</span>
-                        </DynamicButton>
-                    </div>
-                    {/* Desktop Export Link */}
-                    <button
-                        onClick={handleExportCSV}
-                        className="hidden md:block text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
-                    >
-                        Export CSV
-                    </button>
+                <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
+                    <DynamicDropdown
+                        options={statuses.filter((s) => s !== "All Status").length > 0 ? statuses.filter((s) => s !== "All Status") : ["Active", "Inactive"]}
+                        value={statusFilter}
+                        onChange={(val) => {
+                            setFiltersAndPage({ status: val, page: 1 });
+                        }}
+                        defaultOption="All Status"
+                    />
                 </div>
-                {statuses.length > 1 && (
-                    <div className="order-3 sm:order-2 col-span-1 sm:w-36 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none">
-                        <DynamicDropdown
-                            options={statuses.filter((s) => s !== "All Status")}
-                            value={statusFilter}
-                            onChange={(val) => {
-                                setStatusFilter(val);
-                                setCurrentPage(1);
-                            }}
-                            defaultOption="All Status"
-                        />
-                    </div>
-                )}
-                <div className="order-4 sm:order-3 col-span-1 sm:w-auto flex justify-end md:hidden">
+                <div className="col-span-2 sm:col-span-1 sm:w-auto grid grid-cols-2 sm:flex gap-2 md:hidden">
                     <DynamicButton
                         icon={FiPlus}
                         onClick={handleAddNew}
-                        className="w-auto md:w-48 md:h-11 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                        className="w-full sm:w-auto justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                     >
                         <span className="hidden sm:inline">Add Partner</span>
                         <span className="sm:hidden">Add</span>
                     </DynamicButton>
+                    <DynamicButton
+                        variant="secondary"
+                        onClick={handleExportCSV}
+                        className="w-full sm:w-auto justify-center"
+                    >
+                        <span className="hidden sm:inline">Export CSV</span>
+                        <span className="sm:hidden">Export</span>
+                    </DynamicButton>
+                </div>
+                <div className="hidden md:flex md:ml-auto">
+                    <button
+                        onClick={handleExportCSV}
+                        className="text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
+                    >
+                        Export CSV
+                    </button>
                 </div>
             </div>
 

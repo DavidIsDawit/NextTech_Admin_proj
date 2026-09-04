@@ -20,19 +20,49 @@ function UserList() {
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-    const [roleFilter, setRoleFilter] = useState("All");
-    const [sortOption, setSortOption] = useState("Recent (by date)");
     const [searchParams, setSearchParams] = useSearchParams();
 
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
-    const setCurrentPage = (page) => {
-        setSearchParams((prev) => {
-            prev.set("page", page);
-            return prev;
-        });
-    };
+    const roleParam = searchParams.get("role");
+    const sortParam = searchParams.get("sort");
+
+    const roleFilter = roleParam ? (roleParam.charAt(0).toUpperCase() + roleParam.slice(1).toLowerCase()) : "All";
+    const sortOption = sortParam || "Recent (by date)";
 
     const itemsPerPage = 8;
+
+    const setFiltersAndPage = ({ role, sort, page }) => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            
+            const newPage = page !== undefined ? page : 1;
+            if (newPage > 1) {
+                next.set("page", String(newPage));
+            } else {
+                next.delete("page");
+            }
+
+            const newRole = role !== undefined ? role : (searchParams.get("role") || "All");
+            if (newRole && newRole !== "All") {
+                next.set("role", newRole.toLowerCase());
+            } else {
+                next.delete("role");
+            }
+
+            const newSort = sort !== undefined ? sort : searchParams.get("sort");
+            if (newSort && newSort !== "Recent (by date)") {
+                next.set("sort", newSort);
+            } else {
+                next.delete("sort");
+            }
+
+            return next;
+        }, { replace: true });
+    };
+
+    const setCurrentPage = (page) => {
+        setFiltersAndPage({ page });
+    };
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [availableRoles, setAvailableRoles] = useState(["Admin", "User"]);
@@ -436,7 +466,7 @@ function UserList() {
                     {["All", ...availableRoles].map((role) => (
                         <button
                             key={role}
-                            onClick={() => { setRoleFilter(role); setCurrentPage(1); }}
+                            onClick={() => setFiltersAndPage({ role, page: 1 })}
                             className={`transition-colors ${roleFilter === role ? 'text-[#00A3E0]' : 'text-gray-600 hover:text-gray-900'}`}
                         >
                             {role}
@@ -448,7 +478,7 @@ function UserList() {
                     <DynamicDropdown
                         options={sortOptions}
                         value={sortOption}
-                        onChange={(val) => setSortOption(val)}
+                        onChange={(val) => setFiltersAndPage({ sort: val, page: 1 })}
                         defaultOption="Sort By"
                     />
                 </div>

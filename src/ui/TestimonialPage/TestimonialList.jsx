@@ -22,17 +22,52 @@ function TestimonialList() {
     const [specialties, setSpecialties] = useState([]);
     const [statuses, setStatuses] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [specialtyFilter, setSpecialtyFilter] = useState("All Specialties");
-    const [statusFilter, setStatusFilter] = useState("All Status");
     const [searchParams, setSearchParams] = useSearchParams();
+
+    // Derive filters and page from URL searchParams
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
-    const setCurrentPage = (page) => {
-        setSearchParams((prev) => {
-            prev.set("page", page);
-            return prev;
-        });
-    };
+    const statusParam = searchParams.get("status");
+    const specialtyParam = searchParams.get("specialty") || searchParams.get("category");
+
+    const statusFilter = statusParam
+        ? (statusParam.toLowerCase() === "active" ? "Active" : statusParam.toLowerCase() === "inactive" ? "Inactive" : statusParam)
+        : "All Status";
+    const specialtyFilter = specialtyParam || "All Specialties";
+
     const itemsPerPage = 8;
+
+    const setFiltersAndPage = ({ status, specialty, page }) => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            
+            const newPage = page !== undefined ? page : 1;
+            if (newPage > 1) {
+                next.set("page", String(newPage));
+            } else {
+                next.delete("page");
+            }
+
+            const newStatus = status !== undefined ? status : (searchParams.get("status") || "All Status");
+            if (newStatus && newStatus !== "All Status") {
+                next.set("status", newStatus.toLowerCase());
+            } else {
+                next.delete("status");
+            }
+
+            const newSpecialty = specialty !== undefined ? specialty : (searchParams.get("specialty") || searchParams.get("category") || "All Specialties");
+            if (newSpecialty && newSpecialty !== "All Specialties" && newSpecialty !== "All Categories") {
+                next.set("specialty", newSpecialty);
+            } else {
+                next.delete("specialty");
+            }
+
+            return next;
+        }, { replace: true });
+    };
+
+    const setCurrentPage = (page) => {
+        setFiltersAndPage({ page });
+    };
 
     // Data State
     const [testimonials, setTestimonials] = useState([]);
@@ -82,6 +117,7 @@ function TestimonialList() {
                 params.specialty = specialtyFilter;
             }
 
+            let result;
             if (search.length >= 3) {
                 result = await searchTestimonials(search, params);
             } else if (specialtyFilter !== "All Specialties") {
@@ -92,8 +128,8 @@ function TestimonialList() {
                 result = await getAllTestimonials(params);
             }
 
-            if (result && result.status === "success" && Array.isArray(result.data)) {
-                const testimonialItems = result.data;
+            if (result) {
+                const testimonialItems = result.data?.testimonials || (Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : []);
                 const isClientSideSliced = testimonialItems.length > itemsPerPage;
                 const total = isClientSideSliced
                     ? testimonialItems.length
@@ -123,38 +159,31 @@ function TestimonialList() {
 
     useEffect(() => {
         const fetchSpecialties = async () => {
-            const result = await getSpecialties();
-            if (result.status === "success") {
-                setSpecialties(result.data);
+            try {
+                const result = await getSpecialties();
+                if (result && result.status === "success" && Array.isArray(result.data)) {
+                    setSpecialties(result.data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch specialties:", err);
             }
         }; fetchSpecialties();
     }, []);
 
     useEffect(() => {
         const fetchStatuses = async () => {
-            const result = await getStatuses();
-            if (result.status === "success") {
-                setStatuses(result.data);
+            try {
+                const result = await getStatuses();
+                if (result && result.status === "success" && Array.isArray(result.data)) {
+                    setStatuses(result.data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch statuses:", err);
             }
         }; fetchStatuses();
     }, []);
-    // const specialties = useMemo(() => ["All Specialties", ...new Set(testimonials.map(s => s.specality || s.specialty || s.testimony).filter(Boolean))], [testimonials]);
-    // const statuses = useMemo(() => ["All Status", ...new Set(testimonials.map(s => s.status))], [testimonials]);
 
-    // Server-side pagination: testimonials already contains only the current page items
-    // const filteredTestimonials = testimonials.filter(item => {
-    //     const itemSpecialty = item.specality || item.specialty || item.testimony;
-    //     const specialtyMatch = specialtyFilter === "All Specialties" || itemSpecialty === specialtyFilter;
-    //     const statusMatch = statusFilter === "All Status" || item.status === statusFilter;
-    //     return specialtyMatch && statusMatch;
-    // });
-    // const currentData = filteredTestimonials;
-    const currentData = testimonials.filter(item => {
-        const itemSpecialty = item.specality || item.specialty || item.speciality || item.testimony;
-        const specialtyMatch = specialtyFilter === "All Specialties" || itemSpecialty === specialtyFilter;
-        const statusMatch = statusFilter === "All Status" || (item.status || "").toLowerCase() === statusFilter.toLowerCase();
-        return specialtyMatch && statusMatch;
-    });
+    const currentData = testimonials;
 
     const handleExportCSV = () => {
         exportToCSV(testimonials, "Testimonials", {
@@ -442,66 +471,47 @@ function TestimonialList() {
                         placeholder="Search testimonials..."
                     />
                 </div>
-                {specialties.length > 1 && (
-                    <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                        {/* <DynamicDropdown
-                            options={specialties.filter((s) => s !== "All Specialties")}
-                            value={specialtyFilter}
-                            onChange={(val) => {
-                                setSpecialtyFilter(val);
-                                setCurrentPage(1);
-                            }}
-                            defaultOption="All Specialties"
-                        /> */}
-                        <DynamicDropdown
-                            options={specialties}
-                            value={specialtyFilter}
-                            defaultOption="All Specialties"
-                            onChange={(val) => {
-                                setSpecialtyFilter(val);
-                                setCurrentPage(1);
-                            }} />
-                    </div>
-                )}
-                {statuses.length > 1 && (
-                    <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-36">
-                        <DynamicDropdown
-                            options={statuses.filter((s) => s !== "All Status")}
-                            value={statusFilter}
-                            onChange={(val) => {
-                                setStatusFilter(val);
-                                setCurrentPage(1);
-                            }}
-                            defaultOption="All Status"
-                        />
-                    </div>
-                )}
-                <div className="col-span-1 sm:w-auto flex justify-start md:hidden">
+                <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
+                    <DynamicDropdown
+                        options={specialties.length > 0 ? specialties : [...new Set(testimonials.map(s => s.specality || s.specialty || s.testimony).filter(Boolean))]}
+                        value={specialtyFilter}
+                        defaultOption="All Specialties"
+                        onChange={(val) => {
+                            setFiltersAndPage({ specialty: val, page: 1 });
+                        }} />
+                </div>
+                <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-36">
+                    <DynamicDropdown
+                        options={statuses.filter((s) => s !== "All Status").length > 0 ? statuses.filter((s) => s !== "All Status") : ["Active", "Inactive"]}
+                        value={statusFilter}
+                        onChange={(val) => {
+                            setFiltersAndPage({ status: val, page: 1 });
+                        }}
+                        defaultOption="All Status"
+                    />
+                </div>
+                <div className="col-span-2 sm:col-span-1 sm:w-auto grid grid-cols-2 sm:flex gap-2 md:hidden">
                     <DynamicButton
                         icon={FiPlus}
                         onClick={handleAddNew}
-                        className="w-auto md:w-52 md:h-11 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                        className="w-full sm:w-auto justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                     >
                         <span className="hidden sm:inline">Add Testimonial</span>
                         <span className="sm:hidden">Add</span>
                     </DynamicButton>
+                    <DynamicButton
+                        variant="secondary"
+                        onClick={handleExportCSV}
+                        className="w-full sm:w-auto justify-center"
+                    >
+                        <span className="hidden sm:inline">Export CSV</span>
+                        <span className="sm:hidden">Export</span>
+                    </DynamicButton>
                 </div>
-                <div className="col-span-1 sm:w-auto flex justify-end md:ml-auto flex-col sm:flex-row items-end sm:items-center">
-                    {/* Mobile Export Button */}
-                    <div className="md:hidden">
-                        <DynamicButton
-                            variant="secondary"
-                            onClick={handleExportCSV}
-                            className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
-                        >
-                            <span className="hidden sm:inline">Export CSV</span>
-                            <span className="sm:hidden">Export</span>
-                        </DynamicButton>
-                    </div>
-                    {/* Desktop Export Link */}
+                <div className="hidden md:flex md:ml-auto">
                     <button
                         onClick={handleExportCSV}
-                        className="hidden md:block text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
+                        className="text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
                     >
                         Export CSV
                     </button>

@@ -30,17 +30,51 @@ function PortfolioList() {
     const [searchTerm, setSearchTerm] = useState("");
     const [sectors, setSectors] = useState([]);
     const [statuses, setStatuses] = useState([]);
-    const [sectorFilter, setSectorFilter] = useState("All Sectors");
-    const [statusFilter, setStatusFilter] = useState("All Status");
     const [searchParams, setSearchParams] = useSearchParams();
+
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
-    const setCurrentPage = (page) => {
-        setSearchParams((prev) => {
-            prev.set("page", page);
-            return prev;
-        });
-    };
+    const statusParam = searchParams.get("status");
+    const sectorParam = searchParams.get("sector") || searchParams.get("category") || searchParams.get("specialty");
+
+    const statusFilter = statusParam
+        ? (statusParam.toLowerCase() === "active" ? "Active" : statusParam.toLowerCase() === "inactive" ? "Inactive" : statusParam)
+        : "All Status";
+    const sectorFilter = sectorParam || "All Sectors";
+
     const itemsPerPage = 8;
+
+    const setFiltersAndPage = ({ status, sector, page }) => {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            
+            const newPage = page !== undefined ? page : 1;
+            if (newPage > 1) {
+                next.set("page", String(newPage));
+            } else {
+                next.delete("page");
+            }
+
+            const newStatus = status !== undefined ? status : (searchParams.get("status") || "All Status");
+            if (newStatus && newStatus !== "All Status") {
+                next.set("status", newStatus.toLowerCase());
+            } else {
+                next.delete("status");
+            }
+
+            const newSector = sector !== undefined ? sector : (searchParams.get("sector") || searchParams.get("category") || "All Sectors");
+            if (newSector && newSector !== "All Sectors" && newSector !== "All Categories" && newSector !== "All Specialties") {
+                next.set("sector", newSector);
+            } else {
+                next.delete("sector");
+            }
+
+            return next;
+        }, { replace: true });
+    };
+
+    const setCurrentPage = (page) => {
+        setFiltersAndPage({ page });
+    };
 
     // Data State
     const [portfolios, setPortfolios] = useState([]);
@@ -419,66 +453,47 @@ function PortfolioList() {
                         placeholder="Search portfolios..."
                     />
                 </div>
-                {sectors.length > 1 && (
-                    <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
-                        {/* <DynamicDropdown
-                            options={sectors.filter((s) => s !== "All Sectors")}
-                            value={sectorFilter}
-                            onChange={(val) => {
-                                setSectorFilter(val);
-                                setCurrentPage(1);
-                            }}
-                            defaultOption="All Sectors"
-                        /> */}
-                        <DynamicDropdown
-                            options={sectors}
-                            value={sectorFilter}
-                            defaultOption="All Sectors"
-                            onChange={(val) => {
-                                setSectorFilter(val);
-                                setCurrentPage(1);
-                            }} />
-                    </div>
-                )}
-                {statuses.length > 1 && (
-                    <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-36">
-                        <DynamicDropdown
-                            options={statuses.filter((s) => s !== "All Status")}
-                            value={statusFilter}
-                            onChange={(val) => {
-                                setStatusFilter(val);
-                                setCurrentPage(1);
-                            }}
-                            defaultOption="All Status"
-                        />
-                    </div>
-                )}
-                <div className="col-span-1 sm:w-auto flex justify-start md:hidden">
+                <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
+                    <DynamicDropdown
+                        options={sectors.length > 0 ? sectors : [...new Set(portfolios.map(p => p.sector || p.category).filter(Boolean))]}
+                        value={sectorFilter}
+                        defaultOption="All Sectors"
+                        onChange={(val) => {
+                            setFiltersAndPage({ sector: val, page: 1 });
+                        }} />
+                </div>
+                <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-36">
+                    <DynamicDropdown
+                        options={statuses.filter((s) => s !== "All Status").length > 0 ? statuses.filter((s) => s !== "All Status") : ["Active", "Inactive"]}
+                        value={statusFilter}
+                        onChange={(val) => {
+                            setFiltersAndPage({ status: val, page: 1 });
+                        }}
+                        defaultOption="All Status"
+                    />
+                </div>
+                <div className="col-span-2 sm:col-span-1 sm:w-auto grid grid-cols-2 sm:flex gap-2 md:hidden">
                     <DynamicButton
                         icon={FiPlus}
                         onClick={handleAddNew}
-                        className="w-auto md:w-52 md:h-11 justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
+                        className="w-full sm:w-auto justify-center bg-[#00A3E0] hover:bg-blue-600 text-white"
                     >
                         <span className="hidden sm:inline">Add Portfolio</span>
                         <span className="sm:hidden">Add</span>
                     </DynamicButton>
+                    <DynamicButton
+                        variant="secondary"
+                        onClick={handleExportCSV}
+                        className="w-full sm:w-auto justify-center"
+                    >
+                        <span className="hidden sm:inline">Export CSV</span>
+                        <span className="sm:hidden">Export</span>
+                    </DynamicButton>
                 </div>
-                <div className="col-span-1 sm:w-auto flex justify-end md:ml-auto flex-col sm:flex-row items-end sm:items-center">
-                    {/* Mobile Export Button */}
-                    <div className="md:hidden">
-                        <DynamicButton
-                            variant="secondary"
-                            onClick={handleExportCSV}
-                            className="w-auto md:h-11 justify-center sm:justify-end text-sm font-medium"
-                        >
-                            <span className="hidden sm:inline">Export CSV</span>
-                            <span className="sm:hidden">Export</span>
-                        </DynamicButton>
-                    </div>
-                    {/* Desktop Export Link */}
+                <div className="hidden md:flex md:ml-auto">
                     <button
                         onClick={handleExportCSV}
-                        className="hidden md:block text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
+                        className="text-[#00A3E0] hover:underline text-sm font-medium bg-transparent border-none cursor-pointer px-2"
                     >
                         Export CSV
                     </button>
