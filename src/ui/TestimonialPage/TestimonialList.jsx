@@ -120,6 +120,8 @@ function TestimonialList() {
             let result;
             if (search.length >= 3) {
                 result = await searchTestimonials(search, params);
+            } else if (specialtyFilter !== "All Specialties" && statusFilter !== "All Status") {
+                result = await getAllTestimonials(params);
             } else if (specialtyFilter !== "All Specialties") {
                 result = await filterTestimonialsBySpecialty(specialtyFilter, params);
             } else if (statusFilter !== "All Status") {
@@ -183,7 +185,17 @@ function TestimonialList() {
         }; fetchStatuses();
     }, []);
 
-    const currentData = testimonials;
+    const currentData = useMemo(() => {
+        return testimonials.filter((item) => {
+            const itemSpec = item.specality || item.specialty || item.testimony || "";
+            const itemStatus = item.status || "";
+
+            const specMatch = specialtyFilter === "All Specialties" || itemSpec.toLowerCase() === specialtyFilter.toLowerCase();
+            const statusMatch = statusFilter === "All Status" || itemStatus.toLowerCase() === statusFilter.toLowerCase();
+
+            return specMatch && statusMatch;
+        });
+    }, [testimonials, specialtyFilter, statusFilter]);
 
     const handleExportCSV = () => {
         exportToCSV(testimonials, "Testimonials", {

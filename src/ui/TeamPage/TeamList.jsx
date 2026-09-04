@@ -109,8 +109,17 @@ function TeamList() {
         try {
             let result;
             const params = { page: currentPage, limit: itemsPerPage };
+            if (statusFilter !== "All Status") {
+                params.status = statusFilter.toLowerCase();
+            }
+            if (specialtyFilter !== "All Specialties") {
+                params.specialty = specialtyFilter;
+            }
+
             if (search.length >= 3) {
                 result = await searchTeams(search, params);
+            } else if (specialtyFilter !== "All Specialties" && statusFilter !== "All Status") {
+                result = await getAllTeams(params);
             } else if (specialtyFilter !== "All Specialties") {
                 result = await filterTeamsBySpecialty(specialtyFilter, params);
             } else if (statusFilter !== "All Status") {
@@ -166,7 +175,17 @@ function TeamList() {
         }; fetchStatuses();
     }, []);
 
-    const currentData = team;
+    const currentData = useMemo(() => {
+        return team.filter((item) => {
+            const itemSpec = item.specality || item.specialty || "";
+            const itemStatus = item.status || "";
+
+            const specMatch = specialtyFilter === "All Specialties" || itemSpec.toLowerCase() === specialtyFilter.toLowerCase();
+            const statusMatch = statusFilter === "All Status" || itemStatus.toLowerCase() === statusFilter.toLowerCase();
+
+            return specMatch && statusMatch;
+        });
+    }, [team, specialtyFilter, statusFilter]);
     // const currentData = filteredTeams;
 
     // const handleExportCSV = () => {

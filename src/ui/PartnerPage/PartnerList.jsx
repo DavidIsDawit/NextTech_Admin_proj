@@ -144,7 +144,12 @@ function PartnerList() {
         }; fetchStatuses();
     }, []);
 
-    const currentData = partners;
+    const currentData = useMemo(() => {
+        return partners.filter((item) => {
+            const itemStatus = item.status || "";
+            return statusFilter === "All Status" || itemStatus.toLowerCase() === statusFilter.toLowerCase();
+        });
+    }, [partners, statusFilter]);
 
     const handleExportCSV = () => {
         exportToCSV(partners, "Partners", {

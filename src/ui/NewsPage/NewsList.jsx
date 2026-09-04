@@ -116,8 +116,18 @@ function NewsList() {
         try {
             let result;
             const params = { page: currentPage, limit: itemsPerPage };
+            if (statusFilter !== "All Status") {
+                params.status = statusFilter.toLowerCase();
+            }
+            if (categoryFilter !== "All Categories") {
+                params.catagory = categoryFilter;
+                params.category = categoryFilter;
+            }
+
             if (search.length >= 3) {
                 result = await searchNews(search, params);
+            } else if (categoryFilter !== "All Categories" && statusFilter !== "All Status") {
+                result = await getAllNews(params);
             } else if (categoryFilter !== "All Categories") {
                 result = await filterNewsByCategory(categoryFilter, params);
             } else if (statusFilter !== "All Status") {
@@ -173,7 +183,17 @@ function NewsList() {
         fetchStatuses();
     }, []);
 
-    const currentNews = news;
+    const currentNews = useMemo(() => {
+        return news.filter((item) => {
+            const itemCat = item.catagory || item.category || "";
+            const itemStatus = item.status || "";
+
+            const catMatch = categoryFilter === "All Categories" || itemCat.toLowerCase() === categoryFilter.toLowerCase();
+            const statusMatch = statusFilter === "All Status" || itemStatus.toLowerCase() === statusFilter.toLowerCase();
+
+            return catMatch && statusMatch;
+        });
+    }, [news, categoryFilter, statusFilter]);
 
     const handleExportCSV = () => {
         exportToCSV(news, "News", {

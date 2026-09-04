@@ -114,9 +114,18 @@ function GalleryList() {
         try {
             let result;
             const params = { page: currentPage, limit: itemsPerPage };
+            if (statusFilter !== "All Status") {
+                params.status = statusFilter.toLowerCase();
+            }
+            if (categoryFilter !== "All Categories") {
+                params.category = categoryFilter;
+                params.catagory = categoryFilter;
+            }
 
             if (search.length >= 3) {
                 result = await searchGallery(search, params);
+            } else if (categoryFilter !== "All Categories" && statusFilter !== "All Status") {
+                result = await getAllGallery(params);
             } else if (categoryFilter !== "All Categories") {
                 result = await filterGalleryByCategory(categoryFilter, params);
             } else if (statusFilter !== "All Status") {
@@ -174,7 +183,17 @@ function GalleryList() {
         }; fetchStatuses();
     }, []);
 
-    const currentData = gallery;
+    const currentData = useMemo(() => {
+        return gallery.filter((item) => {
+            const itemCat = item.catagory || item.category || "";
+            const itemStatus = item.status || "";
+
+            const catMatch = categoryFilter === "All Categories" || itemCat.toLowerCase() === categoryFilter.toLowerCase();
+            const statusMatch = statusFilter === "All Status" || itemStatus.toLowerCase() === statusFilter.toLowerCase();
+
+            return catMatch && statusMatch;
+        });
+    }, [gallery, categoryFilter, statusFilter]);
 
 
     const handleExportCSV = () => {

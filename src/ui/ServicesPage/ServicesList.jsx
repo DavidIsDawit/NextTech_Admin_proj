@@ -112,8 +112,18 @@ function Services() {
         try {
             let result;
             const params = { page: currentPage, limit: itemsPerPage };
+            if (statusFilter !== "All Status") {
+                params.status = statusFilter.toLowerCase();
+            }
+            if (categoryFilter !== "All Categories") {
+                params.category = categoryFilter;
+                params.catagory = categoryFilter;
+            }
+
             if (search.length >= 3) {
                 result = await searchServices(search, params);
+            } else if (categoryFilter !== "All Categories" && statusFilter !== "All Status") {
+                result = await getAllServices(params);
             } else if (categoryFilter !== "All Categories") {
                 result = await filterServicesByCategory(categoryFilter, params);
             } else if (statusFilter !== "All Status") {
@@ -170,19 +180,17 @@ function Services() {
         }; fetchStatuses();
     }, []);
 
-    // const categories = useMemo(() => ["All Categories", ...new Set(services.map(s => s.catagory || s.category).filter(Boolean))], [services]);
-    // const statuses = useMemo(() => ["All Status", ...new Set(services.map(s => s.status).filter(Boolean))], [services]);
+    const currentServices = useMemo(() => {
+        return services.filter((item) => {
+            const itemCat = item.catagory || item.category || "";
+            const itemStatus = item.status || "";
 
-    // // Server-side pagination: services already contains only the current page items
-    // const filteredServices = services.filter(item => {
-    //     const categoryMatch = categoryFilter === "All Categories" || (item.catagory || item.category) === categoryFilter;
-    //     const statusMatch = statusFilter === "All Status" || item.status === statusFilter;
-    //     return categoryMatch && statusMatch;
-    // });
-    // const currentServices = filteredServices;
+            const catMatch = categoryFilter === "All Categories" || itemCat.toLowerCase() === categoryFilter.toLowerCase();
+            const statusMatch = statusFilter === "All Status" || itemStatus.toLowerCase() === statusFilter.toLowerCase();
 
-    const currentServices = services.filter(item =>
-        statusFilter === "All Status" || item.status === statusFilter);
+            return catMatch && statusMatch;
+        });
+    }, [services, categoryFilter, statusFilter]);
 
     const handleExportCSV = () => {
         const exportData = services.map((service) => ({

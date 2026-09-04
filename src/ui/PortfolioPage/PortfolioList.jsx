@@ -119,9 +119,17 @@ function PortfolioList() {
         try {
             let result;
             const params = { page: currentPage, limit: itemsPerPage, sort: "latest" };
+            if (statusFilter !== "All Status") {
+                params.status = statusFilter.toLowerCase();
+            }
+            if (sectorFilter !== "All Sectors") {
+                params.sector = sectorFilter;
+            }
 
             if (search.length >= 3) {
                 result = await searchPortfolios(search, params);
+            } else if (sectorFilter !== "All Sectors" && statusFilter !== "All Status") {
+                result = await getAllPortfolios(params);
             } else if (sectorFilter !== "All Sectors") {
                 result = await filterPortfoliosBySectors(sectorFilter, params);
             } else if (statusFilter !== "All Status") {
@@ -181,20 +189,17 @@ function PortfolioList() {
         }; fetchStatuses();
     }, []);
 
-    // const sectors = useMemo(() => ["All Sectors", ...new Set(portfolios.map(s => s.sector).filter(Boolean))], [portfolios]);
-    // const statuses = useMemo(() => ["All Status", ...new Set(portfolios.map(s => s.status).filter(Boolean))], [portfolios]);
+    const currentPortfolios = useMemo(() => {
+        return portfolios.filter((item) => {
+            const itemSector = item.sector || item.category || "";
+            const itemStatus = item.status || "";
 
-    // Server-side pagination: portfolios already contains only the current page items
-    // const filteredPortfolios = portfolios.filter(item => {
-    //     const sectorMatch = sectorFilter === "All Sectors" || item.sector === sectorFilter;
-    //     const statusMatch = statusFilter === "All Status" || item.status === statusFilter;
-    //     return sectorMatch && statusMatch;
-    // });
-    // const currentData = filteredPortfolios;
-    const currentPortfolios = portfolios.filter(item =>
-        (statusFilter === "All Status" || item.status === statusFilter) &&
-        (sectorFilter === "All Sectors" || item.sector === sectorFilter)
-    );
+            const sectorMatch = sectorFilter === "All Sectors" || itemSector.toLowerCase() === sectorFilter.toLowerCase();
+            const statusMatch = statusFilter === "All Status" || itemStatus.toLowerCase() === statusFilter.toLowerCase();
+
+            return sectorMatch && statusMatch;
+        });
+    }, [portfolios, sectorFilter, statusFilter]);
 
     const handleExportCSV = () => {
         exportToCSV(portfolios, "Portfolios", {

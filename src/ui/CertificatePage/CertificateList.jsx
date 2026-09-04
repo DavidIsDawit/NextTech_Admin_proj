@@ -144,8 +144,12 @@ function CertificateList() {
         }; fetchStatuses();
     }, []);
 
-    const currentData = certificates.filter(item =>
-        statusFilter === "All Status" || item.status === statusFilter);
+    const currentData = useMemo(() => {
+        return certificates.filter((item) => {
+            const itemStatus = item.status || "";
+            return statusFilter === "All Status" || itemStatus.toLowerCase() === statusFilter.toLowerCase();
+        });
+    }, [certificates, statusFilter]);
 
     // const statuses = useMemo(() => ["All Status", ...new Set(certificates.map(s => s.status).filter(Boolean))], [certificates]);
 
