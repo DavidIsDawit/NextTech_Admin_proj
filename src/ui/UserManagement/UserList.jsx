@@ -159,11 +159,12 @@ function UserList() {
      */
     const getNormalizedSnapshot = (data) => {
         if (!data) return '';
-        const { name = '', role = '', email = '', password = '' } = data;
+        const { name = '', role = '', email = '', password = '', employeId = '' } = data;
         return JSON.stringify({
             name: name.trim(),
             email: email.trim().toLowerCase(),
             role: role.trim().toLowerCase(),
+            employeId: employeId.trim(),
             // Treat any blank/whitespace password as "not changed"
             password: password.trim(),
         });
@@ -211,8 +212,9 @@ function UserList() {
         setFormType('add');
         setFormData({
             name: '',
-            role: '',
+            role: 'User',
             email: '',
+            employeId: `EMP${Math.floor(1000 + Math.random() * 9000)}`,
             password: '',
         });
         initialFormDataRef.current = null;
@@ -226,8 +228,8 @@ function UserList() {
         setSelectedItem(item);
         setSelectedId(item._id ?? item.id);
 
-        // Preserve the original employeId so it is never regenerated on update
-        originalEmployeIdRef.current = item.employeId || null;
+        const empId = item.employeId || item.employeeId || '';
+        originalEmployeIdRef.current = empId;
 
         // Normalize backend role (lowercase → capitalized) to match the dropdown options
         const rawRole = item.role || '';
@@ -239,6 +241,7 @@ function UserList() {
             name: item.name || item.fullName || '',
             role: normalizedRole,
             email: item.email || '',
+            employeId: empId,
             password: '', // always blank when opening edit
         };
         // Capture the snapshot synchronously BEFORE setting state — same pattern as TestimonialList
@@ -284,21 +287,18 @@ function UserList() {
                     department: "N/A",
                     phoneNumber: `09${Math.floor(10000000 + Math.random() * 90000000)}`,
                     location: "N/A",
-                    // Generate employeId only for new users
-                    employeId: `EMP${Math.floor(1000 + Math.random() * 9000)}`,
+                    employeId: formData.employeId ? formData.employeId.trim() : `EMP${Math.floor(1000 + Math.random() * 9000)}`,
                 };
                 const res = await createUser(createPayload);
                 toast.success(res?.message || res?.data?.message);
             } else {
                 // ── Update payload ───────────────────────────────────────────────
                 // Send only the fields that are editable through this form.
-                // Never regenerate the employeId — reuse the original.
                 const updatePayload = {
                     name: formData.name.trim(),
                     email: formData.email.trim(),
                     role: formData.role.toLowerCase(),
-                    // Preserve the original employeId; never generate a new random one
-                    employeId: originalEmployeIdRef.current || undefined,
+                    employeId: formData.employeId ? formData.employeId.trim() : (originalEmployeIdRef.current || undefined),
                 };
                 // Only include password if the admin entered a new one
                 if (formData.password?.trim()) {

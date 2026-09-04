@@ -9,7 +9,16 @@ export function UserForm({ formData, onChange, errors, formType }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    onChange({ ...formData, [name]: value });
+    let updated = { ...formData, [name]: value };
+
+    if (name === 'role' && formType === 'add') {
+      const currentEmpId = formData.employeId || '';
+      const num = currentEmpId.replace(/^(EMP|ADM)/i, '') || Math.floor(1000 + Math.random() * 9000);
+      const prefix = value.toLowerCase() === 'admin' ? 'ADM' : 'EMP';
+      updated.employeId = `${prefix}${num}`;
+    }
+
+    onChange(updated);
   };
 
   // Map backend roles or use static roles
@@ -63,6 +72,27 @@ export function UserForm({ formData, onChange, errors, formType }) {
         </div>
         {errors.role && (
           <p className="text-sm text-red-500">{errors.role}</p>
+        )}
+      </div>
+
+      {/* Employee ID */}
+      <div className="space-y-2">
+        <Label htmlFor="employeId" className={errors.employeId ? 'text-red-500' : ''}>
+          Employee ID <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="employeId"
+          name="employeId"
+          placeholder="e.g. EMP1001"
+          value={formData.employeId || ''}
+          onChange={handleChange}
+          disabled={formType === 'edit'}
+          className={`disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed ${
+            errors.employeId ? 'border-red-500' : ''
+          }`}
+        />
+        {errors.employeId && (
+          <p className="text-sm text-red-500">{errors.employeId}</p>
         )}
       </div>
 
