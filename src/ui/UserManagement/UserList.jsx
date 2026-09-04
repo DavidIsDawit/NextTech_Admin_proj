@@ -472,7 +472,7 @@ function UserList() {
                                 className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-all duration-150 cursor-pointer ${
                                     isActive
                                         ? 'bg-[#00A3E0] text-white shadow-sm'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-[#00A3E0] hover:text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-[#e0f2fe] hover:text-[#00A3E0]'
                                 }`}
                             >
                                 {role}
