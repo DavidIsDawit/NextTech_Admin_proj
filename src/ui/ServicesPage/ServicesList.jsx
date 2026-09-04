@@ -142,7 +142,7 @@ function Services() {
                 }
                 if (categoryFilter !== "All Categories") {
                     const catMatch = categoryFilter.toLowerCase();
-                    servicesArray = servicesArray.filter(item => (item.category || "").toLowerCase() === catMatch);
+                    servicesArray = servicesArray.filter(item => (item.category || item.catagory || "").toLowerCase() === catMatch);
                 }
 
                 const isClientSideSliced = servicesArray.length > itemsPerPage;
@@ -442,7 +442,7 @@ function Services() {
                 </div>
                 <div className="col-span-1 border-gray-100 sm:border-0 rounded-lg sm:rounded-none bg-white sm:bg-transparent overflow-hidden sm:overflow-visible shadow-sm sm:shadow-none sm:w-40">
                     <DynamicDropdown
-                        options={categories.length > 0 ? categories : [...new Set(services.map(s => s.category).filter(Boolean))]}
+                        options={categories.length > 0 ? categories : [...new Set(services.map(s => s.category || s.catagory).filter(Boolean))]}
                         value={categoryFilter}
                         defaultOption="All Categories"
                         onChange={(val) => {

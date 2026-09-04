@@ -2,14 +2,17 @@ import api, { buildImageUrl } from "./api";
 
 /** Normalize service object by building absolute image URLs. */
 export const normalizeService = (service) => {
-    if (service?.imageCover) {
-        service.imageCover = buildImageUrl(service.imageCover);
-    }
-    if (service?.image) {
-        service.image = buildImageUrl(service.image);
-    }
-    if (Array.isArray(service?.images)) {
-        service.images = service.images.map((img) => buildImageUrl(img));
+    if (service) {
+        service.category = service.category || service.catagory || "";
+        if (service.imageCover) {
+            service.imageCover = buildImageUrl(service.imageCover);
+        }
+        if (service.image) {
+            service.image = buildImageUrl(service.image);
+        }
+        if (Array.isArray(service.images)) {
+            service.images = service.images.map((img) => buildImageUrl(img));
+        }
     }
     return service;
 };
